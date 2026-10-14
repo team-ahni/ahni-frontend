@@ -6,6 +6,7 @@ import 'package:ahni_mobile/features/grade/application/grade_registration_contro
 import 'package:ahni_mobile/features/grade/data/grade_api.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:ahni_mobile/features/grade/presentation/grade_list_page.dart';
+import 'package:ahni_mobile/features/scholarship/application/scholarship_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -221,6 +222,7 @@ Widget _testApp(
   CourseCatalogController? courseController,
   GradeRegistrationController? registrationController,
   GradeEditController? editController,
+  ScholarshipController? scholarshipController,
 }) {
   return MaterialApp(
     theme: ThemeData(
@@ -239,6 +241,8 @@ Widget _testApp(
       editController:
           editController ??
           GradeEditController(auth: _authenticated(), api: FakeGradeApi()),
+      scholarshipController:
+          scholarshipController ?? buildTestScholarshipController(),
       onAuthenticationRequired: onAuthenticationRequired ?? () {},
     ),
   );

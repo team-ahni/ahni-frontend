@@ -9,6 +9,8 @@ import 'package:ahni_mobile/features/grade/domain/grade_summary.dart';
 import 'package:ahni_mobile/features/grade/presentation/grade_edit_page.dart';
 import 'package:ahni_mobile/features/grade/presentation/grade_registration_page.dart';
 import 'package:ahni_mobile/features/grade/presentation/grade_simulation_page.dart';
+import 'package:ahni_mobile/features/scholarship/application/scholarship_controller.dart';
+import 'package:ahni_mobile/features/scholarship/presentation/scholarship_page.dart';
 import 'package:flutter/material.dart';
 
 class GradeListPage extends StatefulWidget {
@@ -18,6 +20,7 @@ class GradeListPage extends StatefulWidget {
     required this.courseController,
     required this.registrationController,
     required this.editController,
+    required this.scholarshipController,
     required this.onAuthenticationRequired,
     this.bottomNavigationBar,
     super.key,
@@ -28,6 +31,7 @@ class GradeListPage extends StatefulWidget {
   final CourseCatalogController courseController;
   final GradeRegistrationController registrationController;
   final GradeEditController editController;
+  final ScholarshipController scholarshipController;
   final VoidCallback onAuthenticationRequired;
   final Widget? bottomNavigationBar;
 
@@ -72,6 +76,21 @@ class _GradeListPageState extends State<GradeListPage> {
       MaterialPageRoute(
         builder: (routeContext) => GradeSimulationPage(
           controller: widget.simulationController,
+          onAuthenticationRequired: () {
+            if (routeContext.mounted) Navigator.of(routeContext).pop();
+            widget.onAuthenticationRequired();
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openScholarship() async {
+    widget.scholarshipController.reset();
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (routeContext) => ScholarshipPage(
+          controller: widget.scholarshipController,
           onAuthenticationRequired: () {
             if (routeContext.mounted) Navigator.of(routeContext).pop();
             widget.onAuthenticationRequired();
@@ -151,6 +170,15 @@ class _GradeListPageState extends State<GradeListPage> {
                 ? null
                 : _openSimulation,
             icon: const Icon(Icons.calculate_outlined),
+          ),
+          IconButton(
+            key: const Key('open-scholarship'),
+            tooltip: '장학요건',
+            onPressed:
+                widget.controller.state is GradeListAuthenticationRequired
+                ? null
+                : _openScholarship,
+            icon: const Icon(Icons.workspace_premium_outlined),
           ),
           TextButton(
             key: const Key('open-grade-registration'),

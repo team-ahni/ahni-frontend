@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ahni_mobile/features/graduation/application/graduation_controller.dart';
 import 'package:ahni_mobile/features/graduation/presentation/graduation_page.dart';
+import 'package:ahni_mobile/features/scholarship/application/scholarship_controller.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({
@@ -22,6 +23,7 @@ class OnboardingPage extends StatefulWidget {
     required this.gradeController,
     required this.gradeSimulationController,
     required this.graduationController,
+    required this.scholarshipController,
     required this.courseController,
     required this.gradeRegistrationController,
     required this.gradeEditController,
@@ -34,6 +36,7 @@ class OnboardingPage extends StatefulWidget {
   final GradeListController gradeController;
   final GradeSimulationController gradeSimulationController;
   final GraduationController graduationController;
+  final ScholarshipController scholarshipController;
   final CourseCatalogController courseController;
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
@@ -74,6 +77,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       widget.gradeController.reset();
       widget.gradeSimulationController.reset();
       widget.graduationController.reset();
+      widget.scholarshipController.reset();
       widget.courseController.reset();
       widget.gradeRegistrationController.reset();
       widget.gradeEditController.reset();
@@ -109,6 +113,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         gradeController: widget.gradeController,
         gradeSimulationController: widget.gradeSimulationController,
         graduationController: widget.graduationController,
+        scholarshipController: widget.scholarshipController,
         courseController: widget.courseController,
         gradeRegistrationController: widget.gradeRegistrationController,
         gradeEditController: widget.gradeEditController,
@@ -730,6 +735,7 @@ class _StudentPortalView extends StatefulWidget {
     required this.gradeController,
     required this.gradeSimulationController,
     required this.graduationController,
+    required this.scholarshipController,
     required this.courseController,
     required this.gradeRegistrationController,
     required this.gradeEditController,
@@ -742,6 +748,7 @@ class _StudentPortalView extends StatefulWidget {
   final GradeListController gradeController;
   final GradeSimulationController gradeSimulationController;
   final GraduationController graduationController;
+  final ScholarshipController scholarshipController;
   final CourseCatalogController courseController;
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
@@ -796,6 +803,7 @@ class _StudentPortalViewState extends State<_StudentPortalView> {
         courseController: widget.courseController,
         registrationController: widget.gradeRegistrationController,
         editController: widget.gradeEditController,
+        scholarshipController: widget.scholarshipController,
         onAuthenticationRequired: widget.onboardingController.signOut,
         bottomNavigationBar: navigationBar,
       );

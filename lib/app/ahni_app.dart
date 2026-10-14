@@ -11,6 +11,7 @@ import 'package:ahni_mobile/features/onboarding/presentation/onboarding_page.dar
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ahni_mobile/features/graduation/application/graduation_controller.dart';
+import 'package:ahni_mobile/features/scholarship/application/scholarship_controller.dart';
 
 class AhniApp extends StatelessWidget {
   const AhniApp({
@@ -19,6 +20,7 @@ class AhniApp extends StatelessWidget {
     required this.gradeController,
     required this.gradeSimulationController,
     required this.graduationController,
+    required this.scholarshipController,
     required this.courseController,
     required this.gradeRegistrationController,
     required this.gradeEditController,
@@ -32,6 +34,7 @@ class AhniApp extends StatelessWidget {
   final GradeListController gradeController;
   final GradeSimulationController gradeSimulationController;
   final GraduationController graduationController;
+  final ScholarshipController scholarshipController;
   final CourseCatalogController courseController;
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
@@ -153,6 +156,7 @@ class AhniApp extends StatelessWidget {
         gradeController: gradeController,
         gradeSimulationController: gradeSimulationController,
         graduationController: graduationController,
+        scholarshipController: scholarshipController,
         courseController: courseController,
         gradeRegistrationController: gradeRegistrationController,
         gradeEditController: gradeEditController,

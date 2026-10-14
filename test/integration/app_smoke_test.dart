@@ -20,6 +20,7 @@ void main() {
         controller: controller,
         gradeController: buildTestGradeListController(),
         graduationController: buildTestGraduationController(),
+        scholarshipController: buildTestScholarshipController(),
         courseController: buildTestCourseCatalogController(),
         gradeRegistrationController: buildTestGradeRegistrationController(),
         gradeEditController: buildTestGradeEditController(),

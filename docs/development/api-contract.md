@@ -4,14 +4,15 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: `feat/timetable` working tree based on `f93fd0ca4e440973a86325dd2e43c69e39cab5b4` (uncommitted timetable API additions)
+- Backend source: `feat/timetable` commit `9eb1002cc1739e7fe966e13e25fa6e6dacf9e05e`
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `77775a84f517dda54eef98813ba4cc6116ef53e30c413b2fe61e2731518b11f6`
+- Source SHA-256: `9e2004ab213e212d35efde853e618efc2b17efa19afa56473f2e391e0acda1c9`
 
 This snapshot includes authenticated lecture lookup and student timetable CRUD.
 The app sends only lecture UUIDs; the backend checks ownership and time conflicts.
 The snapshot also includes the administrator-only atomic lecture import API.
+Scholarship eligibility and administrator scholarship criteria endpoints are preserved.
 
 ## Update procedure
 
