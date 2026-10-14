@@ -27,6 +27,7 @@ void main() {
     expect(paths, contains('/api/v1/grades/{gradeEntityId}'));
     expect(paths, contains('/api/v1/inquiries'));
     expect(paths, contains('/api/v1/inquiries/{inquiryEntityId}'));
+    expect(paths, contains('/api/v1/scholarship-eligibility'));
 
     final inquiryItem =
         paths['/api/v1/inquiries/{inquiryEntityId}']! as Map<String, Object?>;

@@ -18,6 +18,7 @@ import 'package:ahni_mobile/features/inquiry/domain/inquiry.dart';
 
 import 'onboarding_fakes.dart';
 export 'graduation_fakes.dart';
+export 'scholarship_fakes.dart';
 
 InquiryController buildTestInquiryController({
   AuthGateway? auth,
