@@ -8,6 +8,8 @@ import 'package:ahni_mobile/features/grade/application/grade_simulation_controll
 import 'package:ahni_mobile/features/grade/presentation/grade_list_page.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/presentation/inquiry_page.dart';
+import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
+import 'package:ahni_mobile/features/timetable/presentation/timetable_page.dart';
 import 'package:ahni_mobile/features/onboarding/application/onboarding_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +26,7 @@ class OnboardingPage extends StatefulWidget {
     required this.gradeRegistrationController,
     required this.gradeEditController,
     required this.inquiryController,
+    this.timetableController,
     super.key,
   });
 
@@ -35,6 +38,7 @@ class OnboardingPage extends StatefulWidget {
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
+  final TimetableController? timetableController;
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
@@ -74,6 +78,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       widget.gradeRegistrationController.reset();
       widget.gradeEditController.reset();
       widget.inquiryController.reset();
+      widget.timetableController?.reset();
     }
     if (mounted) setState(() {});
   }
@@ -108,6 +113,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         gradeRegistrationController: widget.gradeRegistrationController,
         gradeEditController: widget.gradeEditController,
         inquiryController: widget.inquiryController,
+        timetableController: widget.timetableController,
         profileState: state,
       ),
       MajorEditing state => _MajorEditingView(
@@ -728,6 +734,7 @@ class _StudentPortalView extends StatefulWidget {
     required this.gradeRegistrationController,
     required this.gradeEditController,
     required this.inquiryController,
+    required this.timetableController,
     required this.profileState,
   });
 
@@ -739,6 +746,7 @@ class _StudentPortalView extends StatefulWidget {
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
+  final TimetableController? timetableController;
   final ProfileReady profileState;
 
   @override
@@ -756,22 +764,28 @@ class _StudentPortalViewState extends State<_StudentPortalView> {
         if (_selectedIndex == index) return;
         setState(() => _selectedIndex = index);
       },
-      destinations: const [
-        NavigationDestination(
+      destinations: [
+        const NavigationDestination(
           icon: Icon(Icons.grading_outlined),
           selectedIcon: Icon(Icons.grading_rounded),
           label: '성적',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.school_outlined),
           selectedIcon: Icon(Icons.school),
           label: '졸업',
         ),
-        NavigationDestination(
+        const NavigationDestination(
           icon: Icon(Icons.person_outline_rounded),
           selectedIcon: Icon(Icons.person_rounded),
           label: '내 정보',
         ),
+        if (widget.timetableController != null)
+          const NavigationDestination(
+            icon: Icon(Icons.calendar_view_week_outlined),
+            selectedIcon: Icon(Icons.calendar_view_week),
+            label: '시간표',
+          ),
       ],
     );
 
@@ -789,6 +803,14 @@ class _StudentPortalViewState extends State<_StudentPortalView> {
     if (_selectedIndex == 1) {
       return GraduationPage(
         controller: widget.graduationController,
+        onAuthenticationRequired: widget.onboardingController.signOut,
+        bottomNavigationBar: navigationBar,
+      );
+    }
+    final timetableController = widget.timetableController;
+    if (_selectedIndex == 3 && timetableController != null) {
+      return TimetablePage(
+        controller: timetableController,
         onAuthenticationRequired: widget.onboardingController.signOut,
         bottomNavigationBar: navigationBar,
       );
