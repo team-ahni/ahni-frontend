@@ -12,6 +12,19 @@ import '../../../support/onboarding_fakes.dart';
 import '../../../support/timetable_fakes.dart';
 
 void main() {
+  test('parses instructor text without a professor entity', () {
+    final lecture = Lecture.fromJson({
+      'entityId': 'lecture-1',
+      'courseCode': 'TEST101',
+      'courseName': '자료구조',
+      'credit': 3,
+      'professorName': '남춘성,이우형',
+      'section': '001',
+      'schedules': <Object?>[],
+    });
+    expect(lecture.professorName, '남춘성,이우형');
+  });
+
   test('parses minute precision and rejects malformed times', () {
     expect(LectureSchedule.minutes('09:30:00'), 570);
     expect(() => LectureSchedule.minutes('25:00'), throwsFormatException);

@@ -58,8 +58,7 @@ class Lecture {
       courseCode: json['courseCode']! as String,
       courseName: json['courseName']! as String,
       credit: (json['credit']! as num).toDouble(),
-      professorName:
-          (json['professor']! as Map<String, Object?>)['name']! as String,
+      professorName: json['professorName']! as String,
       section: json['section']! as String,
       schedules: List.unmodifiable(
         (json['schedules']! as List<Object?>).map(

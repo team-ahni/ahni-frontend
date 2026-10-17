@@ -4,15 +4,20 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: `feat/timetable` commit `9eb1002cc1739e7fe966e13e25fa6e6dacf9e05e`
+- Backend source: `feat/timetable` working tree with `origin/main` at `f24fec2`, professor-name and inquiry-attachment contracts (2026-10-18)
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `9e2004ab213e212d35efde853e618efc2b17efa19afa56473f2e391e0acda1c9`
+- Source SHA-256: `95ed981677dc0304d6fce6dfc8bea7b67866d2c63209656dbcebdeb622d81799`
 
 This snapshot includes authenticated lecture lookup and student timetable CRUD.
 The app sends only lecture UUIDs; the backend checks ownership and time conflicts.
+Lecture responses now expose `professorName` directly, preserving joint-instructor
+text. The old nested `professor` object and professor CRUD are removed. Deploy
+this client with the backend V25 migration and updated administrator client.
 The snapshot also includes the administrator-only atomic lecture import API.
 Scholarship eligibility and administrator scholarship criteria endpoints are preserved.
+
+Inquiry attachment uploads must set the multipart part `Content-Type` (`image/jpeg`, `image/png`, or `application/pdf`); the backend rejects `application/octet-stream` with `UNSUPPORTED_INQUIRY_ATTACHMENT_TYPE`.
 
 ## Update procedure
 

@@ -59,3 +59,59 @@ class InquiryDraft {
     return {'title': title.trim(), 'content': content.trim()};
   }
 }
+
+class InquiryAttachment {
+  const InquiryAttachment({
+    required this.entityId,
+    required this.filename,
+    required this.contentType,
+    required this.sizeBytes,
+    required this.createdAt,
+  });
+
+  factory InquiryAttachment.fromJson(Map<String, Object?> json) {
+    return InquiryAttachment(
+      entityId: json['entityId']! as String,
+      filename: json['filename']! as String,
+      contentType: json['contentType']! as String,
+      sizeBytes: json['sizeBytes']! as int,
+      createdAt: DateTime.parse(json['createdAt']! as String),
+    );
+  }
+
+  static const maxCount = 3;
+  static const maxSizeBytes = 5 * 1024 * 1024;
+
+  final String entityId;
+  final String filename;
+  final String contentType;
+  final int sizeBytes;
+  final DateTime createdAt;
+
+  String get typeLabel {
+    return switch (contentType) {
+      'image/jpeg' => 'JPG',
+      'image/png' => 'PNG',
+      'application/pdf' => 'PDF',
+      _ => '파일',
+    };
+  }
+
+  String get sizeLabel {
+    return sizeBytes < 1024 * 1024
+        ? '${(sizeBytes / 1024).round().clamp(1, 1024)}KB'
+        : '${(sizeBytes / (1024 * 1024)).toStringAsFixed(1)}MB';
+  }
+
+  /// Returns the backend-accepted content type for [filename], or null.
+  static String? contentTypeFor(String filename) {
+    final dot = filename.lastIndexOf('.');
+    final extension = dot < 0 ? '' : filename.substring(dot + 1).toLowerCase();
+    return switch (extension) {
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      'pdf' => 'application/pdf',
+      _ => null,
+    };
+  }
+}

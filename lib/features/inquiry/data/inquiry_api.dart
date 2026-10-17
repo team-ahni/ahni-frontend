@@ -5,6 +5,7 @@ import 'dart:convert';
 
 import 'package:ahni_mobile/features/inquiry/domain/inquiry.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 enum InquiryApiFailureKind {
   unauthorized,
@@ -36,6 +37,25 @@ abstract interface class InquiryApi {
   );
 
   Future<void> deleteInquiry(String accessToken, String inquiryEntityId);
+
+  Future<List<InquiryAttachment>> getAttachments(
+    String accessToken,
+    String inquiryEntityId,
+  );
+
+  Future<InquiryAttachment> uploadAttachment(
+    String accessToken,
+    String inquiryEntityId, {
+    required String filename,
+    required String contentType,
+    required List<int> bytes,
+  });
+
+  Future<void> deleteAttachment(
+    String accessToken,
+    String inquiryEntityId,
+    String attachmentEntityId,
+  );
 }
 
 class HttpInquiryApi implements InquiryApi {
@@ -156,6 +176,95 @@ class HttpInquiryApi implements InquiryApi {
     }
   }
 
+  @override
+  Future<List<InquiryAttachment>> getAttachments(
+    String accessToken,
+    String inquiryEntityId,
+  ) async {
+    final response = await _request(
+      () => _client.get(
+        _attachmentsUri(inquiryEntityId),
+        headers: {'authorization': 'Bearer $accessToken'},
+      ),
+    );
+    if (response.statusCode != 200) {
+      throw _failure(response, fallbackMessage: '첨부파일을 불러오지 못했어요. 다시 시도해 주세요.');
+    }
+    try {
+      final body = jsonDecode(utf8.decode(response.bodyBytes)) as List<Object?>;
+      return body
+          .map(
+            (item) => InquiryAttachment.fromJson(item! as Map<String, Object?>),
+          )
+          .toList(growable: false);
+    } on FormatException catch (_) {
+      throw _malformedResponse;
+    } on TypeError catch (_) {
+      throw _malformedResponse;
+    }
+  }
+
+  @override
+  Future<InquiryAttachment> uploadAttachment(
+    String accessToken,
+    String inquiryEntityId, {
+    required String filename,
+    required String contentType,
+    required List<int> bytes,
+  }) async {
+    final response = await _request(() async {
+      // 백엔드가 파트의 Content-Type까지 검증하므로 반드시 지정한다.
+      final request =
+          http.MultipartRequest('POST', _attachmentsUri(inquiryEntityId))
+            ..headers['authorization'] = 'Bearer $accessToken'
+            ..files.add(
+              http.MultipartFile.fromBytes(
+                'file',
+                bytes,
+                filename: filename,
+                contentType: MediaType.parse(contentType),
+              ),
+            );
+      return http.Response.fromStream(await _client.send(request));
+    });
+    if (response.statusCode != 201) {
+      throw _failure(response, fallbackMessage: '첨부파일을 올리지 못했어요. 다시 시도해 주세요.');
+    }
+    try {
+      return InquiryAttachment.fromJson(_decodeMap(response));
+    } on FormatException catch (_) {
+      throw _malformedResponse;
+    } on TypeError catch (_) {
+      throw _malformedResponse;
+    }
+  }
+
+  @override
+  Future<void> deleteAttachment(
+    String accessToken,
+    String inquiryEntityId,
+    String attachmentEntityId,
+  ) async {
+    final response = await _request(
+      () => _client.delete(
+        baseUri.resolve(
+          '${_attachmentsUri(inquiryEntityId).path}/'
+          '${Uri.encodeComponent(attachmentEntityId)}',
+        ),
+        headers: {'authorization': 'Bearer $accessToken'},
+      ),
+    );
+    if (response.statusCode != 204) {
+      throw _failure(response, fallbackMessage: '첨부파일을 삭제하지 못했어요. 다시 시도해 주세요.');
+    }
+  }
+
+  Uri _attachmentsUri(String inquiryEntityId) {
+    return baseUri.resolve(
+      '/api/v1/inquiries/${Uri.encodeComponent(inquiryEntityId)}/attachments',
+    );
+  }
+
   Uri _inquiryUri(String inquiryEntityId) {
     return baseUri.resolve(
       '/api/v1/inquiries/${Uri.encodeComponent(inquiryEntityId)}',
@@ -204,6 +313,23 @@ class HttpInquiryApi implements InquiryApi {
       'INQUIRY_UPDATE_CONFLICT' => const InquiryApiFailure(
         InquiryApiFailureKind.conflict,
         '답변이 등록된 문의는 수정할 수 없어요.',
+      ),
+      'INQUIRY_ATTACHMENT_NOT_FOUND' => const InquiryApiFailure(
+        InquiryApiFailureKind.notFound,
+        '첨부파일을 찾을 수 없어요. 새로고침해 주세요.',
+      ),
+      'INVALID_INQUIRY_ATTACHMENT' ||
+      'UNSUPPORTED_INQUIRY_ATTACHMENT_TYPE' => const InquiryApiFailure(
+        InquiryApiFailureKind.validation,
+        'JPG, PNG, PDF 파일만 첨부할 수 있어요.',
+      ),
+      'INQUIRY_ATTACHMENT_TOO_LARGE' => const InquiryApiFailure(
+        InquiryApiFailureKind.validation,
+        '5MB 이하 파일만 첨부할 수 있어요.',
+      ),
+      'INQUIRY_ATTACHMENT_LIMIT_EXCEEDED' => const InquiryApiFailure(
+        InquiryApiFailureKind.conflict,
+        '첨부파일은 3개까지 올릴 수 있어요.',
       ),
       _ => InquiryApiFailure(
         InquiryApiFailureKind.recoverable,

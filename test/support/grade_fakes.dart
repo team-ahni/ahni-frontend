@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:ahni_mobile/core/auth/auth_gateway.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_edit_controller.dart';
@@ -13,6 +15,7 @@ import 'package:ahni_mobile/features/grade/domain/grade_summary.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_update.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_simulation.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
+import 'package:ahni_mobile/features/inquiry/data/attachment_picker.dart';
 import 'package:ahni_mobile/features/inquiry/data/inquiry_api.dart';
 import 'package:ahni_mobile/features/inquiry/domain/inquiry.dart';
 
@@ -282,6 +285,68 @@ class FakeInquiryApi implements InquiryApi {
     lastDeletedInquiryEntityId = inquiryEntityId;
     if (error case final value?) throw value;
   }
+
+  List<InquiryAttachment> attachments = const [];
+  Object? attachmentError;
+  ({String filename, String contentType, List<int> bytes})? lastUpload;
+  String? lastDeletedAttachmentEntityId;
+
+  @override
+  Future<List<InquiryAttachment>> getAttachments(
+    String accessToken,
+    String inquiryEntityId,
+  ) async {
+    if (attachmentError case final value?) throw value;
+    return attachments;
+  }
+
+  @override
+  Future<InquiryAttachment> uploadAttachment(
+    String accessToken,
+    String inquiryEntityId, {
+    required String filename,
+    required String contentType,
+    required List<int> bytes,
+  }) async {
+    if (attachmentError case final value?) throw value;
+    lastUpload = (filename: filename, contentType: contentType, bytes: bytes);
+    return InquiryAttachment(
+      entityId: 'attachment-id-${attachments.length + 1}',
+      filename: filename,
+      contentType: contentType,
+      sizeBytes: bytes.length,
+      createdAt: DateTime.utc(2026, 10, 17),
+    );
+  }
+
+  @override
+  Future<void> deleteAttachment(
+    String accessToken,
+    String inquiryEntityId,
+    String attachmentEntityId,
+  ) async {
+    if (attachmentError case final value?) throw value;
+    lastDeletedAttachmentEntityId = attachmentEntityId;
+  }
+}
+
+class FakeAttachmentPicker implements AttachmentPicker {
+  PickedFile? image;
+  PickedFile? pdf;
+
+  @override
+  Future<PickedFile?> pickImage() async => image;
+
+  @override
+  Future<PickedFile?> pickPdf() async => pdf;
+}
+
+PickedFile pickedFile(String name, List<int> bytes, {int? length}) {
+  return (
+    name: name,
+    length: length ?? bytes.length,
+    read: () async => Uint8List.fromList(bytes),
+  );
 }
 
 final testGrade = GradeRecord(
