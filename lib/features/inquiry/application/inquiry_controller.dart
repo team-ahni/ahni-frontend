@@ -1,6 +1,8 @@
 // ignore_for_file: prefer_initializing_formals
 
 import 'package:ahni_mobile/core/auth/auth_gateway.dart';
+import 'package:ahni_mobile/features/inquiry/application/inquiry_attachment_controller.dart';
+import 'package:ahni_mobile/features/inquiry/data/attachment_picker.dart';
 import 'package:ahni_mobile/features/inquiry/data/inquiry_api.dart';
 import 'package:ahni_mobile/features/inquiry/domain/inquiry.dart';
 import 'package:flutter/foundation.dart';
@@ -38,12 +40,17 @@ class InquiryAuthenticationRequired extends InquiryState {
 }
 
 class InquiryController extends ChangeNotifier {
-  InquiryController({required AuthGateway auth, required InquiryApi api})
-    : _auth = auth,
-      _api = api;
+  InquiryController({
+    required AuthGateway auth,
+    required InquiryApi api,
+    AttachmentPicker picker = const FilePickerAttachmentPicker(),
+  }) : _auth = auth,
+       _api = api,
+       _picker = picker;
 
   final AuthGateway _auth;
   final InquiryApi _api;
+  final AttachmentPicker _picker;
   InquiryState _state = const InquiryInitial();
   String? formMessage;
   String? actionMessage;
@@ -196,6 +203,15 @@ class InquiryController extends ChangeNotifier {
   }
 
   Future<void> retry() => load(force: true);
+
+  InquiryAttachmentController attachmentsFor(String inquiryEntityId) {
+    return InquiryAttachmentController(
+      auth: _auth,
+      api: _api,
+      picker: _picker,
+      inquiryEntityId: inquiryEntityId,
+    );
+  }
 
   void reset() {
     _generation++;

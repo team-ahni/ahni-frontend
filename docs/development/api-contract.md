@@ -4,10 +4,12 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: `feat/scholarship-requirements` commit `5ff82a4d251a3f7f5b0f69ea62e2304f7c6ad49f`
+- Backend source: `feat/inquiry-attachments` commit `d62d1a1dc48524a2dd9e845abff8bfb2119916d6` (ahni-backend PR #53)
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `c0fa459ae8e3df1779f7092d2fc61631278c8db28a1a539546a7af25c1df93bc`
+- Source SHA-256: `c7e9c4659eda5bbebc63e7c79133c72e7d48569969375733741ab237a0acce29`
+
+Inquiry attachment uploads must set the multipart part `Content-Type` (`image/jpeg`, `image/png`, or `application/pdf`); the backend rejects `application/octet-stream` with `UNSUPPORTED_INQUIRY_ATTACHMENT_TYPE`.
 
 ## Update procedure
 
