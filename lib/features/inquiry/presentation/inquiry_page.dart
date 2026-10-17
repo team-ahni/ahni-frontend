@@ -1,4 +1,5 @@
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
+import 'package:ahni_mobile/features/inquiry/application/inquiry_attachment_controller.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/domain/inquiry.dart';
 import 'package:flutter/material.dart';
@@ -327,11 +328,14 @@ class InquiryDetailPage extends StatefulWidget {
 
 class _InquiryDetailPageState extends State<InquiryDetailPage> {
   late Inquiry _inquiry = widget.inquiry;
+  late final InquiryAttachmentController _attachments = widget.controller
+      .attachmentsFor(widget.inquiry.entityId);
 
   @override
   void initState() {
     super.initState();
     widget.controller.addListener(_changed);
+    _attachments.load();
   }
 
   void _changed() {
@@ -341,6 +345,7 @@ class _InquiryDetailPageState extends State<InquiryDetailPage> {
   @override
   void dispose() {
     widget.controller.removeListener(_changed);
+    _attachments.dispose();
     super.dispose();
   }
 
@@ -416,6 +421,11 @@ class _InquiryDetailPageState extends State<InquiryDetailPage> {
                 const SizedBox(height: 24),
                 _DetailSection(title: '문의 내용', body: _inquiry.content),
                 const SizedBox(height: 16),
+                _AttachmentSection(
+                  controller: _attachments,
+                  canEdit: _inquiry.canEdit,
+                ),
+                const SizedBox(height: 16),
                 _DetailSection(
                   title: '답변',
                   body: _inquiry.answer?.trim().isNotEmpty == true
@@ -436,6 +446,160 @@ class _InquiryDetailPageState extends State<InquiryDetailPage> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AttachmentSection extends StatelessWidget {
+  const _AttachmentSection({required this.controller, required this.canEdit});
+
+  final InquiryAttachmentController controller;
+  final bool canEdit;
+
+  Future<void> _delete(
+    BuildContext context,
+    InquiryAttachment attachment,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('첨부파일 삭제'),
+        content: Text('${attachment.filename} 파일을 삭제할까요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('취소'),
+          ),
+          FilledButton(
+            key: const Key('confirm-delete-attachment'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) await controller.delete(attachment);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: controller,
+      builder: (context, _) {
+        final state = controller.state;
+        final count = controller.attachments.length;
+        return Container(
+          key: const Key('inquiry-attachments'),
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '첨부파일 $count/${InquiryAttachment.maxCount}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              switch (state) {
+                InquiryAttachmentLoading() => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+                InquiryAttachmentFailure(:final message) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    WhitespaceWrappedText(message),
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: controller.load,
+                      child: const Text('첨부파일 다시 불러오기'),
+                    ),
+                  ],
+                ),
+                InquiryAttachmentReady(:final attachments)
+                    when attachments.isEmpty =>
+                  const WhitespaceWrappedText('첨부파일이 없어요.'),
+                InquiryAttachmentReady(:final attachments) => Column(
+                  children: [
+                    for (final attachment in attachments)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: Icon(
+                          attachment.contentType == 'application/pdf'
+                              ? Icons.picture_as_pdf_outlined
+                              : Icons.image_outlined,
+                        ),
+                        title: Text(
+                          attachment.filename,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Text(
+                          '${attachment.typeLabel} · ${attachment.sizeLabel}',
+                        ),
+                        trailing: canEdit
+                            ? IconButton(
+                                key: Key(
+                                  'delete-attachment-${attachment.entityId}',
+                                ),
+                                onPressed: controller.isBusy
+                                    ? null
+                                    : () => _delete(context, attachment),
+                                tooltip: '${attachment.filename} 삭제',
+                                icon: const Icon(Icons.close_rounded),
+                              )
+                            : null,
+                      ),
+                  ],
+                ),
+              },
+              if (canEdit && controller.canAddMore) ...[
+                const SizedBox(height: 12),
+                const WhitespaceWrappedText(
+                  'JPG, PNG, PDF 파일을 5MB 이하로 올릴 수 있어요. 사진의 위치 정보는 지우고 올려요.',
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    OutlinedButton.icon(
+                      key: const Key('add-image-attachment'),
+                      onPressed: controller.isBusy
+                          ? null
+                          : () => controller.add(AttachmentSource.image),
+                      icon: const Icon(Icons.photo_outlined),
+                      label: const Text('사진 첨부'),
+                    ),
+                    OutlinedButton.icon(
+                      key: const Key('add-pdf-attachment'),
+                      onPressed: controller.isBusy
+                          ? null
+                          : () => controller.add(AttachmentSource.pdf),
+                      icon: const Icon(Icons.picture_as_pdf_outlined),
+                      label: const Text('PDF 첨부'),
+                    ),
+                  ],
+                ),
+              ],
+              if (controller.isBusy) ...[
+                const SizedBox(height: 12),
+                const LinearProgressIndicator(),
+              ],
+              if (controller.actionMessage case final message?) ...[
+                const SizedBox(height: 12),
+                WhitespaceWrappedText(
+                  message,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }
