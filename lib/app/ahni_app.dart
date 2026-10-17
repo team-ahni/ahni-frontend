@@ -5,6 +5,7 @@ import 'package:ahni_mobile/features/grade/application/grade_list_controller.dar
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_simulation_controller.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
+import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
 import 'package:ahni_mobile/features/onboarding/application/onboarding_controller.dart';
 import 'package:ahni_mobile/features/onboarding/presentation/onboarding_page.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class AhniApp extends StatelessWidget {
     required this.gradeRegistrationController,
     required this.gradeEditController,
     required this.inquiryController,
+    this.timetableController,
     super.key,
   });
 
@@ -37,6 +39,7 @@ class AhniApp extends StatelessWidget {
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
+  final TimetableController? timetableController;
 
   @override
   Widget build(BuildContext context) {
@@ -158,6 +161,7 @@ class AhniApp extends StatelessWidget {
         gradeRegistrationController: gradeRegistrationController,
         gradeEditController: gradeEditController,
         inquiryController: inquiryController,
+        timetableController: timetableController,
       ),
     );
   }

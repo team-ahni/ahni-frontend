@@ -11,6 +11,8 @@ import 'package:ahni_mobile/features/grade/data/course_api.dart';
 import 'package:ahni_mobile/features/grade/data/grade_api.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/data/inquiry_api.dart';
+import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
+import 'package:ahni_mobile/features/timetable/data/timetable_api.dart';
 import 'package:ahni_mobile/features/onboarding/application/onboarding_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -87,6 +89,10 @@ Future<void> main() async {
       inquiryController: InquiryController(
         auth: auth,
         api: HttpInquiryApi(baseUri: apiBaseUri, client: httpClient),
+      ),
+      timetableController: TimetableController(
+        auth: auth,
+        api: HttpTimetableApi(baseUri: apiBaseUri, client: httpClient),
       ),
     ),
   );

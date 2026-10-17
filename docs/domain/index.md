@@ -3,6 +3,14 @@
 - Academic records: courses, credits, grades, GPA, RPL, retakes.
 - Graduation and scholarships: criteria vary by entry year and department.
 - Timetable: conflict detection, custom start times, alarms, permission state.
+
+시간표 탭은 연도·학기별 개설 강의를 조회하고 학생 본인의 시간표에
+등록·변경·삭제합니다. 같은 학기의 다른 강의로만 변경하며 시간 충돌은
+서버가 판정합니다. 수업은 학교 현지 시간으로 표시하며 월~토 6열을
+항상 화면 너비 안에 표시합니다. 일요일 수업이 있으면 일요일도 함께 표시합니다.
+강의 블록을 누르면 전체 과목명·교수·시간·강의실을 확인합니다.
+계정 변경 시 시간표와 진행 중 요청을 초기화합니다.
+개인 시간 변경과 기기 알림은 후속 범위입니다.
 - Recommendations: prerequisites, graduation urgency, professor preference.
 - Notices and inquiries: authenticated student scope and notification state.
 
