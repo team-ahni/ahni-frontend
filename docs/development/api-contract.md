@@ -13,7 +13,7 @@ This snapshot includes authenticated lecture lookup and student timetable CRUD.
 The app sends only lecture UUIDs; the backend checks ownership and time conflicts.
 Lecture responses now expose `professorName` directly, preserving joint-instructor
 text. The old nested `professor` object and professor CRUD are removed. Deploy
-this client with the backend V25 migration and updated administrator client.
+this client with the backend V26 migration and updated administrator client.
 The snapshot also includes the administrator-only atomic lecture import API.
 Scholarship eligibility and administrator scholarship criteria endpoints are preserved.
 
