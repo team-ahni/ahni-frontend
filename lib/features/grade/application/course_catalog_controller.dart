@@ -3,6 +3,7 @@
 import 'package:ahni_mobile/core/auth/auth_gateway.dart';
 import 'package:ahni_mobile/features/grade/data/course_api.dart';
 import 'package:ahni_mobile/features/grade/domain/course_catalog_item.dart';
+import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:flutter/foundation.dart';
 
 sealed class CourseCatalogState {
@@ -49,16 +50,23 @@ class CourseCatalogController extends ChangeNotifier {
   List<CourseCatalogItem> _allCourses = const [];
   int _generation = 0;
   int? _academicYear;
+  AcademicTerm? _term;
 
   CourseCatalogState get state => _state;
 
-  Future<void> load({required int academicYear, bool force = false}) async {
+  Future<void> load({
+    required int academicYear,
+    AcademicTerm term = AcademicTerm.first,
+    bool force = false,
+  }) async {
     if (!force &&
         _academicYear == academicYear &&
+        _term == term &&
         _state is! CourseCatalogInitial) {
       return;
     }
     _academicYear = academicYear;
+    _term = term;
     _allCourses = const [];
     final requestGeneration = ++_generation;
 
@@ -73,6 +81,7 @@ class CourseCatalogController extends ChangeNotifier {
       final courses = await _api.getCourses(
         session.accessToken,
         academicYear: academicYear,
+        term: term,
       );
       if (requestGeneration != _generation) return;
       _allCourses = List.unmodifiable(courses);
@@ -116,12 +125,15 @@ class CourseCatalogController extends ChangeNotifier {
 
   Future<void> retry() async {
     final year = _academicYear;
-    if (year != null) await load(academicYear: year, force: true);
+    if (year != null && _term != null) {
+      await load(academicYear: year, term: _term!, force: true);
+    }
   }
 
   void reset() {
     _generation++;
     _academicYear = null;
+    _term = null;
     _allCourses = const [];
     _setState(const CourseCatalogInitial());
   }

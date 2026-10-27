@@ -182,6 +182,7 @@ class _FakeCourseApi implements CourseApi {
   Future<List<CourseCatalogItem>> getCourses(
     String accessToken, {
     required int academicYear,
+    required AcademicTerm term,
   }) async {
     calls++;
     requestedYears.add(academicYear);

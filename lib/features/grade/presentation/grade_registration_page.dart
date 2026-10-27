@@ -70,7 +70,9 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
   }
 
   Future<void> _selectCourse() async {
+    FocusManager.instance.primaryFocus?.unfocus();
     final year = _academicYearController.text;
+    final term = _term;
     final selected = await showModalBottomSheet<CourseCatalogItem>(
       context: context,
       isScrollControlled: true,
@@ -81,7 +83,10 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
       ),
       builder: (_) => _CoursePickerSheet(controller: widget.courseController),
     );
-    if (selected == null || !mounted || year != _academicYearController.text) {
+    if (selected == null ||
+        !mounted ||
+        year != _academicYearController.text ||
+        term != _term) {
       return;
     }
     setState(() {
@@ -102,8 +107,10 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
 
   void _loadCourses() {
     final year = int.tryParse(_academicYearController.text);
-    if (_validateYear(_academicYearController.text) == null && year != null) {
-      widget.courseController.load(academicYear: year);
+    if (_validateYear(_academicYearController.text) == null &&
+        year != null &&
+        _term != null) {
+      widget.courseController.load(academicYear: year, term: _term!);
     } else {
       widget.courseController.reset();
     }
@@ -250,11 +257,18 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                           onSelected: isSubmitting
                                               ? null
                                               : (_) {
+                                                  if (_term == term) return;
                                                   setState(() {
                                                     _term = term;
-                                                    _syncReplacement();
+                                                    _course = null;
+                                                    _creditController.clear();
+                                                    _replacedGradeEntityId =
+                                                        null;
                                                   });
                                                   field.didChange(term);
+                                                  widget.registrationController
+                                                      .reset();
+                                                  _loadCourses();
                                                 },
                                         ),
                                     ],
@@ -306,7 +320,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                               CourseCatalogLoading() => const Padding(
                                 padding: EdgeInsets.only(top: 12),
                                 child: WhitespaceWrappedText(
-                                  '이 연도의 과목을 불러오고 있어요.',
+                                  '이 학기의 과목을 불러오고 있어요.',
                                 ),
                               ),
                               CourseCatalogFailure state => Column(
@@ -328,7 +342,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                               CourseCatalogEmpty() => const Padding(
                                 padding: EdgeInsets.only(top: 12),
                                 child: WhitespaceWrappedText(
-                                  '이 연도에 등록된 과목이 없어요.',
+                                  '이 학기에 등록된 개설 강의가 없어요.',
                                 ),
                               ),
                               CourseCatalogAuthenticationRequired() =>
@@ -339,7 +353,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                               CourseCatalogInitial() => const Padding(
                                 padding: EdgeInsets.only(top: 12),
                                 child: WhitespaceWrappedText(
-                                  '수강연도를 먼저 입력해 주세요.',
+                                  '수강연도와 학기를 먼저 선택해 주세요.',
                                 ),
                               ),
                               CourseCatalogReady() => const SizedBox.shrink(),
@@ -606,8 +620,12 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
             minTileHeight: 56,
             contentPadding: const EdgeInsets.symmetric(horizontal: 4),
             title: Text(course.name),
-            subtitle: Text(
-              '${course.code} · ${_formatNumber(course.credit)}학점',
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: WhitespaceWrappedText(
+                '${course.code} · ${_formatNumber(course.credit)}학점'
+                '${course.professorNames.isEmpty ? '' : ' · ${course.professorNames.join(', ')}'}',
+              ),
             ),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => Navigator.of(context).pop(course),

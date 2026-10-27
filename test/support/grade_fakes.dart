@@ -92,6 +92,7 @@ class FakeCourseApi implements CourseApi {
   Future<List<CourseCatalogItem>> getCourses(
     String accessToken, {
     required int academicYear,
+    required AcademicTerm term,
   }) async {
     if (error case final value?) throw value;
     return results;

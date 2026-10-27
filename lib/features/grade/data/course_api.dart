@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:ahni_mobile/features/grade/domain/course_catalog_item.dart';
+import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:http/http.dart' as http;
 
 enum CourseApiFailureKind { unauthorized, recoverable }
@@ -19,6 +20,7 @@ abstract interface class CourseApi {
   Future<List<CourseCatalogItem>> getCourses(
     String accessToken, {
     required int academicYear,
+    required AcademicTerm term,
   });
 }
 
@@ -33,12 +35,18 @@ class HttpCourseApi implements CourseApi {
   Future<List<CourseCatalogItem>> getCourses(
     String accessToken, {
     required int academicYear,
+    required AcademicTerm term,
   }) async {
     final response = await _request(
       () => _client.get(
         baseUri
-            .resolve('/api/v1/curriculum-courses')
-            .replace(queryParameters: {'academicYear': '$academicYear'}),
+            .resolve('/api/v1/lectures/courses')
+            .replace(
+              queryParameters: {
+                'academicYear': '$academicYear',
+                'term': term.apiName,
+              },
+            ),
         headers: {'authorization': 'Bearer $accessToken'},
       ),
     );
@@ -76,20 +84,6 @@ class HttpCourseApi implements CourseApi {
         CourseApiFailureKind.unauthorized,
         '로그인이 만료되었습니다. 다시 로그인해 주세요.',
       );
-    }
-    if (response.statusCode == 404) {
-      try {
-        final body = jsonDecode(utf8.decode(response.bodyBytes));
-        if (body is Map<String, dynamic> &&
-            body['code'] == 'CURRICULUM_NOT_AVAILABLE') {
-          return const CourseApiFailure(
-            CourseApiFailureKind.recoverable,
-            '선택한 연도의 교과과정이 아직 준비되지 않았어요. 연도를 확인하거나 나중에 다시 시도해 주세요.',
-          );
-        }
-      } on FormatException catch (_) {
-        return _malformedResponse;
-      }
     }
     return const CourseApiFailure(
       CourseApiFailureKind.recoverable,

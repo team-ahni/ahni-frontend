@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/data/course_api.dart';
@@ -17,6 +18,7 @@ void main() {
   ) async {
     await tester.pumpWidget(_testApp());
     await tester.pumpAndSettle();
+    await _tapKey(tester, 'term-FIRST');
     await _selectCourse(tester);
     expect(find.text('프로그래밍 기초'), findsOneWidget);
     await tester.ensureVisible(find.byKey(const Key('academic-year')));
@@ -28,6 +30,67 @@ void main() {
     );
     expect(credit.controller!.text, isEmpty);
   });
+  testWidgets('changing the term clears the selected course', (tester) async {
+    await tester.pumpWidget(_testApp());
+    await tester.pumpAndSettle();
+    await _tapKey(tester, 'term-FIRST');
+    await _selectCourse(tester);
+    expect(find.text('프로그래밍 기초'), findsOneWidget);
+    await _tapKey(tester, 'term-SECOND');
+    await tester.pumpAndSettle();
+    expect(find.text('프로그래밍 기초'), findsNothing);
+    expect(
+      tester
+          .widget<TextFormField>(find.byKey(const Key('credit')))
+          .controller!
+          .text,
+      isEmpty,
+    );
+  });
+
+  testWidgets('clears the year field focus when opening course search', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_testApp());
+    await tester.pumpAndSettle();
+    await _tapKey(tester, 'term-SECOND');
+    await tester.ensureVisible(find.byKey(const Key('academic-year')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('academic-year')));
+    await tester.pump();
+    final yearField = tester.widget<TextFormField>(
+      find.byKey(const Key('academic-year')),
+    );
+    final editable = tester.state<EditableTextState>(
+      find.descendant(
+        of: find.byKey(const Key('academic-year')),
+        matching: find.byType(EditableText),
+      ),
+    );
+    expect(editable.widget.focusNode.hasFocus, isTrue);
+    expect(yearField.controller, isNotNull);
+    await _tapKey(tester, 'course-picker');
+    await tester.pumpAndSettle();
+    expect(editable.widget.focusNode.hasFocus, isFalse);
+    expect(find.byKey(const Key('course-search')), findsOneWidget);
+  });
+
+  testWidgets('shows all instructors for the offered course', (tester) async {
+    await tester.pumpWidget(_testApp());
+    await tester.pumpAndSettle();
+    await _tapKey(tester, 'term-SECOND');
+    await _tapKey(tester, 'course-picker');
+    await tester.pumpAndSettle();
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is WhitespaceWrappedText &&
+            widget.data == 'CSE101 · 3학점 · 김교수, 이교수',
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('registers a selected course and returns the created grade', (
     tester,
   ) async {
@@ -43,8 +106,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await _selectCourse(tester);
     await _tapKey(tester, 'term-SECOND');
+    await _selectCourse(tester);
     await _tapKey(tester, 'grade-code');
     await tester.pumpAndSettle();
     await tester.tap(find.text('A+').last);
@@ -65,19 +128,17 @@ void main() {
     expect(registeredGrade, testGrade);
   });
 
-  testWidgets('shows all missing field errors only after submit', (
-    tester,
-  ) async {
+  testWidgets('requires a term before loading courses', (tester) async {
     await tester.pumpWidget(_testApp());
     await tester.pumpAndSettle();
-
-    expect(find.text('과목을 선택해 주세요.'), findsNothing);
-    await _tapKey(tester, 'register-grade');
-    await tester.pump();
-
-    expect(find.text('과목을 선택해 주세요.'), findsOneWidget);
-    expect(find.text('수강학기를 선택해 주세요.'), findsOneWidget);
-    expect(find.text('성적 등급을 선택해 주세요.'), findsOneWidget);
+    expect(
+      tester.widget<InkWell>(find.byKey(const Key('course-picker'))).onTap,
+      isNull,
+    );
+    await _tapKey(tester, 'term-FIRST');
+    await tester.pumpAndSettle();
+    await _selectCourse(tester);
+    expect(find.text('프로그래밍 기초'), findsOneWidget);
   });
 
   testWidgets('RPL registration does not require a grade code', (tester) async {
@@ -85,8 +146,8 @@ void main() {
     await tester.pumpWidget(_testApp(gradeApi: gradeApi));
     await tester.pumpAndSettle();
 
-    await _selectCourse(tester);
     await _tapKey(tester, 'term-FIRST');
+    await _selectCourse(tester);
     await _tapKey(tester, 'rpl');
     await _tapKey(tester, 'register-grade');
     await tester.pumpAndSettle();
@@ -107,8 +168,8 @@ void main() {
     await tester.pumpWidget(_testApp(gradeApi: gradeApi));
     await tester.pumpAndSettle();
 
-    await _selectCourse(tester);
     await _tapKey(tester, 'term-SECOND');
+    await _selectCourse(tester);
     await _tapKey(tester, 'grade-code');
     await tester.pumpAndSettle();
     await tester.tap(find.text('A+').last);
@@ -197,6 +258,7 @@ class _FakeCourseApi implements CourseApi {
   Future<List<CourseCatalogItem>> getCourses(
     String accessToken, {
     required int academicYear,
+    required AcademicTerm term,
   }) async {
     return results;
   }
@@ -208,6 +270,7 @@ const _course = CourseCatalogItem(
   name: '프로그래밍 기초',
   credit: 3,
   category: CourseCategory.major,
+  professorNames: ['김교수', '이교수'],
   department: GradeDepartment(entityId: 'department-id', name: '소프트웨어융합공학과'),
 );
 

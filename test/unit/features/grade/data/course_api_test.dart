@@ -7,33 +7,16 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 void main() {
-  test('missing curriculum explains the selected-year problem', () async {
-    final api = HttpCourseApi(
-      baseUri: Uri.parse('https://api.ahni.test'),
-      client: MockClient(
-        (_) async => http.Response('{"code":"CURRICULUM_NOT_AVAILABLE"}', 404),
-      ),
-    );
-    expect(
-      () => api.getCourses('jwt', academicYear: 2023),
-      throwsA(
-        isA<CourseApiFailure>().having(
-          (failure) => failure.userMessage,
-          'message',
-          contains('선택한 연도'),
-        ),
-      ),
-    );
-  });
   test(
-    'GET /curriculum-courses sends the selected year and bearer token',
+    'GET /lectures/courses sends the selected year, term and bearer token',
     () async {
       final api = HttpCourseApi(
         baseUri: Uri.parse('https://api.ahni.test'),
         client: MockClient((request) async {
           expect(request.method, 'GET');
-          expect(request.url.path, '/api/v1/curriculum-courses');
+          expect(request.url.path, '/api/v1/lectures/courses');
           expect(request.url.queryParameters['academicYear'], '2024');
+          expect(request.url.queryParameters['term'], 'FIRST');
           expect(request.headers['authorization'], 'Bearer jwt');
           return http.Response.bytes(
             utf8.encode(
@@ -44,6 +27,7 @@ void main() {
                   'name': '프로그래밍 기초',
                   'credit': 3.0,
                   'category': 'MAJOR',
+                  'professorNames': ['김교수', '이교수'],
                   'department': {
                     'entityId': 'department-id',
                     'name': '소프트웨어융합공학과',
@@ -65,13 +49,19 @@ void main() {
         }),
       );
 
-      final courses = await api.getCourses('jwt', academicYear: 2024);
+      final courses = await api.getCourses(
+        'jwt',
+        academicYear: 2024,
+        term: AcademicTerm.first,
+      );
 
       expect(courses, hasLength(2));
       expect(courses.first.entityId, 'course-id-1');
       expect(courses.first.code, 'CSE101');
       expect(courses.first.name, '프로그래밍 기초');
       expect(courses.first.credit, 3.0);
+      expect(courses.first.professorNames, ['김교수', '이교수']);
+      expect(courses.last.professorNames, isEmpty);
       expect(courses.first.category, CourseCategory.major);
       expect(courses.first.department?.name, '소프트웨어융합공학과');
       expect(courses.last.category, CourseCategory.generalEducation);
@@ -93,7 +83,7 @@ void main() {
     );
 
     expect(
-      () => api.getCourses('jwt', academicYear: 2024),
+      () => api.getCourses('jwt', academicYear: 2024, term: AcademicTerm.first),
       throwsA(
         isA<CourseApiFailure>()
             .having(
@@ -117,7 +107,11 @@ void main() {
     );
 
     expect(
-      () => api.getCourses('expired-jwt', academicYear: 2024),
+      () => api.getCourses(
+        'expired-jwt',
+        academicYear: 2024,
+        term: AcademicTerm.first,
+      ),
       throwsA(
         isA<CourseApiFailure>()
             .having(
