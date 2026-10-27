@@ -1,4 +1,6 @@
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
+import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
+import 'package:ahni_mobile/features/recommendation/presentation/course_recommendation_page.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +9,12 @@ class TimetablePage extends StatefulWidget {
   const TimetablePage({
     required this.controller,
     required this.onAuthenticationRequired,
+    this.recommendationController,
     this.bottomNavigationBar,
     super.key,
   });
   final TimetableController controller;
+  final CourseRecommendationController? recommendationController;
   final VoidCallback onAuthenticationRequired;
   final Widget? bottomNavigationBar;
 
@@ -63,6 +67,25 @@ class _TimetablePageState extends State<TimetablePage> {
     await controller.save(lecture, entryId: entry?.entityId);
   }
 
+  Future<void> _openRecommendation(
+    CourseRecommendationController recommendationController,
+  ) async {
+    recommendationController.reset();
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (routeContext) => CourseRecommendationPage(
+          controller: recommendationController,
+          academicYear: controller.year,
+          term: controller.term,
+          onAuthenticationRequired: () {
+            if (routeContext.mounted) Navigator.of(routeContext).pop();
+            widget.onAuthenticationRequired();
+          },
+        ),
+      ),
+    );
+  }
+
   Future<void> _delete(TimetableEntry entry) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -89,10 +112,23 @@ class _TimetablePageState extends State<TimetablePage> {
   @override
   Widget build(BuildContext context) {
     final disabled = controller.loading || controller.busy;
+    final recommendationController = widget.recommendationController;
+    final regularTerm =
+        controller.term == 'FIRST' || controller.term == 'SECOND';
     return Scaffold(
       appBar: AppBar(
         title: const Text('시간표'),
         actions: [
+          if (recommendationController != null)
+            IconButton(
+              key: const Key('open-course-recommendation'),
+              // 권장 학기가 정규학기 기준이라 계절학기에는 추천하지 않는다.
+              tooltip: regularTerm ? '수강 추천' : '수강 추천은 정규학기만 가능해요',
+              onPressed: disabled || !regularTerm
+                  ? null
+                  : () => _openRecommendation(recommendationController),
+              icon: const Icon(Icons.lightbulb_outline),
+            ),
           IconButton(
             tooltip: '새로고침',
             onPressed: disabled ? null : controller.load,

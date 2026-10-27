@@ -9,6 +9,7 @@ import 'package:ahni_mobile/features/grade/presentation/grade_list_page.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/presentation/inquiry_page.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
+import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_page.dart';
 import 'package:ahni_mobile/features/onboarding/application/onboarding_controller.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ class OnboardingPage extends StatefulWidget {
     required this.gradeEditController,
     required this.inquiryController,
     this.timetableController,
+    this.recommendationController,
     super.key,
   });
 
@@ -42,6 +44,7 @@ class OnboardingPage extends StatefulWidget {
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
   final TimetableController? timetableController;
+  final CourseRecommendationController? recommendationController;
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
@@ -83,6 +86,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       widget.gradeEditController.reset();
       widget.inquiryController.reset();
       widget.timetableController?.reset();
+      widget.recommendationController?.reset();
     }
     if (mounted) setState(() {});
   }
@@ -119,6 +123,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         gradeEditController: widget.gradeEditController,
         inquiryController: widget.inquiryController,
         timetableController: widget.timetableController,
+        recommendationController: widget.recommendationController,
         profileState: state,
       ),
       MajorEditing state => _MajorEditingView(
@@ -741,6 +746,7 @@ class _StudentPortalView extends StatefulWidget {
     required this.gradeEditController,
     required this.inquiryController,
     required this.timetableController,
+    required this.recommendationController,
     required this.profileState,
   });
 
@@ -754,6 +760,7 @@ class _StudentPortalView extends StatefulWidget {
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
   final TimetableController? timetableController;
+  final CourseRecommendationController? recommendationController;
   final ProfileReady profileState;
 
   @override
@@ -819,6 +826,7 @@ class _StudentPortalViewState extends State<_StudentPortalView> {
     if (_selectedIndex == 3 && timetableController != null) {
       return TimetablePage(
         controller: timetableController,
+        recommendationController: widget.recommendationController,
         onAuthenticationRequired: widget.onboardingController.signOut,
         bottomNavigationBar: navigationBar,
       );
