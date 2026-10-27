@@ -4,10 +4,10 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: generated from `origin/main` at `900f13f` plus `feat/lecture-management-mutations` at `1e27a2c`, preserving course recommendations, inquiry assignment, and administrator lecture update/delete contracts (2026-10-27)
+- Backend source: generated from the current working tree with semester-based offered-course registration (2026-10-27; uncommitted)
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `f1c71cbedc20fb1898f9ac46a4d189f945d6a0f97c9b3cacb418ef9459ad5f9a`
+- Source SHA-256: `9bc62bc289b64ab42b2075d75af48cd28b8652ba1d2b4445a1a9e5c1b488394c`
 
 This snapshot includes authenticated lecture lookup and student timetable CRUD.
 The app sends only lecture UUIDs; the backend checks ownership and time conflicts.
@@ -36,3 +36,5 @@ From the mobile repository root, run:
 The script copies the exact generated JSON and immediately runs the contract test. Do not edit `contracts/backend-openapi.json` manually. Every update must record the source backend commit and SHA-256 in this guide.
 
 A backend API change is ready for mobile consumption only after the backend implementation, tests, authentication and authorization requirements, stable error examples, and generated OpenAPI document are updated together.
+
+성적 등록은 `GET /api/v1/lectures/courses`에 수강연도와 학기를 전달하고 개설 과목을 조회합니다. 신규 저장과 학기 변경은 해당 학기 강의가 있는지 검증합니다. 새 서버 API와 함께 배포해야 합니다. 이 명세는 현재 작업 중인 백엔드에서 생성했습니다.

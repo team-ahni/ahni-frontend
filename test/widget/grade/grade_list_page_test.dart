@@ -80,11 +80,12 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('grade-registration-page')), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('term-SECOND')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('course-picker')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('course-option-course-id-1')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('term-SECOND')));
     final gradeCode = find.byKey(const Key('grade-code'));
     await tester.ensureVisible(gradeCode);
     await tester.tap(gradeCode);
