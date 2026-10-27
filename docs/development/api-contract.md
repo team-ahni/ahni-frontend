@@ -4,10 +4,10 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: `feat/course-recommendation` at `52f43e7` (team-ahni/ahni-backend#57), course-recommendation contract (2026-10-27)
+- Backend source: generated from `origin/main` at `900f13f` plus `feat/lecture-management-mutations` at `1e27a2c`, preserving course recommendations, inquiry assignment, and administrator lecture update/delete contracts (2026-10-27)
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `663a85671df6de293b99b96346c7945625d9d9b663b36e47a4d2509dc25e0c8d`
+- Source SHA-256: `f1c71cbedc20fb1898f9ac46a4d189f945d6a0f97c9b3cacb418ef9459ad5f9a`
 
 This snapshot includes authenticated lecture lookup and student timetable CRUD.
 The app sends only lecture UUIDs; the backend checks ownership and time conflicts.
@@ -16,6 +16,10 @@ text. The old nested `professor` object and professor CRUD are removed. Deploy
 this client with the backend V26 migration and updated administrator client.
 The snapshot also includes the administrator-only atomic lecture import API.
 Scholarship eligibility and administrator scholarship criteria endpoints are preserved.
+Administrator lecture updates preserve lecture and timetable entry identities;
+their details appear on the next mobile refresh. Deleting an offering removes
+its student timetable entries but preserves catalog courses and grades. The
+new administrator routes do not change the mobile request/response formats.
 
 `GET /api/v1/course-recommendations?academicYear=&term=` returns read-only, rule-based course recommendations for a regular term (`FIRST`/`SECOND`; seasonal terms return `400 INVALID_REQUEST`). The timetable tab opens it for the selected semester. Reasons are `GRADUATION_REQUIRED`, `OVERDUE`, `RECOMMENDED_NOW`, and `RETAKE`; unknown values are rejected at the boundary. Deploy the backend before enabling this client.
 
