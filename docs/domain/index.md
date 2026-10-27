@@ -11,7 +11,11 @@
 강의 블록을 누르면 전체 과목명·교수·시간·강의실을 확인합니다.
 계정 변경 시 시간표와 진행 중 요청을 초기화합니다.
 개인 시간 변경과 기기 알림은 후속 범위입니다.
-- Recommendations: prerequisites, graduation urgency, professor preference.
+- Recommendations: 시간표 탭에서 고른 정규학기(1·2학기)의 수강 추천을 엽니다.
+  서버가 졸업 필수 미이수 → 권장 학기 지남 → 이번 학기 권장 → 재수강(C+ 이하·F·NP)
+  순서로 정렬해 주고, 앱은 전공별로 이유와 개설 분반을 표시만 합니다. 계절학기에는
+  버튼을 끄고, 개설 정보가 없는 학기와 교과과정이 공개되지 않은 전공을 안내합니다.
+  선수과목과 교수 선호도는 후속 범위입니다.
 - Notices and inquiries: authenticated student scope and notification state.
 
 Pure domain rules must not import Flutter widgets or platform plugins.
