@@ -9,6 +9,7 @@ import 'package:ahni_mobile/features/grade/application/grade_registration_contro
 import 'package:ahni_mobile/features/grade/application/grade_simulation_controller.dart';
 import 'package:ahni_mobile/features/grade/data/course_api.dart';
 import 'package:ahni_mobile/features/grade/data/grade_api.dart';
+import 'package:ahni_mobile/features/grade/data/grade_ocr_api.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/data/inquiry_api.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
@@ -86,6 +87,7 @@ Future<void> main() async {
       gradeRegistrationController: GradeRegistrationController(
         auth: auth,
         api: gradeApi,
+        ocrApi: OnDeviceGradeOcrApi(),
       ),
       gradeEditController: GradeEditController(auth: auth, api: gradeApi),
       inquiryController: InquiryController(
