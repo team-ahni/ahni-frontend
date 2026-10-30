@@ -108,6 +108,12 @@ class _GradeListPageState extends State<GradeListPage> {
           courseController: widget.courseController,
           registrationController: widget.registrationController,
           availableGrades: _availableGrades,
+          onOcrImported: () async {
+            await widget.controller.retry();
+            if (registrationContext.mounted) {
+              Navigator.of(registrationContext).pop();
+            }
+          },
           onRegistered: (_) async {
             await widget.controller.retry();
             if (registrationContext.mounted) {

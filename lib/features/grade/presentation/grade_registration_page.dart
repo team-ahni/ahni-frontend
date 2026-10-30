@@ -1,11 +1,14 @@
+import 'package:ahni_mobile/features/grade/domain/ocr_course_matching.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/domain/course_catalog_item.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_registration.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
+import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_replacement_candidates.dart';
 import 'package:ahni_mobile/features/grade/presentation/replacement_grade_field.dart';
+import 'package:ahni_mobile/features/grade/presentation/grade_ocr_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -17,6 +20,8 @@ class GradeRegistrationPage extends StatefulWidget {
     required this.onAuthenticationRequired,
     this.initialAcademicYear,
     this.availableGrades = const [],
+    this.ocrPageBuilder,
+    this.onOcrImported,
     super.key,
   });
 
@@ -26,6 +31,8 @@ class GradeRegistrationPage extends StatefulWidget {
   final VoidCallback onAuthenticationRequired;
   final int? initialAcademicYear;
   final List<GradeRecord> availableGrades;
+  final WidgetBuilder? ocrPageBuilder;
+  final Future<void> Function()? onOcrImported;
 
   @override
   State<GradeRegistrationPage> createState() => _GradeRegistrationPageState();
@@ -42,6 +49,9 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
   var _rpl = false;
   String? _replacedGradeEntityId;
   var _hasSubmitted = false;
+  String? _ocrMessage;
+  bool _ocrCreditSelected = false;
+  List<CourseCatalogItem> _ocrCourseSuggestions = const [];
 
   @override
   void initState() {
@@ -91,10 +101,85 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
     }
     setState(() {
       _course = selected;
-      _creditController.text = _formatNumber(selected.credit);
+      _ocrCourseSuggestions = const [];
+      if (!_ocrCreditSelected || _creditController.text.isEmpty) {
+        _creditController.text = _formatNumber(selected.credit);
+      }
+      _ocrMessage = null;
       _syncReplacement();
     });
     if (_hasSubmitted) _formKey.currentState?.validate();
+  }
+
+  Future<void> _openOcr() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final result = await Navigator.of(context).push<Object>(
+      MaterialPageRoute(
+        builder:
+            widget.ocrPageBuilder ??
+            (_) => GradeOcrPage(controller: widget.registrationController),
+      ),
+    );
+    if (!mounted || result == null) return;
+    if (result is bool) {
+      if (result) await widget.onOcrImported?.call();
+      return;
+    }
+    if (result is! OcrGradeCandidate) return;
+    final candidate = result;
+    final year = candidate.academicYear;
+    final term = candidate.term;
+    setState(() {
+      if (year != null) _academicYearController.text = '$year';
+      _term = term;
+      _course = null;
+      _ocrCourseSuggestions = const [];
+      _gradeCode = candidate.gradeCode;
+      _rpl = false;
+      _replacedGradeEntityId = null;
+      _creditController.text = candidate.credit == null
+          ? ''
+          : _formatNumber(candidate.credit!);
+      _ocrCreditSelected = candidate.credit != null;
+      _hasSubmitted = false;
+      _ocrMessage = '인식한 내용을 확인하고 필요한 항목을 수정한 뒤 등록해 주세요.';
+    });
+    _gradeFieldKey.currentState?.didChange(candidate.gradeCode);
+    widget.registrationController.reset();
+    if (year == null || term == null || _validateYear('$year') != null) {
+      widget.courseController.reset();
+      return;
+    }
+    await widget.courseController.load(
+      academicYear: year,
+      term: term,
+      force: true,
+    );
+    if (!mounted || _academicYearController.text != '$year' || _term != term) {
+      return;
+    }
+    final state = widget.courseController.state;
+    if (state is CourseCatalogReady) {
+      final matches = state.courses
+          .where(
+            (course) =>
+                course.code.toUpperCase() == candidate.courseCode.toUpperCase(),
+          )
+          .toList();
+      if (matches.length == 1) {
+        setState(() => _course = matches.single);
+      } else {
+        final suggestions = suggestOcrCourses(candidate, state.courses);
+        setState(() {
+          _ocrCourseSuggestions = suggestions;
+          _ocrMessage = suggestions.isEmpty
+              ? '일치하는 과목을 찾지 못했어요. 과목을 직접 선택해 주세요.'
+              : '학수번호가 비슷한 과목을 찾았어요. 성적표와 비교해 직접 선택해 주세요.';
+        });
+      }
+    } else if (state is CourseCatalogEmpty) {
+      setState(() => _ocrMessage = '이 학기의 개설 강의 자료가 없어 과목을 등록할 수 없어요.');
+    }
   }
 
   String? _validateYear(String? value) {
@@ -121,6 +206,9 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
       _course = null;
       _creditController.clear();
       _replacedGradeEntityId = null;
+      _ocrCreditSelected = false;
+      _ocrCourseSuggestions = const [];
+      _ocrMessage = null;
     });
     widget.registrationController.reset();
     _loadCourses();
@@ -197,6 +285,13 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                       '과목과 학기를 선택하면 성적 이력에 바로 반영돼요.',
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      key: const Key('open-grade-ocr'),
+                      onPressed: isSubmitting ? null : _openOcr,
+                      icon: const Icon(Icons.picture_as_pdf_outlined),
+                      label: const Text('성적표 PDF 인식'),
+                    ),
                     const SizedBox(height: 24),
                     Material(
                       color: Theme.of(context).colorScheme.surface,
@@ -211,6 +306,43 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                           children: [
                             if (message case final value?) ...[
                               _ErrorMessage(message: value),
+                              const SizedBox(height: 20),
+                            ],
+                            if (_ocrMessage case final value?) ...[
+                              WhitespaceWrappedText(value),
+                              const SizedBox(height: 20),
+                            ],
+                            if (_ocrCourseSuggestions.isNotEmpty) ...[
+                              for (final suggestion in _ocrCourseSuggestions)
+                                ListTile(
+                                  key: Key(
+                                    'ocr-course-suggestion-${suggestion.entityId}',
+                                  ),
+                                  contentPadding: EdgeInsets.zero,
+                                  title: Text(suggestion.name),
+                                  subtitle: Text(
+                                    '${suggestion.code} · ${_formatNumber(suggestion.credit)}학점',
+                                  ),
+                                  trailing: const Icon(
+                                    Icons.chevron_right_rounded,
+                                  ),
+                                  onTap: isSubmitting
+                                      ? null
+                                      : () => setState(() {
+                                          _course = suggestion;
+                                          if (!_ocrCreditSelected ||
+                                              _creditController.text.isEmpty) {
+                                            _creditController.text =
+                                                _formatNumber(
+                                                  suggestion.credit,
+                                                );
+                                          }
+                                          _ocrCourseSuggestions = const [];
+                                          _ocrMessage =
+                                              '선택한 과목과 성적을 확인한 뒤 등록해 주세요.';
+                                          _syncReplacement();
+                                        }),
+                                ),
                               const SizedBox(height: 20),
                             ],
                             TextFormField(
@@ -261,6 +393,10 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                                   setState(() {
                                                     _term = term;
                                                     _course = null;
+                                                    _ocrCourseSuggestions =
+                                                        const [];
+                                                    _ocrCreditSelected = false;
+                                                    _ocrMessage = null;
                                                     _creditController.clear();
                                                     _replacedGradeEntityId =
                                                         null;

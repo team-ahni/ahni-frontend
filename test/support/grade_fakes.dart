@@ -84,7 +84,13 @@ GradeEditController buildTestGradeEditController({
   );
 }
 
-class FakeCourseApi implements CourseApi {
+class FakeCourseApi implements CourseApi, CourseCatalogApi {
+  @override
+  Future<List<CourseCatalogItem>> getCatalog(String accessToken) async {
+    if (error case final value?) throw value;
+    return results;
+  }
+
   List<CourseCatalogItem> results = const [];
   Object? error;
 

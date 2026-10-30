@@ -5,6 +5,7 @@ import 'package:ahni_mobile/features/grade/data/course_api.dart';
 import 'package:ahni_mobile/features/grade/data/grade_api.dart';
 import 'package:ahni_mobile/features/grade/domain/course_catalog_item.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
+import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
 import 'package:ahni_mobile/features/grade/presentation/grade_registration_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -89,6 +90,127 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('OCR import completion requests a grade-list refresh', (
+    tester,
+  ) async {
+    var refreshed = false;
+    await tester.pumpWidget(
+      _testApp(
+        onOcrImported: () async {
+          refreshed = true;
+        },
+        ocrPageBuilder: (context) => Scaffold(
+          body: TextButton(
+            key: const Key('finish-import'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('완료'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tapKey(tester, 'open-grade-ocr');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('finish-import')));
+    await tester.pumpAndSettle();
+    expect(refreshed, isTrue);
+  });
+
+  testWidgets('OCR suggestion is matched and must be reviewed before save', (
+    tester,
+  ) async {
+    final api = FakeGradeApi();
+    await tester.pumpWidget(
+      _testApp(
+        gradeApi: api,
+        ocrPageBuilder: (context) => Scaffold(
+          body: TextButton(
+            key: const Key('use-suggestion'),
+            onPressed: () => Navigator.of(context).pop(
+              const OcrGradeCandidate(
+                page: 1,
+                source: 'CSE101 과목 2.5 A+',
+                courseCode: 'CSE101',
+                academicYear: 2025,
+                term: AcademicTerm.second,
+                credit: 2.5,
+                gradeCode: GradeCode.aPlus,
+              ),
+            ),
+            child: const Text('선택'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tapKey(tester, 'open-grade-ocr');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('use-suggestion')));
+    await tester.pumpAndSettle();
+    expect(find.text('프로그래밍 기초'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextFormField>(find.byKey(const Key('credit')))
+          .controller!
+          .text,
+      '2.5',
+    );
+    expect(find.text('A+'), findsOneWidget);
+    expect(api.lastRegistration, isNull);
+  });
+
+  testWidgets('OCR typo offers a database candidate that requires selection', (
+    tester,
+  ) async {
+    final api = FakeGradeApi();
+    await tester.pumpWidget(
+      _testApp(
+        gradeApi: api,
+        ocrPageBuilder: (context) => Scaffold(
+          body: TextButton(
+            key: const Key('use-suggestion'),
+            onPressed: () => Navigator.of(context).pop(
+              const OcrGradeCandidate(
+                page: 1,
+                source: 'CSE102 프로그래밍 기초 2.5 A+',
+                courseCode: 'CSE102',
+                academicYear: 2025,
+                term: AcademicTerm.second,
+                credit: 2.5,
+                gradeCode: GradeCode.aPlus,
+              ),
+            ),
+            child: const Text('선택'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tapKey(tester, 'open-grade-ocr');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('use-suggestion')));
+    await tester.pumpAndSettle();
+    expect(api.lastRegistration, isNull);
+    expect(
+      find.byKey(const Key('ocr-course-suggestion-course-id-1')),
+      findsOneWidget,
+    );
+    await tester.tap(
+      find.byKey(const Key('ocr-course-suggestion-course-id-1')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('프로그래밍 기초'), findsOneWidget);
+    expect(
+      tester
+          .widget<TextFormField>(find.byKey(const Key('credit')))
+          .controller!
+          .text,
+      '2.5',
+    );
+    expect(find.text('A+'), findsOneWidget);
+    expect(api.lastRegistration, isNull);
   });
 
   testWidgets('registers a selected course and returns the created grade', (
@@ -223,6 +345,8 @@ Widget _testApp({
   FakeAuthGateway? auth,
   FakeGradeApi? gradeApi,
   Future<void> Function(GradeRecord grade)? onRegistered,
+  WidgetBuilder? ocrPageBuilder,
+  Future<void> Function()? onOcrImported,
 }) {
   final resolvedAuth = auth ?? FakeAuthGateway(currentSession: testSession);
   final resolvedGradeApi = gradeApi ?? FakeGradeApi();
@@ -245,6 +369,8 @@ Widget _testApp({
       ),
       initialAcademicYear: 2025,
       availableGrades: [_previousGrade],
+      ocrPageBuilder: ocrPageBuilder,
+      onOcrImported: onOcrImported,
       onRegistered: onRegistered ?? (_) async {},
       onAuthenticationRequired: () {},
     ),
