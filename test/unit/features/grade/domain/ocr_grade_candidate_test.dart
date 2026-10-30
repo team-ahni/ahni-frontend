@@ -7,6 +7,124 @@ OcrTextLine word(String text, double x, double y, {double width = 40}) =>
     OcrTextLine(text: text, left: x, top: y, right: x + width, bottom: y + 10);
 
 void main() {
+  List<OcrTextLine> tableHeader() => [
+    word('2024학년도', 50, 70, width: 70),
+    word('1학기', 130, 70),
+    word('학수번호', 50, 100, width: 60),
+    word('학점', 260, 100, width: 30),
+    word('평점', 305, 100, width: 25),
+  ];
+
+  test('reads credit and grade columns, ignoring numbers in course names', () {
+    final result = extractOcrGradeCandidates(
+      page: 1,
+      width: 1000,
+      fragments: [
+        ...tableHeader(),
+        word('ABC1001', 50, 130, width: 60),
+        word('4.0', 170, 130, width: 25),
+        word('3.0', 265, 130, width: 25),
+        word('A+', 312, 130, width: 15),
+        word('P', 400, 130, width: 10),
+      ],
+    );
+    expect(result.single.credit, 3);
+    expect(result.single.gradeCode, GradeCode.aPlus);
+  });
+
+  test(
+    'retains the OCR course name without including credit or grade columns',
+    () {
+      final result = extractOcrGradeCandidates(
+        page: 1,
+        width: 1000,
+        fragments: [
+          ...tableHeader(),
+          word('ABC1001', 50, 130, width: 60),
+          word('컴퓨터공학기초', 120, 130, width: 70),
+          word('1', 195, 130, width: 8),
+          word('3.0', 265, 130, width: 25),
+          word('A+', 312, 130, width: 15),
+          word('전필', 370, 130, width: 30),
+        ],
+      );
+      expect(result.single.courseName, '컴퓨터공학기초 1');
+      expect(result.single.courseCode, 'ABC1001');
+      expect(result.single.credit, 3);
+      expect(result.single.gradeCode, GradeCode.aPlus);
+    },
+  );
+
+  test('does not invent a name when it was not recognized', () {
+    final result = extractOcrGradeCandidates(
+      page: 1,
+      width: 1000,
+      fragments: [
+        ...tableHeader(),
+        word('ABC1001', 50, 130, width: 60),
+        word('3.0', 265, 130, width: 25),
+      ],
+    );
+    expect(result.single.courseName, isNull);
+  });
+
+  test('does not borrow the next course grade when a cell is empty', () {
+    final result = extractOcrGradeCandidates(
+      page: 1,
+      width: 1000,
+      fragments: [
+        ...tableHeader(),
+        word('ABC1001', 50, 130, width: 60),
+        word('3.0', 265, 133, width: 25),
+        word('DEF1002', 50, 144, width: 60),
+        word('2.0', 265, 147, width: 25),
+        word('B0', 312, 147, width: 15),
+      ],
+    );
+    expect(result.first.gradeCode, isNull);
+    expect(result.first.credit, 3);
+    expect(result.last.gradeCode, GradeCode.bZero);
+    expect(result.last.credit, 2);
+  });
+
+  test('uses a clear field reread but leaves conflicting grades empty', () {
+    List<OcrTextLine> primary(String grade) => [
+      ...tableHeader(),
+      word('ABC1001', 50, 130, width: 60),
+      word('3.0', 265, 130, width: 25),
+      word(grade, 312, 130, width: 15),
+    ];
+    final fields = [word('A+', 312, 130, width: 15)];
+    final improved = extractOcrGradeCandidates(
+      page: 1,
+      width: 1000,
+      fragments: primary('At'),
+      fieldFragments: fields,
+    );
+    expect(improved.single.gradeCode, GradeCode.aPlus);
+    final conflict = extractOcrGradeCandidates(
+      page: 1,
+      width: 1000,
+      fragments: primary('B0'),
+      fieldFragments: fields,
+    );
+    expect(conflict.single.gradeCode, isNull);
+  });
+
+  test('preserves a confused or split code for DB verification', () {
+    final result = extractOcrGradeCandidates(
+      page: 1,
+      width: 1000,
+      fragments: [
+        ...tableHeader(),
+        word('1TC3410', 50, 130, width: 60),
+        word('ITC', 50, 150, width: 20),
+        word('1201', 72, 150, width: 30),
+      ],
+    );
+    expect(result.map((r) => r.courseCode), ['1TC3410', 'ITC1201']);
+  });
+
   test(
     'groups left-column semester rows without importing in-progress courses',
     () {

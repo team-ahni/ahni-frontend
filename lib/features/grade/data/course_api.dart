@@ -24,7 +24,11 @@ abstract interface class CourseApi {
   });
 }
 
-class HttpCourseApi implements CourseApi {
+abstract interface class CourseCatalogApi {
+  Future<List<CourseCatalogItem>> getCatalog(String accessToken);
+}
+
+class HttpCourseApi implements CourseApi, CourseCatalogApi {
   HttpCourseApi({required this.baseUri, required http.Client client})
     : _client = client;
 
@@ -61,6 +65,29 @@ class HttpCourseApi implements CourseApi {
     } on FormatException catch (_) {
       throw _malformedResponse;
     } on TypeError catch (_) {
+      throw _malformedResponse;
+    }
+  }
+
+  @override
+  Future<List<CourseCatalogItem>> getCatalog(String accessToken) async {
+    final response = await _request(
+      () => _client.get(
+        baseUri.resolve('/api/v1/courses'),
+        headers: {'authorization': 'Bearer $accessToken'},
+      ),
+    );
+    if (response.statusCode != 200) throw _failure(response);
+    try {
+      final body = jsonDecode(utf8.decode(response.bodyBytes)) as List<Object?>;
+      return body
+          .map(
+            (item) => CourseCatalogItem.fromJson(item! as Map<String, Object?>),
+          )
+          .toList(growable: false);
+    } on FormatException {
+      throw _malformedResponse;
+    } on TypeError {
       throw _malformedResponse;
     }
   }

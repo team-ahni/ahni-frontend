@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:ahni_mobile/features/grade/domain/ocr_text_line.dart';
+import 'package:ahni_mobile/features/grade/domain/ocr_table_layout.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -19,12 +20,15 @@ class GradeOcrPageResult {
     this.lines = const [],
     this.fragments = const [],
     this.width = 0,
+    this.height = 0,
+    this.fieldFragments = const [],
   });
 
   factory GradeOcrPageResult.fromNative(
     int page,
     Map<Object?, Object?> result, {
     required double width,
+    double height = 0,
   }) {
     List<OcrTextLine> parse(Object? value) => (value as List<Object?>)
         .map((item) {
@@ -45,6 +49,10 @@ class GradeOcrPageResult {
       lines: List.unmodifiable(parse(result['lines'])),
       fragments: List.unmodifiable(parse(result['fragments'])),
       width: width,
+      height: height,
+      fieldFragments: List.unmodifiable(
+        parse(result['fieldFragments'] ?? const <Object?>[]),
+      ),
     );
   }
   final int page;
@@ -52,6 +60,8 @@ class GradeOcrPageResult {
   final List<OcrTextLine> lines;
   final List<OcrTextLine> fragments;
   final double width;
+  final double height;
+  final List<OcrTextLine> fieldFragments;
 }
 
 abstract interface class GradeOcrApi {
@@ -61,7 +71,7 @@ abstract interface class GradeOcrApi {
 /// Render small transcript text larger while bounding the decoded image size.
 @visibleForTesting
 double gradeOcrRenderScale(double width, double height) =>
-    math.min(3.5, 3500 / math.max(width, height));
+    math.min(4.5, 4200 / math.max(width, height));
 
 /// Processes each page sequentially on the device; no transcript is uploaded.
 class OnDeviceGradeOcrApi implements GradeOcrApi {
@@ -103,11 +113,53 @@ class OnDeviceGradeOcrApi implements GradeOcrApi {
               {'path': file.path},
             );
             if (result == null) throw const GradeOcrFailure('PDF를 인식하지 못했어요.');
+            final renderedWidth = (image.width ?? (page.width * scale).round())
+                .toDouble();
+            final renderedHeight =
+                (image.height ?? (page.height * scale).round()).toDouble();
+            final primary = GradeOcrPageResult.fromNative(
+              index,
+              result,
+              width: renderedWidth,
+              height: renderedHeight,
+            );
+            final tables = locateOcrTables(
+              width: renderedWidth,
+              height: renderedHeight,
+              fragments: primary.fragments,
+            );
+            if (Platform.isIOS && tables.isNotEmpty) {
+              try {
+                final refined = await channel.invokeMapMethod<Object?, Object?>(
+                  'recognize',
+                  {
+                    'path': file.path,
+                    'fieldsOnly': true,
+                    'regions': tables
+                        .map(
+                          (table) => {
+                            'left': table.creditLeft,
+                            'top': table.top,
+                            'right': table.gradeRight,
+                            'bottom': table.bottom,
+                          },
+                        )
+                        .toList(),
+                  },
+                );
+                if (refined != null) {
+                  result['fieldFragments'] = refined['fragments'];
+                }
+              } on PlatformException {
+                // A failed optional reread must not discard the primary text.
+              }
+            }
             results.add(
               GradeOcrPageResult.fromNative(
                 index,
                 result,
-                width: (image.width ?? (page.width * scale).round()).toDouble(),
+                width: renderedWidth,
+                height: renderedHeight,
               ),
             );
           } finally {

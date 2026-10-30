@@ -4,7 +4,7 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: generated from the current working tree with semester-based offered-course registration (2026-10-27; uncommitted)
+- Backend source: backend `962d105`, with semester-based offered-course registration (2026-10-31)
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
 - Source SHA-256: `9bc62bc289b64ab42b2075d75af48cd28b8652ba1d2b4445a1a9e5c1b488394c`
@@ -37,4 +37,4 @@ The script copies the exact generated JSON and immediately runs the contract tes
 
 A backend API change is ready for mobile consumption only after the backend implementation, tests, authentication and authorization requirements, stable error examples, and generated OpenAPI document are updated together.
 
-성적 등록은 `GET /api/v1/lectures/courses`에 수강연도와 학기를 전달하고 개설 과목을 조회합니다. 신규 저장과 학기 변경은 해당 학기 강의가 있는지 검증합니다. 새 서버 API와 함께 배포해야 합니다. 이 명세는 현재 작업 중인 백엔드에서 생성했습니다.
+OCR 과목 조회는 `GET /api/v1/courses`의 활성 카탈로그를 한 번 받아 학수번호로 대조합니다. 과목 표시·확인을 위한 조회 기준이며 등록 가능 여부를 보장하지 않습니다. `POST /api/v1/grades` 및 연도·학기를 바꾸는 수정은 백엔드 `962d105`의 기존 정책대로 해당 학기 `lecture` 개설 여부를 검증합니다. 해당 학기의 개설 강의가 없는 과거 성적 등록은 현재 거절됩니다. 학생 소유권, 중복, 학점·등급 및 재수강 검증을 유지합니다. 수동 과목 검색도 기존 `/api/v1/lectures/courses`를 계속 사용합니다. 조회와 등록 기준 통합은 후속 작업입니다.

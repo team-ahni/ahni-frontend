@@ -92,6 +92,32 @@ void main() {
     );
   });
 
+  testWidgets('OCR import completion requests a grade-list refresh', (
+    tester,
+  ) async {
+    var refreshed = false;
+    await tester.pumpWidget(
+      _testApp(
+        onOcrImported: () async {
+          refreshed = true;
+        },
+        ocrPageBuilder: (context) => Scaffold(
+          body: TextButton(
+            key: const Key('finish-import'),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('완료'),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _tapKey(tester, 'open-grade-ocr');
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('finish-import')));
+    await tester.pumpAndSettle();
+    expect(refreshed, isTrue);
+  });
+
   testWidgets('OCR suggestion is matched and must be reviewed before save', (
     tester,
   ) async {
@@ -320,6 +346,7 @@ Widget _testApp({
   FakeGradeApi? gradeApi,
   Future<void> Function(GradeRecord grade)? onRegistered,
   WidgetBuilder? ocrPageBuilder,
+  Future<void> Function()? onOcrImported,
 }) {
   final resolvedAuth = auth ?? FakeAuthGateway(currentSession: testSession);
   final resolvedGradeApi = gradeApi ?? FakeGradeApi();
@@ -343,6 +370,7 @@ Widget _testApp({
       initialAcademicYear: 2025,
       availableGrades: [_previousGrade],
       ocrPageBuilder: ocrPageBuilder,
+      onOcrImported: onOcrImported,
       onRegistered: onRegistered ?? (_) async {},
       onAuthenticationRequired: () {},
     ),

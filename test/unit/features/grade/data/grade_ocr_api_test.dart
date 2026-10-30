@@ -5,8 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('renders small transcript text larger with a bounded image size', () {
-    expect(gradeOcrRenderScale(595, 842), 3.5);
-    expect(gradeOcrRenderScale(2000, 1000), 1.75);
+    expect(gradeOcrRenderScale(595, 842), 4.5);
+    expect(gradeOcrRenderScale(2000, 1000), 2.1);
   });
 
   test('retains recognized text and each line position', () {

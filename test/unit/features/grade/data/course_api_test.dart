@@ -8,6 +8,37 @@ import 'package:http/testing.dart';
 
 void main() {
   test(
+    'OCR catalog lookup uses course without semester or lecture filters',
+    () async {
+      final api = HttpCourseApi(
+        baseUri: Uri.parse('https://api.ahni.test'),
+        client: MockClient((request) async {
+          expect(request.url.path, '/api/v1/courses');
+          expect(request.url.queryParameters, isEmpty);
+          expect(request.headers['authorization'], 'Bearer jwt');
+          return http.Response(
+            jsonEncode([
+              {
+                'entityId': 'catalog-1',
+                'code': 'ABC1001',
+                'name': '과거 학기 과목',
+                'credit': 3.0,
+                'category': 'MAJOR',
+                'department': null,
+              },
+            ]),
+            200,
+            headers: {'content-type': 'application/json; charset=utf-8'},
+          );
+        }),
+      );
+      final result = await api.getCatalog('jwt');
+      expect(result.single.name, '과거 학기 과목');
+      expect(result.single.professorNames, isEmpty);
+    },
+  );
+
+  test(
     'GET /lectures/courses sends the selected year, term and bearer token',
     () async {
       final api = HttpCourseApi(

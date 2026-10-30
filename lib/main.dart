@@ -88,6 +88,7 @@ Future<void> main() async {
         auth: auth,
         api: gradeApi,
         ocrApi: OnDeviceGradeOcrApi(),
+        catalogApi: HttpCourseApi(baseUri: apiBaseUri, client: httpClient),
       ),
       gradeEditController: GradeEditController(auth: auth, api: gradeApi),
       inquiryController: InquiryController(

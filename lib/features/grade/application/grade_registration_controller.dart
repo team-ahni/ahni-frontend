@@ -2,6 +2,8 @@
 
 import 'package:ahni_mobile/core/auth/auth_gateway.dart';
 import 'package:ahni_mobile/features/grade/data/grade_api.dart';
+import 'package:ahni_mobile/features/grade/data/course_api.dart';
+import 'package:ahni_mobile/features/grade/application/grade_ocr_import_controller.dart';
 import 'package:ahni_mobile/features/grade/data/grade_ocr_api.dart';
 
 import 'package:ahni_mobile/features/grade/domain/grade_registration.dart';
@@ -41,13 +43,23 @@ class GradeRegistrationController extends ChangeNotifier {
     required AuthGateway auth,
     required GradeApi api,
     GradeOcrApi? ocrApi,
+    CourseCatalogApi? catalogApi,
   }) : _auth = auth,
        _api = api,
-       _ocrApi = ocrApi;
+       _ocrApi = ocrApi,
+       _catalogApi = catalogApi;
 
   final AuthGateway _auth;
   final GradeApi _api;
   final GradeOcrApi? _ocrApi;
+  final CourseCatalogApi? _catalogApi;
+  GradeOcrImportController? createOcrImportController() => _catalogApi == null
+      ? null
+      : GradeOcrImportController(
+          auth: _auth,
+          courses: _catalogApi,
+          grades: _api,
+        );
   GradeRegistrationState _state = const GradeRegistrationIdle();
 
   GradeRegistrationState get state => _state;

@@ -21,6 +21,7 @@ class GradeRegistrationPage extends StatefulWidget {
     this.initialAcademicYear,
     this.availableGrades = const [],
     this.ocrPageBuilder,
+    this.onOcrImported,
     super.key,
   });
 
@@ -31,6 +32,7 @@ class GradeRegistrationPage extends StatefulWidget {
   final int? initialAcademicYear;
   final List<GradeRecord> availableGrades;
   final WidgetBuilder? ocrPageBuilder;
+  final Future<void> Function()? onOcrImported;
 
   @override
   State<GradeRegistrationPage> createState() => _GradeRegistrationPageState();
@@ -111,14 +113,20 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
 
   Future<void> _openOcr() async {
     FocusManager.instance.primaryFocus?.unfocus();
-    final candidate = await Navigator.of(context).push<OcrGradeCandidate>(
+    final result = await Navigator.of(context).push<Object>(
       MaterialPageRoute(
         builder:
             widget.ocrPageBuilder ??
             (_) => GradeOcrPage(controller: widget.registrationController),
       ),
     );
-    if (!mounted || candidate == null) return;
+    if (!mounted || result == null) return;
+    if (result is bool) {
+      if (result) await widget.onOcrImported?.call();
+      return;
+    }
+    if (result is! OcrGradeCandidate) return;
+    final candidate = result;
     final year = candidate.academicYear;
     final term = candidate.term;
     setState(() {
