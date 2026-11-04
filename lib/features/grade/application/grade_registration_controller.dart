@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/features/timetable/data/timetable_api.dart';
 // ignore_for_file: prefer_initializing_formals
 
 import 'package:ahni_mobile/core/auth/auth_gateway.dart';
@@ -44,21 +45,25 @@ class GradeRegistrationController extends ChangeNotifier {
     required GradeApi api,
     GradeOcrApi? ocrApi,
     CourseCatalogApi? catalogApi,
+    TimetableApi? timetableApi,
   }) : _auth = auth,
        _api = api,
        _ocrApi = ocrApi,
-       _catalogApi = catalogApi;
+       _catalogApi = catalogApi,
+       _timetableApi = timetableApi;
 
   final AuthGateway _auth;
   final GradeApi _api;
   final GradeOcrApi? _ocrApi;
   final CourseCatalogApi? _catalogApi;
+  final TimetableApi? _timetableApi;
   GradeOcrImportController? createOcrImportController() => _catalogApi == null
       ? null
       : GradeOcrImportController(
           auth: _auth,
           courses: _catalogApi,
           grades: _api,
+          timetable: _timetableApi,
         );
   GradeRegistrationState _state = const GradeRegistrationIdle();
 

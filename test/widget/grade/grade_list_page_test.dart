@@ -15,6 +15,31 @@ import '../../support/onboarding_fakes.dart';
 import '../../support/whitespace_wrapped_text_finder.dart';
 
 void main() {
+  testWidgets('clears grades only after confirmation', (tester) async {
+    final api = _ResettableGradeApi()..results = [testGrade];
+    final controller = GradeListController(
+      auth: FakeAuthGateway(currentSession: testSession),
+      api: api,
+    );
+    await tester.pumpWidget(_testApp(controller));
+    await tester.pumpAndSettle();
+
+    final reset = find.byTooltip('성적 초기화');
+    await tester.tap(reset);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect(api.clearCalls, 0);
+
+    await tester.tap(reset);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('모두 삭제'));
+    await tester.pumpAndSettle();
+    expect(api.clearCalls, 1);
+    expect(findWhitespaceWrappedText('아직 등록된 성적이 없어요'), findsOneWidget);
+    expect(reset, findsNothing);
+  });
+
   testWidgets('groups grade rows by academic year and term', (tester) async {
     final controller = _controllerWith([
       testGrade,
@@ -247,4 +272,14 @@ Widget _testApp(
       onAuthenticationRequired: onAuthenticationRequired ?? () {},
     ),
   );
+}
+
+class _ResettableGradeApi extends FakeGradeApi implements GradeResetApi {
+  int clearCalls = 0;
+
+  @override
+  Future<void> deleteAllGrades(String accessToken) async {
+    clearCalls++;
+    results = const [];
+  }
 }

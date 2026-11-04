@@ -50,7 +50,11 @@ abstract interface class GradeApi {
   Future<void> deleteGrade(String accessToken, String gradeEntityId);
 }
 
-class HttpGradeApi implements GradeApi {
+abstract interface class GradeResetApi {
+  Future<void> deleteAllGrades(String accessToken);
+}
+
+class HttpGradeApi implements GradeApi, GradeResetApi {
   HttpGradeApi({required this.baseUri, required http.Client client})
     : _client = client;
 
@@ -215,6 +219,19 @@ class HttpGradeApi implements GradeApi {
     );
     if (response.statusCode != 204) {
       throw _failure(response, fallbackMessage: '성적을 삭제하지 못했습니다. 다시 시도해 주세요.');
+    }
+  }
+
+  @override
+  Future<void> deleteAllGrades(String accessToken) async {
+    final response = await _request(
+      () => _client.delete(
+        baseUri.resolve('/api/v1/grades'),
+        headers: {'authorization': 'Bearer $accessToken'},
+      ),
+    );
+    if (response.statusCode != 204) {
+      throw _failure(response, fallbackMessage: '성적을 초기화하지 못했습니다. 다시 시도해 주세요.');
     }
   }
 

@@ -70,6 +70,42 @@ class _GradeListPageState extends State<GradeListPage> {
     if (mounted) setState(() {});
   }
 
+  Future<void> _confirmClearGrades() async {
+    final controller = widget.controller;
+    final state = controller.state;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('성적 초기화'),
+        content: const Text('등록한 성적을 모두 삭제할까요? 삭제한 성적은 복구할 수 없어요.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(
+              '모두 삭제',
+              style: TextStyle(
+                color: Theme.of(dialogContext).colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (!mounted ||
+        confirmed != true ||
+        controller != widget.controller ||
+        !identical(state, controller.state)) {
+      return;
+    }
+    final error = await controller.clearGrades();
+    if (!mounted || error == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+  }
+
   Future<void> _openSimulation() async {
     widget.simulationController.reset();
     await Navigator.of(context).push<void>(
@@ -186,9 +222,17 @@ class _GradeListPageState extends State<GradeListPage> {
                 : _openScholarship,
             icon: const Icon(Icons.workspace_premium_outlined),
           ),
+          if (widget.controller.canClearGrades)
+            IconButton(
+              tooltip: '성적 초기화',
+              onPressed: _confirmClearGrades,
+              icon: const Icon(Icons.delete_sweep_outlined),
+            ),
           TextButton(
             key: const Key('open-grade-registration'),
-            onPressed: _openRegistration,
+            onPressed: widget.controller.state is GradeListLoading
+                ? null
+                : _openRegistration,
             child: const Text('등록'),
           ),
           const SizedBox(width: 12),
