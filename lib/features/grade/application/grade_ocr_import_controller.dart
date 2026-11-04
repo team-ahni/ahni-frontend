@@ -8,6 +8,8 @@ import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_registration.dart';
 import 'package:ahni_mobile/features/grade/domain/ocr_course_matching.dart';
 import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
+import 'package:ahni_mobile/features/timetable/data/timetable_api.dart';
+import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:flutter/foundation.dart';
 
 enum OcrImportStatus { pending, saved, existing }
@@ -49,12 +51,16 @@ class GradeOcrImportController extends ChangeNotifier {
     required AuthGateway auth,
     required CourseCatalogApi courses,
     required GradeApi grades,
+    TimetableApi? timetable,
   }) : _auth = auth,
        _courses = courses,
-       _grades = grades;
+       _grades = grades,
+       _timetable = timetable;
   final AuthGateway _auth;
   final CourseCatalogApi _courses;
   final GradeApi _grades;
+  final TimetableApi? _timetable;
+  bool get canAddToTimetable => _timetable != null;
   List<OcrImportEntry> _entries = [];
   List<OcrImportEntry> get entries => List.unmodifiable(_entries);
   bool busy = false;
@@ -97,10 +103,12 @@ class GradeOcrImportController extends ChangeNotifier {
           .map(_recordKey)
           .toSet();
       if (!_active(generation)) return;
-      final catalog = await _courses.getCatalog(
-        _auth.currentSession!.accessToken,
+      final catalog = List<CourseCatalogItem>.unmodifiable(
+        await _courses.getCatalog(_auth.currentSession!.accessToken),
       );
       if (!_active(generation)) return;
+      final offeredByTerm = <(int, AcademicTerm), Set<String>>{};
+      final courseApi = _courses;
       for (final entry in _entries) {
         final year = entry.candidate.academicYear, term = entry.candidate.term;
         if (year == null ||
@@ -110,7 +118,7 @@ class GradeOcrImportController extends ChangeNotifier {
           entry.message = '수강연도와 학기를 확인해 주세요.';
           continue;
         }
-        entry.courses = List.unmodifiable(catalog);
+        entry.courses = catalog;
         final matches = entry.courses
             .where(
               (c) =>
@@ -118,10 +126,61 @@ class GradeOcrImportController extends ChangeNotifier {
                   entry.candidate.courseCode.toUpperCase(),
             )
             .toList();
-        if (matches.length == 1) {
+        final initialCorrections = initialLetterOcrMatches(
+          entry.candidate,
+          catalog,
+        );
+        if (matches.length == 1 &&
+            (initialCorrections.isEmpty ||
+                matchesOcrCourseName(entry.candidate, matches.single))) {
           entry.course = matches.single;
         } else {
-          entry.suggestions = suggestOcrCourses(entry.candidate, entry.courses);
+          final corrections = [
+            ...initialCorrections,
+            ...positionalOcrMatches(entry.candidate, catalog),
+          ];
+          var offeredCorrections = <CourseCatalogItem>[];
+          if (corrections.isNotEmpty && courseApi is CourseApi) {
+            final key = (year, term);
+            if (!offeredByTerm.containsKey(key)) {
+              try {
+                final offered = await (courseApi as CourseApi).getCourses(
+                  _auth.currentSession!.accessToken,
+                  academicYear: year,
+                  term: term,
+                );
+                offeredByTerm[key] = offered
+                    .map((course) => course.entityId)
+                    .toSet();
+              } on CourseApiFailure {
+                offeredByTerm[key] = const {};
+              }
+              if (!_active(generation)) return;
+            }
+            offeredCorrections = corrections
+                .where(
+                  (course) => offeredByTerm[key]!.contains(course.entityId),
+                )
+                .toList();
+          }
+          if (offeredCorrections.length == 1 &&
+              matches.isEmpty &&
+              (initialCorrections.isEmpty ||
+                  matchesOcrCourseName(
+                    entry.candidate,
+                    offeredCorrections.single,
+                  ))) {
+            entry.course = offeredCorrections.single;
+          } else {
+            entry.suggestions = [
+              ...{
+                ...offeredCorrections,
+                ...matches,
+                ...corrections,
+                ...suggestOcrCourses(entry.candidate, catalog),
+              }.take(5),
+            ];
+          }
         }
         if (entry.courses.isEmpty) {
           entry.message = '등록된 과목 자료가 없어요. 잠시 후 다시 확인해 주세요.';
@@ -207,6 +266,56 @@ class GradeOcrImportController extends ChangeNotifier {
     entry.selected = false;
     _markExisting();
     _notify();
+  }
+
+  Future<({List<Lecture> lectures, Set<String> added})> timetableOptions(
+    OcrImportEntry entry,
+  ) async {
+    final api = _timetable;
+    final code = entry.course?.code;
+    final year = entry.candidate.academicYear;
+    final term = entry.candidate.term;
+    if (api == null ||
+        code == null ||
+        year == null ||
+        term == null ||
+        !_entries.contains(entry)) {
+      throw const TimetableApiFailure('시간표에 추가할 과목과 학기를 확인해 주세요.');
+    }
+
+    final generation = _generation;
+    final token = _timetableToken(generation);
+    final lectures = await api.lectures(token, year, term.apiName);
+    final entries = await api.entries(
+      _timetableToken(generation),
+      year,
+      term.apiName,
+    );
+    _timetableToken(generation);
+    return (
+      lectures: lectures
+          .where((lecture) => lecture.courseCode == code)
+          .toList(),
+      added: entries.map((entry) => entry.lecture.entityId).toSet(),
+    );
+  }
+
+  Future<void> addToTimetable(Lecture lecture) async {
+    final api = _timetable;
+    if (api == null) {
+      throw const TimetableApiFailure('시간표에 추가할 수 없어요.');
+    }
+    final generation = _generation;
+    await api.save(_timetableToken(generation), lecture.entityId);
+    _timetableToken(generation);
+  }
+
+  String _timetableToken(int generation) {
+    final session = _auth.currentSession;
+    if (!_active(generation) || session == null) {
+      throw const TimetableApiFailure('다시 로그인하고 시간표에 추가해 주세요.');
+    }
+    return session.accessToken;
   }
 
   Future<void> submitSelected() async {

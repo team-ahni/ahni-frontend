@@ -30,7 +30,7 @@ class _TimetablePageState extends State<TimetablePage> {
     super.initState();
     controller.addListener(_refresh);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!controller.loaded) controller.load();
+      if (mounted) controller.load();
     });
   }
 

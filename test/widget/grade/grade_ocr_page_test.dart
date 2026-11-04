@@ -7,11 +7,13 @@ import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/domain/ocr_text_line.dart';
 import 'package:ahni_mobile/features/grade/domain/course_catalog_item.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
+import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../support/grade_fakes.dart';
 import '../../support/onboarding_fakes.dart';
+import '../../support/timetable_fakes.dart';
 
 void main() {
   GradeOcrPageResult registrationPage({bool includeGrade = true}) {
@@ -44,6 +46,45 @@ void main() {
     credit: 3,
     category: CourseCategory.major,
   );
+
+  testWidgets('adds the selected historical section separately from grades', (
+    tester,
+  ) async {
+    final grades = FakeGradeApi();
+    final timetable = _HistoricalTimetableApi();
+    final controller = GradeRegistrationController(
+      auth: FakeAuthGateway(currentSession: testSession),
+      api: grades,
+      catalogApi: FakeCourseApi()..results = [course],
+      ocrApi: _OcrApi(pages: [registrationPage()]),
+      timetableApi: timetable,
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GradeOcrPage(
+          controller: controller,
+          picker: () async =>
+              (name: '예시.pdf', bytes: Uint8List.fromList('%PDF-1.7'.codeUnits)),
+        ),
+      ),
+    );
+    await tester.tap(find.byKey(const Key('ocr-pick-pdf')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('ocr-recognize')));
+    await tester.pumpAndSettle();
+    final add = find.text('시간표에 추가');
+    await tester.ensureVisible(add);
+    await tester.tap(add);
+    await tester.pumpAndSettle();
+
+    expect(timetable.queriedTerm, (2024, 'FIRST'));
+    expect(find.text('001분반 · 김교수'), findsNothing);
+    expect(timetable.savedId, isNull);
+    await tester.tap(find.text('002분반 · 이교수'));
+    await tester.pumpAndSettle();
+    expect(timetable.savedId, 'historical');
+    expect(grades.registerCalls, 0);
+  });
 
   testWidgets('registers selected rows and reports changes when finishing', (
     tester,
@@ -295,5 +336,32 @@ class _OcrApi implements GradeOcrApi {
   Future<List<GradeOcrPageResult>> preview(Uint8List pdf) async {
     called = true;
     return pages;
+  }
+}
+
+class _HistoricalTimetableApi extends FakeTimetableApi {
+  (int, String)? queriedTerm;
+  String? savedId;
+
+  @override
+  Future<List<Lecture>> lectures(String token, int year, String term) async {
+    queriedTerm = (year, term);
+    return [
+      testLecture,
+      const Lecture(
+        entityId: 'historical',
+        courseCode: 'ABC1001',
+        courseName: '예시 과목',
+        credit: 3,
+        professorName: '이교수',
+        section: '002',
+        schedules: [],
+      ),
+    ];
+  }
+
+  @override
+  Future<void> save(String token, String lectureId, {String? entryId}) async {
+    savedId = lectureId;
   }
 }

@@ -220,10 +220,13 @@ List<_CodeAnchor> _codeAnchors(List<OcrTextLine> parts) {
   // Preserve likely I/1 and O/0 errors for DB suggestions; never silently
   // replace a recognized course code with a different course.
   final pattern = RegExp(r'^[A-Z01]{2,5}[0-9O]{3,5}$');
+  final positionalPattern = RegExp(r'^[A-Z01]{3}[0-9IOLD]{4}$');
   bool isCode(String s) =>
+      (positionalPattern.hasMatch(s) &&
+          RegExp(r'[A-Z]').hasMatch(s.substring(0, 3))) ||
       pattern.hasMatch(s) &&
-      RegExp(r'[A-Z]').hasMatch(s) &&
-      RegExp(r'\d').allMatches(s).length >= 3;
+          RegExp(r'[A-Z]').hasMatch(s) &&
+          RegExp(r'\d').allMatches(s).length >= 3;
   final result = <_CodeAnchor>[];
   final used = <OcrTextLine>{};
   for (final part in parts) {
@@ -240,12 +243,13 @@ List<_CodeAnchor> _codeAnchors(List<OcrTextLine> parts) {
               p.left >= part.right &&
               p.left - part.right <= (part.bottom - part.top) * 1.2 &&
               (_y(p) - _y(part)).abs() < (part.bottom - part.top) * 0.6 &&
-              RegExp(r'^[0-9O]{3,5}$').hasMatch(p.text.trim()),
+              RegExp(r'^(?:[0-9IOLD]{4}|[0-9O]{3,5})$')
+                  .hasMatch(p.text.trim().toUpperCase()),
         )
         .toList();
     if (suffix.length != 1) continue;
     final other = suffix.single;
-    final combined = code + other.text.trim();
+    final combined = code + other.text.trim().toUpperCase();
     if (!isCode(combined)) continue;
     used.add(other);
     result.add(

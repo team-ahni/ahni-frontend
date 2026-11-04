@@ -3,6 +3,50 @@ import 'dart:math' as math;
 import 'package:ahni_mobile/features/grade/domain/course_catalog_item.dart';
 import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
 
+/// Matches common OCR confusions only in positions where the character is invalid.
+List<CourseCatalogItem> positionalOcrMatches(
+  OcrGradeCandidate candidate,
+  List<CourseCatalogItem> courses,
+) {
+  final code = candidate.courseCode.trim().toUpperCase();
+  if (code.length != 7 || RegExp(r'^[A-Z]{3}[0-9]{4}$').hasMatch(code)) {
+    return const [];
+  }
+  const prefix = {'1': 'IL', '0': 'DO'};
+  const suffix = {'I': '1', 'L': '1', 'O': '0', 'D': '0'};
+  return courses.where((course) {
+    final target = course.code.toUpperCase();
+    if (!RegExp(r'^[A-Z]{3}[0-9]{4}$').hasMatch(target)) return false;
+    for (var i = 0; i < code.length; i++) {
+      final options = (i < 3 ? prefix : suffix)[code[i]] ?? code[i];
+      if (!options.contains(target[i])) return false;
+    }
+    return true;
+  }).toList();
+}
+
+List<CourseCatalogItem> initialLetterOcrMatches(
+  OcrGradeCandidate candidate,
+  List<CourseCatalogItem> courses,
+) {
+  final code = candidate.courseCode.trim().toUpperCase();
+  if (!RegExp(r'^[TI][A-Z]{2}[0-9]{4}$').hasMatch(code)) return const [];
+  final alternate = (code.startsWith('T') ? 'I' : 'T') + code.substring(1);
+  return courses
+      .where((course) => course.code.toUpperCase() == alternate)
+      .toList();
+}
+
+bool matchesOcrCourseName(
+  OcrGradeCandidate candidate,
+  CourseCatalogItem course,
+) {
+  String normalize(String name) =>
+      name.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9가-힣]'), '');
+  final recognized = normalize(candidate.courseName ?? '');
+  return recognized.isNotEmpty && recognized == normalize(course.name);
+}
+
 /// A one-character OCR error may produce suggestions, never an automatic match.
 List<CourseCatalogItem> suggestOcrCourses(
   OcrGradeCandidate candidate,

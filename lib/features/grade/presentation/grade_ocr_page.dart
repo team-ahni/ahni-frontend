@@ -7,6 +7,8 @@ import 'package:ahni_mobile/features/grade/domain/course_catalog_item.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:ahni_mobile/features/grade/data/grade_ocr_api.dart';
 import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
+import 'package:ahni_mobile/features/timetable/data/timetable_api.dart';
+import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
@@ -22,6 +24,7 @@ class GradeOcrPage extends StatefulWidget {
 
 class _GradeOcrPageState extends State<GradeOcrPage> {
   bool _busy = false;
+  bool _choosingTimetable = false;
   GradeOcrImportController? _import;
   bool get _working => _busy || (_import?.busy ?? false);
   @override
@@ -44,6 +47,72 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
 
   void _finish() {
     if (!_working) Navigator.of(context).pop(_import?.hasChanges ?? false);
+  }
+
+  Future<void> _addToTimetable(OcrImportEntry entry) async {
+    final importer = _import;
+    if (importer == null || _working) return;
+    setState(() => _busy = true);
+    try {
+      final options = await importer.timetableOptions(entry);
+      if (!mounted) return;
+      if (options.lectures.isEmpty) {
+        _timetableMessage('이 학기에 등록할 수 있는 분반이 없어요.');
+        return;
+      }
+      setState(() => _choosingTimetable = true);
+      final lecture = await showDialog<Lecture>(
+        context: context,
+        builder: (dialogContext) => SimpleDialog(
+          title: Text(
+            '${entry.candidate.academicYear}년 ${entry.candidate.term!.label} 분반 선택',
+          ),
+          children: [
+            for (final lecture in options.lectures)
+              ListTile(
+                title: Text('${lecture.section}분반 · ${lecture.professorName}'),
+                subtitle: Text(
+                  options.added.contains(lecture.entityId)
+                      ? '이미 시간표에 등록했어요.'
+                      : lecture.schedules.isEmpty
+                      ? '등록된 수업시간 없음'
+                      : lecture.schedules
+                            .map(
+                              (s) =>
+                                  '${timetableDays[s.dayOfWeek - 1]} ${s.label} ${s.classroom ?? ''}',
+                            )
+                            .join('\n'),
+                ),
+                enabled: !options.added.contains(lecture.entityId),
+                onTap: () => Navigator.of(dialogContext).pop(lecture),
+              ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('취소'),
+            ),
+          ],
+        ),
+      );
+      if (lecture == null || !mounted) return;
+      setState(() => _choosingTimetable = false);
+      await importer.addToTimetable(lecture);
+      _timetableMessage('해당 학기 시간표에 추가했어요.');
+    } on TimetableApiFailure catch (error) {
+      _timetableMessage(error.message);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _choosingTimetable = false;
+        });
+      }
+    }
+  }
+
+  void _timetableMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _edit(int index) async {
@@ -236,7 +305,7 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
                 onPressed: _working || _pdf == null ? null : _recognize,
                 child: const Text('인식하기'),
               ),
-              if (_working) ...[
+              if (_working && !_choosingTimetable) ...[
                 const SizedBox(height: 16),
                 const CircularProgressIndicator(),
               ],
@@ -309,6 +378,12 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
                 Text(
                   '${candidate.academicYear}년 · ${candidate.term!.label} · ${entry.course?.code ?? candidate.courseCode}',
                 ),
+                if (entry.course case final course?
+                    when course.code.toUpperCase() !=
+                        candidate.courseCode.toUpperCase())
+                  WhitespaceWrappedText(
+                    '인식 코드 ${candidate.courseCode} → ${course.code}',
+                  ),
                 WhitespaceWrappedText(
                   '학점 ${entry.credit?.toString() ?? '확인 필요'} · 성적 ${entry.grade?.label ?? '확인 필요'}',
                 ),
@@ -325,6 +400,14 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
                 : null,
             onTap: _working ? null : () => _edit(index),
           ),
+          if ((_import?.canAddToTimetable ?? false) && entry.course != null)
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: _working ? null : () => _addToTimetable(entry),
+                child: const Text('시간표에 추가'),
+              ),
+            ),
           ExpansionTile(
             key: Key('ocr-source-$index'),
             title: const WhitespaceWrappedText('인식 텍스트 확인'),

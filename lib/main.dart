@@ -60,6 +60,11 @@ Future<void> main() async {
   final httpClient = http.Client();
   final apiBaseUri = Uri.parse(apiBaseUrl);
   final gradeApi = HttpGradeApi(baseUri: apiBaseUri, client: httpClient);
+  final courseApi = HttpCourseApi(baseUri: apiBaseUri, client: httpClient);
+  final timetableApi = HttpTimetableApi(
+    baseUri: apiBaseUri,
+    client: httpClient,
+  );
   runApp(
     AhniApp(
       environment: AppEnvironment.parse(configuredEnvironment),
@@ -80,25 +85,20 @@ Future<void> main() async {
         auth: auth,
         api: HttpScholarshipApi(baseUri: apiBaseUri, client: httpClient),
       ),
-      courseController: CourseCatalogController(
-        auth: auth,
-        api: HttpCourseApi(baseUri: apiBaseUri, client: httpClient),
-      ),
+      courseController: CourseCatalogController(auth: auth, api: courseApi),
       gradeRegistrationController: GradeRegistrationController(
         auth: auth,
         api: gradeApi,
         ocrApi: OnDeviceGradeOcrApi(),
-        catalogApi: HttpCourseApi(baseUri: apiBaseUri, client: httpClient),
+        timetableApi: timetableApi,
+        catalogApi: courseApi,
       ),
       gradeEditController: GradeEditController(auth: auth, api: gradeApi),
       inquiryController: InquiryController(
         auth: auth,
         api: HttpInquiryApi(baseUri: apiBaseUri, client: httpClient),
       ),
-      timetableController: TimetableController(
-        auth: auth,
-        api: HttpTimetableApi(baseUri: apiBaseUri, client: httpClient),
-      ),
+      timetableController: TimetableController(auth: auth, api: timetableApi),
       recommendationController: CourseRecommendationController(
         auth: auth,
         api: HttpCourseRecommendationApi(
