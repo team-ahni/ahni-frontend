@@ -50,6 +50,38 @@ class GradeListController extends ChangeNotifier {
   int _generation = 0;
 
   GradeListState get state => _state;
+  bool get canClearGrades => _api is GradeResetApi && _state is GradeListReady;
+
+  Future<String?> clearGrades() async {
+    final api = _api;
+    final previous = _state;
+    if (api is! GradeResetApi || previous is! GradeListReady) return null;
+    final session = _auth.currentSession;
+    if (session == null) {
+      _setState(const GradeListAuthenticationRequired());
+      return null;
+    }
+
+    final generation = _generation;
+    _setState(const GradeListLoading());
+    try {
+      await (api as GradeResetApi).deleteAllGrades(session.accessToken);
+      if (generation == _generation) _setState(const GradeListEmpty());
+      return null;
+    } on GradeApiFailure catch (failure) {
+      if (generation != _generation) return null;
+      if (failure.kind == GradeApiFailureKind.unauthorized) {
+        _setState(const GradeListAuthenticationRequired());
+        return null;
+      }
+      _setState(previous);
+      return failure.userMessage;
+    } on Object {
+      if (generation != _generation) return null;
+      _setState(previous);
+      return '성적을 초기화하지 못했습니다. 다시 시도해 주세요.';
+    }
+  }
 
   Future<void> load({bool force = false}) async {
     if (_state is GradeListLoading) return;
