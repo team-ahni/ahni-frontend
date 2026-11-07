@@ -417,4 +417,52 @@ void main() {
       expect(controller.state, isA<AuthenticationRequired>());
     },
   );
+
+  test(
+    'email conflict offers relinking and a request waits for approval',
+    () async {
+      final api = FakeStudentApi();
+      api.getDepartmentsHandler = () async => const [testDepartment];
+      api.registerProfileHandler = (_, _) => Future.error(
+        const StudentApiFailure(
+          StudentApiFailureKind.emailAlreadyRegistered,
+          '이 이메일로 등록된 학생 정보가 이미 있어요.',
+        ),
+      );
+      final controller = OnboardingController(
+        auth: FakeAuthGateway(currentSession: testSession),
+        api: api,
+      );
+      await controller.initialize();
+      await controller.requestRelink();
+      expect(api.relinkRequests, 0);
+
+      await controller.registerProfile(
+        StudentRegistration(
+          primaryDepartmentEntityId: testDepartment.entityId,
+          admissionYear: 2024,
+          enrollmentStatus: 'ENROLLED',
+        ),
+      );
+      expect(
+        (controller.state as RegistrationRequired).relinkStage,
+        RelinkStage.available,
+      );
+
+      api.requestRelinkHandler = (_) => Future.error(
+        const StudentApiFailure(StudentApiFailureKind.recoverable, '지연'),
+      );
+      await controller.requestRelink();
+      var state = controller.state as RegistrationRequired;
+      expect(state.relinkStage, RelinkStage.available);
+      expect(state.message, '기존 정보 연결을 요청하지 못했습니다. 다시 시도해 주세요.');
+
+      api.requestRelinkHandler = null;
+      await controller.requestRelink();
+      state = controller.state as RegistrationRequired;
+      expect(api.relinkRequests, 2);
+      expect(state.relinkStage, RelinkStage.requested);
+      expect(state.departments, const [testDepartment]);
+    },
+  );
 }

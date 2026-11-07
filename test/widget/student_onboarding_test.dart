@@ -697,4 +697,53 @@ void main() {
     expect(find.byType(Scrollable), findsWidgets);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('requests relinking after an email conflict on registration', (
+    tester,
+  ) async {
+    final api = FakeStudentApi();
+    api.getDepartmentsHandler = () async => const [testDepartment];
+    api.registerProfileHandler = (_, _) => Future.error(
+      const StudentApiFailure(
+        StudentApiFailureKind.emailAlreadyRegistered,
+        '이 이메일로 등록된 학생 정보가 이미 있어요.',
+      ),
+    );
+    final controller = OnboardingController(
+      auth: FakeAuthGateway(currentSession: testSession),
+      api: api,
+    );
+    await tester.pumpWidget(
+      AhniApp(
+        environment: AppEnvironment.development,
+        controller: controller,
+        gradeController: buildTestGradeListController(),
+        graduationController: buildTestGraduationController(),
+        scholarshipController: buildTestScholarshipController(),
+        courseController: buildTestCourseCatalogController(),
+        gradeRegistrationController: buildTestGradeRegistrationController(),
+        gradeEditController: buildTestGradeEditController(),
+        gradeSimulationController: buildTestGradeSimulationController(),
+        inquiryController: buildTestInquiryController(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('request-relink')), findsNothing);
+
+    await controller.registerProfile(
+      StudentRegistration(
+        primaryDepartmentEntityId: testDepartment.entityId,
+        admissionYear: 2024,
+        enrollmentStatus: 'ENROLLED',
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('request-relink')));
+    await tester.pumpAndSettle();
+
+    expect(api.relinkRequests, 1);
+    expect(find.byKey(const Key('request-relink')), findsNothing);
+    expect(find.byKey(const Key('relink-requested')), findsOneWidget);
+    expect(find.text('연결 확인'), findsOneWidget);
+  });
 }

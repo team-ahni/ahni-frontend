@@ -3,6 +3,7 @@
 - Academic records: courses, credits, grades, GPA, RPL, retakes.
 - Graduation and scholarships: criteria vary by entry year and department.
 - Timetable: conflict detection, custom start times, alarms, permission state.
+- Account relinking: 학생 정보 등록이 `STUDENT_EMAIL_ALREADY_REGISTERED`로 막히면(같은 학교 이메일로 계정을 다시 만든 경우) 등록 화면에 `기존 정보 연결 요청` 버튼을 보여 줍니다. 요청은 관리자가 본인 확인 후 승인해야 연결되며, 앱은 요청 상태만 안내하고 `연결 확인`으로 프로필을 다시 불러옵니다.
 
 시간표 탭은 연도·학기별 개설 강의를 조회하고 학생 본인의 시간표에
 등록·변경·삭제합니다. 같은 학기의 다른 강의로만 변경하며 시간 충돌은

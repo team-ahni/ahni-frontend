@@ -256,14 +256,51 @@ void main() {
             .having(
               (failure) => failure.kind,
               'kind',
-              StudentApiFailureKind.validation,
+              StudentApiFailureKind.emailAlreadyRegistered,
             )
             .having(
               (failure) => failure.userMessage,
               'userMessage',
               '이 이메일로 등록된 학생 정보가 이미 있어요.\n'
-                  '로그아웃 후 다시 로그인해 주세요. 계속되면 관리자에게 문의해 주세요.',
+                  '계정을 다시 만들었다면 기존 정보 연결을 요청해 주세요.',
             ),
+      ),
+    );
+  });
+
+  test('requests relinking with the bearer token and maps failures', () async {
+    late http.Request sent;
+    var status = 202;
+    final api = HttpStudentApi(
+      baseUri: Uri.parse('https://api.ahni.test'),
+      client: MockClient((request) async {
+        sent = request;
+        return status == 202
+            ? http.Response('{"status":"PENDING"}', 202)
+            : http.Response(
+                jsonEncode({
+                  'code': 'STUDENT_NOT_FOUND',
+                  'message': 'internal detail',
+                }),
+                status,
+              );
+      }),
+    );
+
+    await api.requestRelink('jwt');
+    expect(sent.method, 'POST');
+    expect(sent.url.path, '/api/v1/students/me/relink-requests');
+    expect(sent.headers['authorization'], 'Bearer jwt');
+
+    status = 404;
+    expect(
+      () => api.requestRelink('jwt'),
+      throwsA(
+        isA<StudentApiFailure>().having(
+          (failure) => failure.kind,
+          'kind',
+          StudentApiFailureKind.studentNotFound,
+        ),
       ),
     );
   });

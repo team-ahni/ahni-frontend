@@ -117,6 +117,7 @@ class StudentMajorUpdate {
 
 enum StudentApiFailureKind {
   studentNotFound,
+  emailAlreadyRegistered,
   unauthorized,
   validation,
   recoverable,
@@ -143,6 +144,9 @@ abstract interface class StudentApi {
     String accessToken,
     StudentMajorUpdate update,
   );
+
+  /// 같은 이메일의 기존 프로필을 이 계정에 연결해 달라고 요청한다. 관리자가 승인해야 연결된다.
+  Future<void> requestRelink(String accessToken);
 }
 
 class HttpStudentApi implements StudentApi {
@@ -220,6 +224,17 @@ class HttpStudentApi implements StudentApi {
     return _decodeProfile(response);
   }
 
+  @override
+  Future<void> requestRelink(String accessToken) async {
+    final response = await _request(
+      () => _client.post(
+        baseUri.resolve('/api/v1/students/me/relink-requests'),
+        headers: {'authorization': 'Bearer $accessToken'},
+      ),
+    );
+    if (response.statusCode != 202) throw _failure(response);
+  }
+
   Future<http.Response> _request(
     Future<http.Response> Function() request,
   ) async {
@@ -257,6 +272,14 @@ class HttpStudentApi implements StudentApi {
         '학생 정보를 등록해 주세요.',
       );
     }
+    if (response.statusCode == 409 &&
+        code == 'STUDENT_EMAIL_ALREADY_REGISTERED') {
+      return const StudentApiFailure(
+        StudentApiFailureKind.emailAlreadyRegistered,
+        '이 이메일로 등록된 학생 정보가 이미 있어요.\n'
+        '계정을 다시 만들었다면 기존 정보 연결을 요청해 주세요.',
+      );
+    }
     if (response.statusCode >= 500) {
       return const StudentApiFailure(
         StudentApiFailureKind.recoverable,
@@ -266,9 +289,6 @@ class HttpStudentApi implements StudentApi {
     return StudentApiFailure(StudentApiFailureKind.validation, switch (code) {
       'DEPARTMENT_NOT_FOUND' => '학과 정보를 다시 선택해 주세요.',
       'STUDENT_ALREADY_REGISTERED' => '이미 등록된 학생입니다. 다시 불러와 주세요.',
-      'STUDENT_EMAIL_ALREADY_REGISTERED' =>
-        '이 이메일로 등록된 학생 정보가 이미 있어요.\n'
-            '로그아웃 후 다시 로그인해 주세요. 계속되면 관리자에게 문의해 주세요.',
       'INVALID_ENROLLMENT_STATUS' => '재학 또는 휴학 상태를 선택해 주세요.',
       'DUPLICATE_MAJOR_DEPARTMENT' => '같은 학과를 여러 전공으로 선택할 수 없어요.',
       _ => '입력한 정보를 확인해 주세요.',

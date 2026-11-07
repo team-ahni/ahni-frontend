@@ -4,10 +4,12 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: backend `962d105`, with semester-based offered-course registration (2026-10-31)
+- Backend source: backend `feat/student-account-relink` at `63fc33a` (on `main` `45c5238`), adding student account relink requests (2026-11-07)
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `9bc62bc289b64ab42b2075d75af48cd28b8652ba1d2b4445a1a9e5c1b488394c`
+- Source SHA-256: `0b618f1d4d7043a28e12520f2994d8eae7cd2724e9373204c17470f43c718bdd`
+
+This snapshot adds `POST /api/v1/students/me/relink-requests` (`202`) for a recreated account whose registration returned `409 STUDENT_EMAIL_ALREADY_REGISTERED`.
 
 This snapshot includes authenticated lecture lookup and student timetable CRUD.
 The app sends only lecture UUIDs; the backend checks ownership and time conflicts.

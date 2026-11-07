@@ -52,16 +52,21 @@ class PasswordRecoveryRequired extends OnboardingState {
   final bool isError;
 }
 
+/// 다시 만든 계정이 기존 프로필과 이메일이 겹칠 때의 재연결 요청 단계.
+enum RelinkStage { unavailable, available, submitting, requested }
+
 class RegistrationRequired extends OnboardingState {
   const RegistrationRequired({
     required this.departments,
     this.message,
     this.isSubmitting = false,
+    this.relinkStage = RelinkStage.unavailable,
   });
 
   final List<Department> departments;
   final String? message;
   final bool isSubmitting;
+  final RelinkStage relinkStage;
 }
 
 class ProfileReady extends OnboardingState {
@@ -296,6 +301,10 @@ class OnboardingController extends ChangeNotifier {
         RegistrationRequired(
           departments: previous.departments,
           message: failure.userMessage,
+          relinkStage:
+              failure.kind == StudentApiFailureKind.emailAlreadyRegistered
+              ? RelinkStage.available
+              : RelinkStage.unavailable,
         ),
       );
     } on Object catch (_) {
@@ -303,6 +312,55 @@ class OnboardingController extends ChangeNotifier {
         RegistrationRequired(
           departments: previous.departments,
           message: '학생 정보를 등록하지 못했습니다. 다시 시도해 주세요.',
+        ),
+      );
+    }
+  }
+
+  Future<void> requestRelink() async {
+    final previous = _state;
+    if (previous is! RegistrationRequired ||
+        previous.relinkStage != RelinkStage.available) {
+      return;
+    }
+    final session = _auth.currentSession;
+    if (session == null) {
+      _setState(const AuthenticationRequired());
+      return;
+    }
+    _setState(
+      RegistrationRequired(
+        departments: previous.departments,
+        message: previous.message,
+        relinkStage: RelinkStage.submitting,
+      ),
+    );
+    try {
+      await _api.requestRelink(session.accessToken);
+      _setState(
+        RegistrationRequired(
+          departments: previous.departments,
+          relinkStage: RelinkStage.requested,
+        ),
+      );
+    } on StudentApiFailure catch (failure) {
+      if (failure.kind == StudentApiFailureKind.unauthorized) {
+        await _returnToAuthentication();
+        return;
+      }
+      _setState(
+        RegistrationRequired(
+          departments: previous.departments,
+          message: '기존 정보 연결을 요청하지 못했습니다. 다시 시도해 주세요.',
+          relinkStage: RelinkStage.available,
+        ),
+      );
+    } on Object catch (_) {
+      _setState(
+        RegistrationRequired(
+          departments: previous.departments,
+          message: '기존 정보 연결을 요청하지 못했습니다. 다시 시도해 주세요.',
+          relinkStage: RelinkStage.available,
         ),
       );
     }
@@ -416,6 +474,7 @@ class OnboardingController extends ChangeNotifier {
         case StudentApiFailureKind.unauthorized:
           await _returnToAuthentication();
           return;
+        case StudentApiFailureKind.emailAlreadyRegistered:
         case StudentApiFailureKind.validation:
         case StudentApiFailureKind.recoverable:
           _setState(RetryableFailure(failure.userMessage));

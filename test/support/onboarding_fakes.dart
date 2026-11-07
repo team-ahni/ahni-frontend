@@ -101,6 +101,9 @@ class FakeStudentApi implements StudentApi {
   )?
   replaceMajorsHandler;
 
+  Future<void> Function(String accessToken)? requestRelinkHandler;
+  int relinkRequests = 0;
+
   StudentRegistration? lastRegistration;
   StudentMajorUpdate? lastMajorUpdate;
 
@@ -129,6 +132,12 @@ class FakeStudentApi implements StudentApi {
     final handler = registerProfileHandler;
     if (handler == null) throw StateError('registerProfileHandler is required');
     return handler(accessToken, registration);
+  }
+
+  @override
+  Future<void> requestRelink(String accessToken) {
+    relinkRequests++;
+    return requestRelinkHandler?.call(accessToken) ?? Future.value();
   }
 
   @override
