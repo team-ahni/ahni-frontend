@@ -1,54 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-/// 토스 디자인 시스템(TDS)의 회색·파랑 단계를 따른 색 토큰.
+/// AHNI 색 토큰. 강조색은 인하대 출신을 드러내는 AHNI 파랑이다.
 /// 화면 코드는 이 값을 직접 쓰지 않고 `Theme.of(context).colorScheme`으로 읽는다.
 abstract final class AppColors {
-  static const grey50 = Color(0xFFF9FAFB);
-  static const grey100 = Color(0xFFF2F4F6);
-  static const grey200 = Color(0xFFE5E8EB);
-  static const grey300 = Color(0xFFD1D6DB);
-  static const grey400 = Color(0xFFB0B8C1);
-  static const grey500 = Color(0xFF8B95A1);
-  static const grey600 = Color(0xFF6B7684);
-  static const grey700 = Color(0xFF4E5968);
-  static const grey800 = Color(0xFF333D4B);
-  static const grey900 = Color(0xFF191F28);
-  static const blue50 = Color(0xFFE8F3FF);
-  static const blue500 = Color(0xFF3182F6);
-  static const blue700 = Color(0xFF1B64DA);
-  static const red50 = Color(0xFFFFEEEE);
-  static const red500 = Color(0xFFF04452);
-  static const red700 = Color(0xFFD22030);
+  static const canvas = Color(0xFFF7F8FA);
+  static const subtle = Color(0xFFEEF1F4);
+  static const line = Color(0xFFDDE2E8);
+  static const muted = Color(0xFF9AA3AE);
+  static const supportingText = Color(0xFF646E7A);
+  static const secondaryText = Color(0xFF5B6470);
+  static const primaryText = Color(0xFF18202A);
+  static const inverse = Color(0xFF2A323D);
+  static const accent = Color(0xFF1558A6);
+  static const accentSoft = Color(0xFFEAF2FC);
+  static const accentStrong = Color(0xFF0F4A8C);
+  static const danger = Color(0xFFD63B3B);
+  static const dangerSoft = Color(0xFFFDECEC);
+  static const dangerStrong = Color(0xFFA52A2A);
 }
 
 ThemeData buildAppTheme() {
   final colorScheme =
       ColorScheme.fromSeed(
-        seedColor: AppColors.blue500,
+        seedColor: AppColors.accent,
         brightness: Brightness.light,
       ).copyWith(
-        primary: AppColors.blue500,
+        primary: AppColors.accent,
         onPrimary: Colors.white,
-        primaryContainer: AppColors.blue50,
-        onPrimaryContainer: AppColors.grey900,
-        secondaryContainer: AppColors.grey100,
-        onSecondaryContainer: AppColors.grey900,
+        primaryContainer: AppColors.accentSoft,
+        onPrimaryContainer: AppColors.primaryText,
+        secondaryContainer: AppColors.subtle,
+        onSecondaryContainer: AppColors.primaryText,
         surface: Colors.white,
-        onSurface: AppColors.grey900,
-        onSurfaceVariant: AppColors.grey700,
-        outline: AppColors.grey200,
-        outlineVariant: AppColors.grey200,
+        onSurface: AppColors.primaryText,
+        onSurfaceVariant: AppColors.secondaryText,
+        outline: AppColors.line,
+        outlineVariant: AppColors.line,
         surfaceTint: Colors.transparent,
         surfaceContainerLowest: Colors.white,
-        surfaceContainerLow: AppColors.grey50,
-        surfaceContainer: AppColors.grey100,
-        surfaceContainerHigh: AppColors.grey100,
-        surfaceContainerHighest: AppColors.grey100,
-        error: AppColors.red500,
+        surfaceContainerLow: AppColors.canvas,
+        surfaceContainer: AppColors.canvas,
+        surfaceContainerHigh: AppColors.subtle,
+        surfaceContainerHighest: AppColors.subtle,
+        error: AppColors.danger,
         onError: Colors.white,
-        errorContainer: AppColors.red50,
-        onErrorContainer: AppColors.red700,
+        errorContainer: AppColors.dangerSoft,
+        onErrorContainer: AppColors.dangerStrong,
       );
 
   final buttonShape = RoundedRectangleBorder(
@@ -56,16 +54,16 @@ ThemeData buildAppTheme() {
   );
   final fieldBorder = OutlineInputBorder(
     borderRadius: BorderRadius.circular(12),
-    borderSide: const BorderSide(color: AppColors.grey200),
+    borderSide: const BorderSide(color: AppColors.line),
   );
 
   // 컴포넌트 글꼴은 테마 textTheme에서 파생해 플랫폼 기본 글꼴과 섞이지 않게 한다.
   final base = ThemeData(
     colorScheme: colorScheme,
     useMaterial3: true,
-    scaffoldBackgroundColor: AppColors.grey100,
+    scaffoldBackgroundColor: AppColors.canvas,
     canvasColor: Colors.white,
-    dividerColor: AppColors.grey200,
+    dividerColor: AppColors.line,
     textTheme: _textTheme,
   );
   final text = base.textTheme;
@@ -73,8 +71,8 @@ ThemeData buildAppTheme() {
 
   return base.copyWith(
     appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.grey100,
-      foregroundColor: AppColors.grey900,
+      backgroundColor: AppColors.canvas,
+      foregroundColor: AppColors.primaryText,
       surfaceTintColor: Colors.transparent,
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       elevation: 0,
@@ -83,20 +81,20 @@ ThemeData buildAppTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.grey50,
-      hintStyle: text.bodyLarge!.copyWith(color: AppColors.grey400),
+      fillColor: AppColors.canvas,
+      hintStyle: text.bodyLarge!.copyWith(color: AppColors.muted),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: fieldBorder,
       enabledBorder: fieldBorder,
       disabledBorder: fieldBorder,
       focusedBorder: fieldBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.blue500, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
       ),
       errorBorder: fieldBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.red500),
+        borderSide: const BorderSide(color: AppColors.danger),
       ),
       focusedErrorBorder: fieldBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.red500, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
@@ -104,19 +102,19 @@ ThemeData buildAppTheme() {
         minimumSize: const Size(44, 56),
         shape: buttonShape,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        disabledBackgroundColor: AppColors.grey200,
-        disabledForegroundColor: AppColors.grey400,
+        disabledBackgroundColor: AppColors.line,
+        disabledForegroundColor: AppColors.muted,
         textStyle: label.copyWith(fontSize: 17),
       ),
     ),
-    // 토스의 weak 버튼처럼 테두리 없이 옅은 파랑 면으로 구분한다. 회색 배경과 흰 카드 모두에서 보인다.
+    // 보조 버튼은 테두리 없이 옅은 강조색 면으로 구분한다. 회색 배경과 흰 카드 모두에서 보인다.
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(44, 48),
-        backgroundColor: AppColors.blue50,
-        foregroundColor: AppColors.blue700,
-        disabledBackgroundColor: AppColors.grey100,
-        disabledForegroundColor: AppColors.grey400,
+        backgroundColor: AppColors.accentSoft,
+        foregroundColor: AppColors.accentStrong,
+        disabledBackgroundColor: AppColors.subtle,
+        disabledForegroundColor: AppColors.muted,
         side: BorderSide.none,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -126,12 +124,12 @@ ThemeData buildAppTheme() {
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         minimumSize: const Size(44, 44),
-        foregroundColor: AppColors.blue500,
+        foregroundColor: AppColors.accent,
         textStyle: label.copyWith(fontSize: 15),
       ),
     ),
     iconButtonTheme: IconButtonThemeData(
-      style: IconButton.styleFrom(foregroundColor: AppColors.grey700),
+      style: IconButton.styleFrom(foregroundColor: AppColors.secondaryText),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: Colors.white,
@@ -144,16 +142,16 @@ ThemeData buildAppTheme() {
           fontSize: 12,
           letterSpacing: 0,
           color: states.contains(WidgetState.selected)
-              ? AppColors.grey900
-              : AppColors.grey400,
+              ? AppColors.primaryText
+              : AppColors.supportingText,
         ),
       ),
       iconTheme: WidgetStateProperty.resolveWith(
         (states) => IconThemeData(
           size: 24,
           color: states.contains(WidgetState.selected)
-              ? AppColors.grey900
-              : AppColors.grey400,
+              ? AppColors.primaryText
+              : AppColors.supportingText,
         ),
       ),
     ),
@@ -163,19 +161,16 @@ ThemeData buildAppTheme() {
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     ),
-    dividerTheme: const DividerThemeData(
-      color: AppColors.grey200,
-      thickness: 1,
-    ),
+    dividerTheme: const DividerThemeData(color: AppColors.line, thickness: 1),
     chipTheme: ChipThemeData(
-      backgroundColor: AppColors.grey100,
+      backgroundColor: AppColors.subtle,
       side: BorderSide.none,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      labelStyle: label.copyWith(fontSize: 13, color: AppColors.grey700),
+      labelStyle: label.copyWith(fontSize: 13, color: AppColors.secondaryText),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: AppColors.grey800,
+      backgroundColor: AppColors.inverse,
       contentTextStyle: text.bodyMedium!.copyWith(color: Colors.white),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
@@ -193,8 +188,8 @@ ThemeData buildAppTheme() {
       ),
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: AppColors.blue500,
-      linearTrackColor: AppColors.grey100,
+      color: AppColors.accent,
+      linearTrackColor: AppColors.subtle,
     ),
     checkboxTheme: CheckboxThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
@@ -204,40 +199,40 @@ ThemeData buildAppTheme() {
 
 const _textTheme = TextTheme(
   headlineMedium: TextStyle(
-    color: AppColors.grey900,
-    fontSize: 26,
+    color: AppColors.primaryText,
+    fontSize: 24,
     fontWeight: FontWeight.w700,
-    height: 1.35,
-    letterSpacing: -0.6,
+    height: 32 / 24,
+    letterSpacing: -0.5,
   ),
   titleLarge: TextStyle(
-    color: AppColors.grey900,
+    color: AppColors.primaryText,
     fontSize: 20,
     fontWeight: FontWeight.w700,
     height: 1.4,
     letterSpacing: -0.4,
   ),
   titleMedium: TextStyle(
-    color: AppColors.grey900,
+    color: AppColors.primaryText,
     fontSize: 17,
     fontWeight: FontWeight.w600,
     height: 1.4,
     letterSpacing: _tight,
   ),
   bodyLarge: TextStyle(
-    color: AppColors.grey700,
+    color: AppColors.secondaryText,
     fontSize: 16,
     height: 1.5,
     letterSpacing: _tight,
   ),
   bodyMedium: TextStyle(
-    color: AppColors.grey900,
+    color: AppColors.primaryText,
     fontSize: 15,
     height: 1.45,
     letterSpacing: _tight,
   ),
   bodySmall: TextStyle(
-    color: AppColors.grey600,
+    color: AppColors.supportingText,
     fontSize: 13,
     height: 1.45,
     letterSpacing: -0.1,
@@ -249,5 +244,5 @@ const _textTheme = TextTheme(
   ),
 );
 
-/// 토스처럼 한글 본문 자간을 살짝 좁힌다.
+/// 한글 본문 자간을 살짝 좁혀 단어 덩어리가 잘 읽히게 한다.
 const _tight = -0.3;

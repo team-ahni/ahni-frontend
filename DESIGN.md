@@ -4,7 +4,7 @@
 
 - Product references: the supplied AHNI wireframe, use-case specification, ERD, DFD, and mini specification.
 - Visual reference: [Student Portal Dashboard Mobile App UI Design](https://dribbble.com/shots/26239990-Student-Portal-Dashboard-Mobile-App-UI-Design) by Ronas IT.
-- Visual system reference (2026-11): Toss Design System (TDS) — grey and blue scales, flat white cards on a grey canvas, weak (tinted) secondary buttons, and a text-first bottom bar. Sources: [TDS token summary](https://www.oppadu.com/tools/design-systems-site/brand/toss.html) (third-party measurement, not official values) and [Apps in Toss consumer UX guide](https://developers-apps-in-toss.toss.im/landing-page/landing-page-en/design/consumer-ux-guide). Do not copy Toss brand assets, logo, or its proprietary typeface.
+- Layout principles (2026-11): flat cards on a neutral canvas, tinted secondary buttons, and a text-first bottom bar. These are general mobile conventions shared by many Korean finance and lifestyle apps; AHNI keeps its own palette and does not reproduce any specific product's colors, typeface, or brand assets.
 - Reuse the reference's calm dashboard hierarchy, inset content cards, compact segmented controls, and profile-summary composition. Do not copy its brand assets, sample data, or purple/green palette.
 - This harness branch implements only a development-ready shell. Product screens remain feature work.
 - The wireframe's student-first information architecture is authoritative for future flows; it is not copied into placeholder UI.
@@ -23,25 +23,28 @@ Tokens live in `lib/app/app_theme.dart` (`AppColors`). Screens read them through
 
 | Role | Token | Value |
 | --- | --- | --- |
-| Canvas | `grey100` | `#F2F4F6` |
+| Canvas, field fill | `canvas` | `#F7F8FA` |
 | Surface | white | `#FFFFFF` |
-| Field fill | `grey50` | `#F9FAFB` |
-| Divider, field border | `grey200` | `#E5E8EB` |
-| Placeholder, inactive tab | `grey400` | `#B0B8C1` |
-| Supporting text | `grey600` | `#6B7684` |
-| Secondary text | `grey700` | `#4E5968` |
-| Primary text | `grey900` | `#191F28` |
-| Accent | `blue500` | `#3182F6` |
-| Accent soft (summary, weak button) | `blue50` | `#E8F3FF` |
-| Accent text on soft | `blue700` | `#1B64DA` |
-| Error | `red500` / `red50` / `red700` | `#F04452` / `#FFEEEE` / `#D22030` |
+| Chip, disabled fill | `subtle` | `#EEF1F4` |
+| Divider, field border | `line` | `#DDE2E8` |
+| Placeholder, disabled text | `muted` | `#9AA3AE` |
+| Supporting text, inactive tab | `supportingText` | `#646E7A` |
+| Secondary text | `secondaryText` | `#5B6470` |
+| Primary text | `primaryText` | `#18202A` |
+| Snack bar | `inverse` | `#2A323D` |
+| Accent (AHNI blue) | `accent` | `#1558A6` |
+| Accent soft (summary, secondary button) | `accentSoft` | `#EAF2FC` |
+| Accent text on soft | `accentStrong` | `#0F4A8C` |
+| Error | `danger` / `dangerSoft` / `dangerStrong` | `#D63B3B` / `#FDECEC` / `#A52A2A` |
+
+Text colors meet WCAG AA on white and on the canvas; `muted` is only for placeholders and disabled states.
 
 Surfaces are flat: no card shadows. Only status semantics may add colors beyond this set.
 
 ### Type
 
 - Use the platform system sans-serif so Korean and Latin text render consistently without a network font dependency.
-- Display (`headlineMedium`): 26/35, weight 700, letter spacing -0.6.
+- Display (`headlineMedium`): 24/32, weight 700, letter spacing -0.5.
 - Title (`titleLarge`, app bar): 20/28, weight 700, letter spacing -0.4.
 - Section title (`titleMedium`): 17/24, weight 600.
 - Lead body (`bodyLarge`): 16/24, weight 400, secondary text.
@@ -92,7 +95,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 ### Form field
 
-- `grey50` fill with a 1-pixel `grey200` border so fields stay visible on both the canvas and white cards.
+- `canvas` fill with a 1-pixel `line` border so fields stay visible on both the canvas and white cards.
 - Focus state uses the accent outline. Error text remains inline and is never communicated by color alone.
 
 ### Department selector
@@ -125,13 +128,13 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 - Show bottom navigation only after an authenticated student profile is ready.
 - The real destinations are `성적`, `졸업`, and `내 정보`; inactive or future destinations are not shown. Graduation progress separates recorded credits from official school certification and displays its policy source.
-- White bar without a selection pill: the selected icon and label use primary text, inactive ones `grey400`.
+- White bar without a selection pill: the selected icon and label use primary text, inactive ones `supportingText`.
 - Preserve a clear selected label and icon, and reset student-owned feature state when the authenticated student changes.
 
 ### Buttons
 
 - Primary (`FilledButton`): accent fill, white 17/600 label, 56 high.
-- Secondary (`OutlinedButton`): weak style — `blue50` fill, `blue700` label, no border. Grey would vanish on the grey canvas.
+- Secondary (`OutlinedButton`): `accentSoft` fill, `accentStrong` label, no border. A grey fill would vanish on the canvas.
 - Text actions (`TextButton`): accent label, 44-pixel minimum target.
 
 ### Status message
