@@ -34,6 +34,10 @@ class CourseRecommendation {
   final bool lectureDataAvailable;
   final List<MajorRecommendation> majors;
 
+  bool get hasRetake => majors.any(
+    (major) => major.courses.any((course) => course.reasons.contains('RETAKE')),
+  );
+
   /// 추천 학기가 몇 학년 몇 학기에 해당하는지 (성적이 있는 정규학기 기준).
   String get semesterLabel =>
       '${(semesterNumber + 1) ~/ 2}학년 ${semesterNumber.isOdd ? 1 : 2}학기';

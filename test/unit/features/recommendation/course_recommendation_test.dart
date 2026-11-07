@@ -19,6 +19,11 @@ void main() {
       );
 
       expect(recommendation.semesterLabel, '3학년 2학기');
+      expect(recommendation.hasRetake, isTrue);
+      expect(
+        CourseRecommendation.fromJson(recommendationJson(majors: [])).hasRetake,
+        isFalse,
+      );
       final major = recommendation.majors.first;
       expect(major.majorLabel, '주전공');
       final required = major.courses.first;

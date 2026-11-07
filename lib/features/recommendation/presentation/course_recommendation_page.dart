@@ -117,6 +117,15 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
         '이 학기 개설 강의 정보가 아직 없어서 교과과정 기준으로만 추천했어요.',
       ),
     ],
+    // 인하대 재수강에 관한 규정 제3조 ③·제5조 ④. 앱 기록과 학교 기록이 다를 수 있어 거르지 않고 안내만 한다.
+    if (recommendation.hasRetake) ...[
+      const SizedBox(height: 8),
+      WhitespaceWrappedText(
+        key: const Key('recommendation-retake-limit'),
+        '재수강은 학기당 8학점(최대 2과목), 졸업까지 24학점까지 신청할 수 있고 최고 성적은 A0예요.',
+        style: Theme.of(context).textTheme.bodySmall,
+      ),
+    ],
     const SizedBox(height: 16),
     if (recommendation.majors.isEmpty)
       const WhitespaceWrappedText(

@@ -40,6 +40,10 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('재수강 추천 (C+)'), findsOneWidget);
+    expect(
+      find.byKey(const Key('recommendation-retake-limit')),
+      findsOneWidget,
+    );
     await tester.scrollUntilVisible(
       findWhitespaceWrappedText('이 학기 교과과정이 아직 공개되지 않아 추천할 수 없어요.'),
       150,
