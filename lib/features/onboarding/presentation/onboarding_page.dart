@@ -540,6 +540,54 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
   }
 }
 
+class _RelinkPanel extends StatelessWidget {
+  const _RelinkPanel({
+    required this.stage,
+    required this.onRequest,
+    required this.onCheck,
+  });
+
+  final RelinkStage stage;
+  final VoidCallback onRequest;
+  final VoidCallback onCheck;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch (stage) {
+      RelinkStage.unavailable => const SizedBox.shrink(),
+      RelinkStage.available || RelinkStage.submitting => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            key: const Key('request-relink'),
+            onPressed: stage == RelinkStage.submitting ? null : onRequest,
+            child: _ButtonLabel(
+              isLoading: stage == RelinkStage.submitting,
+              label: '기존 정보 연결 요청',
+            ),
+          ),
+        ),
+      ),
+      RelinkStage.requested => Padding(
+        key: const Key('relink-requested'),
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const _StatusMessage(
+              message: '기존 정보 연결을 요청했어요. 관리자가 본인 확인을 마치면 이 계정에서 기존 성적과 시간표를 볼 수 있어요.',
+              isError: false,
+            ),
+            const SizedBox(height: 8),
+            TextButton(onPressed: onCheck, child: const Text('연결 확인')),
+          ],
+        ),
+      ),
+    };
+  }
+}
+
 class _RegistrationView extends StatefulWidget {
   const _RegistrationView({required this.controller, required this.state});
 
@@ -638,6 +686,11 @@ class _RegistrationViewState extends State<_RegistrationView> {
                     _StatusMessage(message: message, isError: true),
                     const SizedBox(height: 16),
                   ],
+                  _RelinkPanel(
+                    stage: widget.state.relinkStage,
+                    onRequest: widget.controller.requestRelink,
+                    onCheck: widget.controller.retry,
+                  ),
                   Text('기본 정보', style: Theme.of(context).textTheme.titleMedium),
                   const SizedBox(height: 16),
                   _DepartmentField(
