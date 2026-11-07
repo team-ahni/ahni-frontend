@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
+
 /// AHNI 색 토큰. 강조색은 인하대 출신을 드러내는 AHNI 파랑이다.
 /// 화면 코드는 이 값을 직접 쓰지 않고 `Theme.of(context).colorScheme`으로 읽는다.
 abstract final class AppColors {
@@ -52,10 +54,7 @@ ThemeData buildAppTheme() {
   final buttonShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(16),
   );
-  final fieldBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(12),
-    borderSide: const BorderSide(color: AppColors.line),
-  );
+  const fieldBorder = _FilledFieldBorder();
 
   // 컴포넌트 글꼴은 테마 textTheme에서 파생해 플랫폼 기본 글꼴과 섞이지 않게 한다.
   final base = ThemeData(
@@ -70,6 +69,7 @@ ThemeData buildAppTheme() {
   final label = text.labelLarge!;
 
   return base.copyWith(
+    extensions: const [AhniPalette.light],
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.canvas,
       foregroundColor: AppColors.primaryText,
@@ -79,22 +79,41 @@ ThemeData buildAppTheme() {
       scrolledUnderElevation: 0,
       titleTextStyle: text.titleLarge,
     ),
+    // 외곽선과 라벨 홈 대신, 옅은 면 안에 작은 라벨을 두고 포커스일 때만 강조 테두리를 그린다.
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.canvas,
+      fillColor: AppColors.subtle,
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      labelStyle: text.bodySmall!.copyWith(
+        color: AppColors.supportingText,
+        fontWeight: FontWeight.w600,
+      ),
+      floatingLabelStyle: WidgetStateTextStyle.resolveWith(
+        (states) => text.bodySmall!.copyWith(
+          fontWeight: FontWeight.w600,
+          color: states.contains(WidgetState.error)
+              ? AppColors.dangerStrong
+              : states.contains(WidgetState.focused)
+              ? AppColors.accent
+              : AppColors.supportingText,
+        ),
+      ),
       hintStyle: text.bodyLarge!.copyWith(color: AppColors.muted),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      suffixStyle: text.bodyLarge!.copyWith(color: AppColors.secondaryText),
+      helperStyle: text.bodySmall,
+      errorStyle: text.bodySmall!.copyWith(color: AppColors.dangerStrong),
+      contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       border: fieldBorder,
       enabledBorder: fieldBorder,
       disabledBorder: fieldBorder,
-      focusedBorder: fieldBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.accent, width: 1.5),
+      focusedBorder: const _FilledFieldBorder(
+        borderSide: BorderSide(color: AppColors.accent, width: 1.5),
       ),
-      errorBorder: fieldBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.danger),
+      errorBorder: const _FilledFieldBorder(
+        borderSide: BorderSide(color: AppColors.danger),
       ),
-      focusedErrorBorder: fieldBorder.copyWith(
-        borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
+      focusedErrorBorder: const _FilledFieldBorder(
+        borderSide: BorderSide(color: AppColors.danger, width: 1.5),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
@@ -219,8 +238,9 @@ const _textTheme = TextTheme(
     height: 1.4,
     letterSpacing: _tight,
   ),
+  // 입력값도 이 스타일을 쓰므로 본문색이다. 화면 안내 문단은 onSurfaceVariant로 낮춘다.
   bodyLarge: TextStyle(
-    color: AppColors.secondaryText,
+    color: AppColors.primaryText,
     fontSize: 16,
     height: 1.5,
     letterSpacing: _tight,
@@ -246,3 +266,44 @@ const _textTheme = TextTheme(
 
 /// 한글 본문 자간을 살짝 좁혀 단어 덩어리가 잘 읽히게 한다.
 const _tight = -0.3;
+
+/// 둥근 면 테두리. `isOutline`이 false라 라벨이 면 안쪽에 놓이고, 외곽선에 라벨 홈이 파이지 않는다.
+class _FilledFieldBorder extends OutlineInputBorder {
+  const _FilledFieldBorder({super.borderSide = BorderSide.none})
+    : super(borderRadius: const BorderRadius.all(Radius.circular(14)));
+
+  @override
+  bool get isOutline => false;
+
+  @override
+  _FilledFieldBorder copyWith({
+    BorderSide? borderSide,
+    BorderRadius? borderRadius,
+    double? gapPadding,
+  }) => _FilledFieldBorder(borderSide: borderSide ?? this.borderSide);
+
+  // 포커스 전환 중에도 같은 종류로 보간해 라벨 홈이 잠깐 생기지 않게 한다.
+  @override
+  ShapeBorder? lerpFrom(ShapeBorder? a, double t) => a is _FilledFieldBorder
+      ? _FilledFieldBorder(
+          borderSide: BorderSide.lerp(a.borderSide, borderSide, t),
+        )
+      : super.lerpFrom(a, t);
+
+  @override
+  ShapeBorder? lerpTo(ShapeBorder? b, double t) => b is _FilledFieldBorder
+      ? _FilledFieldBorder(
+          borderSide: BorderSide.lerp(borderSide, b.borderSide, t),
+        )
+      : super.lerpTo(b, t);
+
+  @override
+  void paint(
+    Canvas canvas,
+    Rect rect, {
+    double? gapStart,
+    double gapExtent = 0.0,
+    double gapPercentage = 0.0,
+    TextDirection? textDirection,
+  }) => super.paint(canvas, rect, textDirection: textDirection);
+}

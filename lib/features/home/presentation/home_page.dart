@@ -48,7 +48,12 @@ class HomePage extends StatelessWidget {
                     },
                   ),
                   const SizedBox(height: 12),
-                  Text('개발 환경이 준비되었습니다.', style: textTheme.bodyLarge),
+                  Text(
+                    '개발 환경이 준비되었습니다.',
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   const Spacer(),
                   Text('환경: ${environment.name}', style: textTheme.bodySmall),
                 ],

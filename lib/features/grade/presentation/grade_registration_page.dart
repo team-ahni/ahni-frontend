@@ -283,7 +283,9 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                     const SizedBox(height: 8),
                     WhitespaceWrappedText(
                       '과목과 학기를 선택하면 성적 이력에 바로 반영돼요.',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
@@ -295,9 +297,6 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                     const SizedBox(height: 24),
                     Material(
                       color: Theme.of(context).colorScheme.surface,
-                      elevation: 2,
-                      shadowColor: Theme.of(context).colorScheme.onSurface
-                          .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -787,7 +786,9 @@ class _CoursePickerMessage extends StatelessWidget {
           WhitespaceWrappedText(
             message,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           if (action case final value?) ...[const SizedBox(height: 12), value],
         ],

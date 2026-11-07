@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/recommendation/domain/course_recommendation.dart';
@@ -203,11 +204,8 @@ class _CourseCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 4,
               children: [
-                for (final label in course.reasonLabels)
-                  Chip(
-                    label: Text(label),
-                    visualDensity: VisualDensity.compact,
-                  ),
+                for (final (index, label) in course.reasonLabels.indexed)
+                  _ReasonChip(reason: course.reasons[index], label: label),
               ],
             ),
             for (final lecture in course.lectures)
@@ -237,3 +235,29 @@ String _schedule(Lecture lecture) => lecture.schedules.isEmpty
 String _credit(double value) => value == value.truncateToDouble()
     ? value.toInt().toString()
     : value.toString();
+
+/// 추천 이유마다 색을 달리해 훑어보기 쉽게 한다. 뜻은 항상 글자로도 전한다.
+class _ReasonChip extends StatelessWidget {
+  const _ReasonChip({required this.reason, required this.label});
+
+  final String reason;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AhniPalette.of(context);
+    final tone = switch (reason) {
+      'GRADUATION_REQUIRED' => palette.rose,
+      'OVERDUE' => palette.amber,
+      'RECOMMENDED_NOW' => palette.blue,
+      _ => palette.violet,
+    };
+    return Chip(
+      label: Text(label),
+      visualDensity: VisualDensity.compact,
+      backgroundColor: tone.soft,
+      labelStyle: Theme.of(context).chipTheme.labelStyle
+          ?.copyWith(color: tone.ink),
+    );
+  }
+}

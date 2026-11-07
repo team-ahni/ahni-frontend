@@ -162,7 +162,9 @@ class _EmailVerificationPendingView extends StatelessWidget {
           const SizedBox(height: 12),
           WhitespaceWrappedText(
             '인증 링크를 다음 이메일로 보냈어요.',
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 24),
           _SectionCard(
@@ -178,7 +180,9 @@ class _EmailVerificationPendingView extends StatelessWidget {
                 const SizedBox(height: 12),
                 WhitespaceWrappedText(
                   '메일의 링크를 확인한 뒤 로그인해 주세요.',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 WhitespaceWrappedText(
@@ -266,7 +270,9 @@ class _PasswordRecoveryViewState extends State<_PasswordRecoveryView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               '앞으로 로그인할 때 사용할 비밀번호를 입력해 주세요.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -431,7 +437,9 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               description,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -674,7 +682,9 @@ class _RegistrationViewState extends State<_RegistrationView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               '전공, 입학연도와 학적 상태는 맞춤 학사 안내에 사용해요.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -1168,7 +1178,9 @@ class _MajorEditingViewState extends State<_MajorEditingView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               '현재 이수 중인 전공을 기준으로 학사 안내를 제공해요.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -1295,7 +1307,9 @@ class _RetryView extends StatelessWidget {
               WhitespaceWrappedText(
                 message,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               FilledButton(onPressed: onRetry, child: const Text('다시 시도')),

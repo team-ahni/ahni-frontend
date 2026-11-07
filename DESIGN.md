@@ -23,9 +23,9 @@ Tokens live in `lib/app/app_theme.dart` (`AppColors`). Screens read them through
 
 | Role | Token | Value |
 | --- | --- | --- |
-| Canvas, field fill | `canvas` | `#F7F8FA` |
+| Canvas | `canvas` | `#F7F8FA` |
 | Surface | white | `#FFFFFF` |
-| Chip, disabled fill | `subtle` | `#EEF1F4` |
+| Field, chip, disabled fill | `subtle` | `#EEF1F4` |
 | Divider, field border | `line` | `#DDE2E8` |
 | Placeholder, disabled text | `muted` | `#9AA3AE` |
 | Supporting text, inactive tab | `supportingText` | `#646E7A` |
@@ -39,6 +39,18 @@ Tokens live in `lib/app/app_theme.dart` (`AppColors`). Screens read them through
 
 Text colors meet WCAG AA on white and on the canvas; `muted` is only for placeholders and disabled states.
 
+#### Category tones
+
+`AhniPalette` (`lib/core/presentation/ahni_palette.dart`, a `ThemeExtension`) holds pastel `soft`/`ink` pairs for telling categories apart. Every `ink` meets 4.5:1 on its `soft`. Color never carries meaning alone; a label is always shown.
+
+| Tone | Soft / ink | Used for |
+| --- | --- | --- |
+| `blue` | `#E6F0FB` / `#14529C` | Major, "this term" recommendation |
+| `teal` | `#E2F4F0` / `#12695A` | General education |
+| `amber` | `#FBF1DD` / `#8A5A0B` | Free elective, overdue recommendation |
+| `rose` | `#FCE9EC` / `#A3304A` | Graduation-required recommendation |
+| `violet` | `#EFEAFB` / `#5B3FA8` | Retake recommendation |
+
 Surfaces are flat: no card shadows. Only status semantics may add colors beyond this set.
 
 ### Type
@@ -47,7 +59,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - Display (`headlineMedium`): 24/32, weight 700, letter spacing -0.5.
 - Title (`titleLarge`, app bar): 20/28, weight 700, letter spacing -0.4.
 - Section title (`titleMedium`): 17/24, weight 600.
-- Lead body (`bodyLarge`): 16/24, weight 400, secondary text.
+- Lead body (`bodyLarge`): 16/24, weight 400, primary text. Field values use this style; screen description paragraphs lower it to `onSurfaceVariant`.
 - Body (`bodyMedium`): 15/22, weight 400.
 - Supporting (`bodySmall`): 13/19, weight 400.
 - Korean body text uses letter spacing -0.3. Component text (buttons, chips, tabs, snack bars) derives from the theme text styles so it never falls back to a different platform font.
@@ -95,7 +107,9 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 ### Form field
 
-- `canvas` fill with a 1-pixel `line` border so fields stay visible on both the canvas and white cards.
+- Soft filled field: `subtle` fill, 14 radius, no resting border, so there is no Material outline notch.
+- The label always sits small inside the top of the field (13/600, `supportingText`; accent on focus, error ink on error). Units such as `년` and `학점` are suffix text in secondary color.
+- Focus draws a 1.5 accent border; errors draw a danger border.
 - Focus state uses the accent outline. Error text remains inline and is never communicated by color alone.
 
 ### Department selector
@@ -108,6 +122,11 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 - Accent-soft surface containing the student's display identity, primary department, and account or enrollment status.
 - Use only real profile data; omit unavailable dashboard metrics rather than inventing placeholders.
+
+### Grade summary
+
+- White surface with the cumulative GPA at 34 with tabular figures, then credits as supporting text.
+- Category GPAs are tone tiles (major `blue`, general `teal`, elective `amber`) with an icon, label, GPA, and credits. Three columns from 300 logical pixels, otherwise two.
 
 ### Grade list
 
