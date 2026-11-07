@@ -31,6 +31,9 @@ class AhniPalette extends ThemeExtension<AhniPalette> {
   static AhniPalette of(BuildContext context) =>
       Theme.of(context).extension<AhniPalette>() ?? light;
 
+  /// 같은 종류를 순서대로 구분할 때 돌려 쓰는 색 순서.
+  List<Tone> get cycle => [blue, teal, amber, violet, rose];
+
   final Tone blue;
   final Tone teal;
   final Tone amber;

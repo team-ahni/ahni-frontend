@@ -57,7 +57,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 - Use the platform system sans-serif so Korean and Latin text render consistently without a network font dependency.
 - Display (`headlineMedium`): 24/32, weight 700, letter spacing -0.5.
-- Title (`titleLarge`, app bar): 20/28, weight 700, letter spacing -0.4.
+- Title (`titleLarge`, app bar): 20/28, weight 700, letter spacing -0.4. App bar titles are left-aligned on every platform.
 - Section title (`titleMedium`): 17/24, weight 600.
 - Lead body (`bodyLarge`): 16/24, weight 400, primary text. Field values use this style; screen description paragraphs lower it to `onSurfaceVariant`.
 - Body (`bodyMedium`): 15/22, weight 400.
@@ -99,6 +99,13 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - Every segment keeps a 44-pixel minimum touch target and visible selected semantics.
 - Authentication modes do not share entered credentials, validation state, or feedback messages.
 
+### Info group (settings list)
+
+- `SectionHeader` + `InfoGroup` + `InfoRow`/`NavigationRow` in `lib/core/presentation/info_group.dart`.
+- A small 13/600 section title sits above a white 20-radius group. Rows put the label left in secondary text and the value right in 15/600 primary text, separated by inset 1-pixel dividers.
+- Navigation rows lead with a 36-pixel accent-soft icon tile and end with a chevron.
+- Use for read-mostly profile and settings data instead of stacked label/value pairs inside a section card.
+
 ### Section card
 
 - White surface, 20-pixel radius, 20-pixel internal padding, no shadow. The grey canvas alone separates cards.
@@ -120,7 +127,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 ### Profile summary
 
-- Accent-soft surface containing the student's display identity, primary department, and account or enrollment status.
+- White surface with the accent avatar, the display name in title size, `department · admission year` as supporting text, and an accent-soft enrollment badge.
 - Use only real profile data; omit unavailable dashboard metrics rather than inventing placeholders.
 
 ### Grade summary
@@ -149,6 +156,15 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - The real destinations are `성적`, `졸업`, and `내 정보`; inactive or future destinations are not shown. Graduation progress separates recorded credits from official school certification and displays its policy source.
 - White bar without a selection pill: the selected icon and label use primary text, inactive ones `supportingText`.
 - Preserve a clear selected label and icon, and reset student-owned feature state when the authenticated student changes.
+
+### Timetable
+
+- Lecture blocks have no border: an 8-radius `AhniPalette.cycle` tone fill, the course name in 12/600 ink, and the classroom on a second 10-point line.
+- The same course keeps one tone on every day; different courses take tones in registration order.
+
+### Progress
+
+- Linear progress bars are 8 pixels high with 4-radius ends on a `subtle` track.
 
 ### Buttons
 

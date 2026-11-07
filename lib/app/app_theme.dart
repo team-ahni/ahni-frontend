@@ -77,6 +77,8 @@ ThemeData buildAppTheme() {
       systemOverlayStyle: SystemUiOverlayStyle.dark,
       elevation: 0,
       scrolledUnderElevation: 0,
+      // iOS도 Android처럼 제목을 왼쪽에 둬 화면마다 위치가 같게 한다.
+      centerTitle: false,
       titleTextStyle: text.titleLarge,
     ),
     // 외곽선과 라벨 홈 대신, 옅은 면 안에 작은 라벨을 두고 포커스일 때만 강조 테두리를 그린다.
@@ -206,9 +208,12 @@ ThemeData buildAppTheme() {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
     ),
+    // 진행률 막대는 두껍고 둥글게 그린다.
     progressIndicatorTheme: const ProgressIndicatorThemeData(
       color: AppColors.accent,
       linearTrackColor: AppColors.subtle,
+      linearMinHeight: 8,
+      borderRadius: BorderRadius.all(Radius.circular(4)),
     ),
     checkboxTheme: CheckboxThemeData(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
