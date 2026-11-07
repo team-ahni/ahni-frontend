@@ -16,16 +16,7 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 24,
-        title: const Text(
-          'AHNI',
-          style: TextStyle(
-            color: Color(0xFF18202A),
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            height: 1.4,
-            letterSpacing: -0.3,
-          ),
-        ),
+        title: const Text('AHNI'),
       ),
       body: SafeArea(
         top: false,

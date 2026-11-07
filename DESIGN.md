@@ -4,6 +4,7 @@
 
 - Product references: the supplied AHNI wireframe, use-case specification, ERD, DFD, and mini specification.
 - Visual reference: [Student Portal Dashboard Mobile App UI Design](https://dribbble.com/shots/26239990-Student-Portal-Dashboard-Mobile-App-UI-Design) by Ronas IT.
+- Visual system reference (2026-11): Toss Design System (TDS) — grey and blue scales, flat white cards on a grey canvas, weak (tinted) secondary buttons, and a text-first bottom bar. Sources: [TDS token summary](https://www.oppadu.com/tools/design-systems-site/brand/toss.html) (third-party measurement, not official values) and [Apps in Toss consumer UX guide](https://developers-apps-in-toss.toss.im/landing-page/landing-page-en/design/consumer-ux-guide). Do not copy Toss brand assets, logo, or its proprietary typeface.
 - Reuse the reference's calm dashboard hierarchy, inset content cards, compact segmented controls, and profile-summary composition. Do not copy its brand assets, sample data, or purple/green palette.
 - This harness branch implements only a development-ready shell. Product screens remain feature work.
 - The wireframe's student-first information architecture is authoritative for future flows; it is not copied into placeholder UI.
@@ -18,36 +19,45 @@ The signature detail is an accent-soft summary surface that gives the current ta
 
 ### Color
 
-| Role | Value |
-| --- | --- |
-| Canvas | `#F7F8FA` |
-| Surface | `#FFFFFF` |
-| Primary text | `#18202A` |
-| Secondary text | `#5B6470` |
-| Accent | `#1558A6` |
-| Accent soft | `#EAF2FC` |
-| Divider | `#DDE2E8` |
-| Shadow | `#0F18202A` |
+Tokens live in `lib/app/app_theme.dart` (`AppColors`). Screens read them through `Theme.of(context).colorScheme`, never as literals.
 
-Only status semantics may add colors beyond this set in future feature branches.
+| Role | Token | Value |
+| --- | --- | --- |
+| Canvas | `grey100` | `#F2F4F6` |
+| Surface | white | `#FFFFFF` |
+| Field fill | `grey50` | `#F9FAFB` |
+| Divider, field border | `grey200` | `#E5E8EB` |
+| Placeholder, inactive tab | `grey400` | `#B0B8C1` |
+| Supporting text | `grey600` | `#6B7684` |
+| Secondary text | `grey700` | `#4E5968` |
+| Primary text | `grey900` | `#191F28` |
+| Accent | `blue500` | `#3182F6` |
+| Accent soft (summary, weak button) | `blue50` | `#E8F3FF` |
+| Accent text on soft | `blue700` | `#1B64DA` |
+| Error | `red500` / `red50` / `red700` | `#F04452` / `#FFEEEE` / `#D22030` |
+
+Surfaces are flat: no card shadows. Only status semantics may add colors beyond this set.
 
 ### Type
 
 - Use the platform system sans-serif so Korean and Latin text render consistently without a network font dependency.
-- Display: 24/32, weight 700.
-- Title: 20/28, weight 700.
-- Body: 16/24, weight 400.
-- Supporting: 14/20, weight 400.
+- Display (`headlineMedium`): 26/35, weight 700, letter spacing -0.6.
+- Title (`titleLarge`, app bar): 20/28, weight 700, letter spacing -0.4.
+- Section title (`titleMedium`): 17/24, weight 600.
+- Lead body (`bodyLarge`): 16/24, weight 400, secondary text.
+- Body (`bodyMedium`): 15/22, weight 400.
+- Supporting (`bodySmall`): 13/19, weight 400.
+- Korean body text uses letter spacing -0.3. Component text (buttons, chips, tabs, snack bars) derives from the theme text styles so it never falls back to a different platform font.
 
 ### Space and shape
 
 - Base spacing unit: 4 logical pixels.
 - Screen gutter: 24.
 - Content gaps: 8, 12, 16, 24, 32.
-- Small control radius: 10.
-- Input and button radius: 12.
-- Surface radius: 20.
-- Dialog radius: 24.
+- Small control radius: 8 (chips), 10.
+- Input and secondary button radius: 12.
+- Primary button: 56 high, radius 16.
+- Surface and dialog radius: 20; bottom sheet top radius 24.
 
 ## 3. Layout
 
@@ -76,13 +86,13 @@ Only status semantics may add colors beyond this set in future feature branches.
 
 ### Section card
 
-- White surface, 20-pixel radius, 20-pixel internal padding, and the declared low shadow.
+- White surface, 20-pixel radius, 20-pixel internal padding, no shadow. The grey canvas alone separates cards.
 - A card groups one complete user task. Nested cards are not allowed.
 - Passive loading indicators are not cards; show them directly on the canvas.
 
 ### Form field
 
-- Neutral filled resting state with no decorative border.
+- `grey50` fill with a 1-pixel `grey200` border so fields stay visible on both the canvas and white cards.
 - Focus state uses the accent outline. Error text remains inline and is never communicated by color alone.
 
 ### Department selector
@@ -115,7 +125,14 @@ Only status semantics may add colors beyond this set in future feature branches.
 
 - Show bottom navigation only after an authenticated student profile is ready.
 - The real destinations are `성적`, `졸업`, and `내 정보`; inactive or future destinations are not shown. Graduation progress separates recorded credits from official school certification and displays its policy source.
+- White bar without a selection pill: the selected icon and label use primary text, inactive ones `grey400`.
 - Preserve a clear selected label and icon, and reset student-owned feature state when the authenticated student changes.
+
+### Buttons
+
+- Primary (`FilledButton`): accent fill, white 17/600 label, 56 high.
+- Secondary (`OutlinedButton`): weak style — `blue50` fill, `blue700` label, no border. Grey would vanish on the grey canvas.
+- Text actions (`TextButton`): accent label, 44-pixel minimum target.
 
 ### Status message
 

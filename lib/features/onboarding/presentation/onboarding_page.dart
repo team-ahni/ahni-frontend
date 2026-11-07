@@ -1379,14 +1379,6 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface
-                .withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: child,
     );
@@ -1571,15 +1563,17 @@ class _StatusMessage extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isError ? colorScheme.errorContainer : const Color(0xFFEAF2FC),
-          borderRadius: BorderRadius.circular(6),
+          color: isError
+              ? colorScheme.errorContainer
+              : colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: WhitespaceWrappedText(
           message,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: isError
                 ? colorScheme.onErrorContainer
-                : const Color(0xFF18202A),
+                : colorScheme.onPrimaryContainer,
           ),
         ),
       ),

@@ -421,9 +421,6 @@ class _GradeTermSection extends StatelessWidget {
       child: Material(
         key: Key('grade-term-${group.academicYear}-${group.term.apiName}'),
         color: Theme.of(context).colorScheme.surface,
-        elevation: 2,
-        shadowColor: Theme.of(context).colorScheme.onSurface
-            .withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -635,14 +632,6 @@ class _CenteredState extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).colorScheme.onSurface
-                        .withValues(alpha: 0.06),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
