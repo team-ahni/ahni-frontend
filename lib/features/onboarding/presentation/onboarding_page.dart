@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/info_group.dart';
 import 'package:ahni_mobile/core/network/student_api.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
@@ -162,7 +163,9 @@ class _EmailVerificationPendingView extends StatelessWidget {
           const SizedBox(height: 12),
           WhitespaceWrappedText(
             '인증 링크를 다음 이메일로 보냈어요.',
-            style: Theme.of(context).textTheme.bodyLarge,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           const SizedBox(height: 24),
           _SectionCard(
@@ -178,7 +181,9 @@ class _EmailVerificationPendingView extends StatelessWidget {
                 const SizedBox(height: 12),
                 WhitespaceWrappedText(
                   '메일의 링크를 확인한 뒤 로그인해 주세요.',
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 WhitespaceWrappedText(
@@ -266,7 +271,9 @@ class _PasswordRecoveryViewState extends State<_PasswordRecoveryView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               '앞으로 로그인할 때 사용할 비밀번호를 입력해 주세요.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -431,7 +438,9 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               description,
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -674,7 +683,9 @@ class _RegistrationViewState extends State<_RegistrationView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               '전공, 입학연도와 학적 상태는 맞춤 학사 안내에 사용해요.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -936,13 +947,13 @@ class _ProfileView extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
               children: [
                 CircleAvatar(
-                  radius: 28,
+                  radius: 26,
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
                   child: Text(
@@ -952,7 +963,7 @@ class _ProfileView extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -961,11 +972,11 @@ class _ProfileView extends StatelessWidget {
                         displayName,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
-                        profile.primaryDepartment.name,
+                        '${profile.primaryDepartment.name} · ${profile.admissionYear}학번',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall,
@@ -978,104 +989,76 @@ class _ProfileView extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 28),
           if (state.message case final message?) ...[
             _StatusMessage(message: message, isError: true),
             const SizedBox(height: 16),
           ],
-          _SectionCard(
+          SectionHeader(
+            title: '전공 정보',
+            trailing: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(44, 36),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              onPressed: state.isLoadingMajors
+                  ? null
+                  : controller.startMajorEditing,
+              child: _ButtonLabel(
+                isLoading: state.isLoadingMajors,
+                label: '전공 수정',
+              ),
+            ),
+          ),
+          InfoGroup(
             key: const Key('major-information-card'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '전공 정보',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    OutlinedButton(
-                      onPressed: state.isLoadingMajors
-                          ? null
-                          : controller.startMajorEditing,
-                      child: _ButtonLabel(
-                        isLoading: state.isLoadingMajors,
-                        label: '전공 수정',
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _ProfileField(
-                  label: '주전공',
-                  value: profile.primaryDepartment.name,
-                ),
-                const Divider(height: 32),
-                _ProfileField(
-                  label: '복수전공',
-                  value: profile.doubleMajorDepartment?.name ?? '선택 안 함',
-                ),
-                const Divider(height: 32),
-                _ProfileField(
-                  label: '부전공',
-                  value: profile.minorDepartment?.name ?? '선택 안 함',
-                ),
-              ],
-            ),
+            children: [
+              InfoRow(label: '주전공', value: profile.primaryDepartment.name),
+              InfoRow(
+                label: '복수전공',
+                value: profile.doubleMajorDepartment?.name ?? '선택 안 함',
+              ),
+              InfoRow(
+                label: '부전공',
+                value: profile.minorDepartment?.name ?? '선택 안 함',
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          _SectionCard(
+          const SizedBox(height: 28),
+          const SectionHeader(title: '학생 정보'),
+          InfoGroup(
             key: const Key('student-information-card'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('학생 정보', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 20),
-                _ProfileField(label: '학교 이메일', value: profile.email),
-                const Divider(height: 32),
-                _ProfileField(
-                  label: '입학연도',
-                  value: '${profile.admissionYear}년',
-                ),
-                const Divider(height: 32),
-                _ProfileField(label: '학적 상태', value: enrollmentLabel),
-                const Divider(height: 32),
-                _ProfileField(
-                  label: '계정 상태',
-                  value: profile.accountStatus == 'ACTIVE' ? '활성' : '이용 제한',
-                ),
-              ],
-            ),
+            children: [
+              InfoRow(label: '학교 이메일', value: profile.email),
+              InfoRow(label: '입학연도', value: '${profile.admissionYear}년'),
+              InfoRow(label: '학적 상태', value: enrollmentLabel),
+              InfoRow(
+                label: '계정 상태',
+                value: profile.accountStatus == 'ACTIVE' ? '활성' : '이용 제한',
+              ),
+            ],
           ),
-          const SizedBox(height: 24),
-          _SectionCard(
+          const SizedBox(height: 28),
+          const SectionHeader(title: '지원'),
+          InfoGroup(
             key: const Key('support-card'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('지원', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 12),
-                WhitespaceWrappedText('학사 정보 이용 중 확인이 필요한 내용을 문의할 수 있어요.'),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  key: const Key('open-inquiries'),
-                  onPressed: () {
-                    Navigator.of(context).push<void>(
-                      MaterialPageRoute(
-                        builder: (_) => InquiryPage(
-                          controller: inquiryController,
-                          onAuthenticationRequired: controller.signOut,
-                        ),
+            children: [
+              NavigationRow(
+                key: const Key('open-inquiries'),
+                icon: Icons.support_agent_rounded,
+                title: '문의사항',
+                onTap: () {
+                  Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => InquiryPage(
+                        controller: inquiryController,
+                        onAuthenticationRequired: controller.signOut,
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.support_agent_rounded),
-                  label: const Text('문의사항'),
-                ),
-              ],
-            ),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
         ],
       ),
@@ -1168,7 +1151,9 @@ class _MajorEditingViewState extends State<_MajorEditingView> {
             const SizedBox(height: 12),
             WhitespaceWrappedText(
               '현재 이수 중인 전공을 기준으로 학사 안내를 제공해요.',
-              style: Theme.of(context).textTheme.bodyLarge,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             _SectionCard(
@@ -1295,7 +1280,9 @@ class _RetryView extends StatelessWidget {
               WhitespaceWrappedText(
                 message,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               FilledButton(onPressed: onRetry, child: const Text('다시 시도')),
@@ -1379,14 +1366,6 @@ class _SectionCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface
-                .withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       child: child,
     );
@@ -1544,7 +1523,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
+        color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
@@ -1571,15 +1550,17 @@ class _StatusMessage extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isError ? colorScheme.errorContainer : const Color(0xFFEAF2FC),
-          borderRadius: BorderRadius.circular(6),
+          color: isError
+              ? colorScheme.errorContainer
+              : colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: WhitespaceWrappedText(
           message,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: isError
                 ? colorScheme.onErrorContainer
-                : const Color(0xFF18202A),
+                : colorScheme.onPrimaryContainer,
           ),
         ),
       ),
@@ -1606,25 +1587,6 @@ class _ButtonLabel extends StatelessWidget {
           const SizedBox(width: 8),
         ],
         Text(label),
-      ],
-    );
-  }
-}
-
-class _ProfileField extends StatelessWidget {
-  const _ProfileField({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 4),
-        Text(value, style: Theme.of(context).textTheme.titleMedium),
       ],
     );
   }

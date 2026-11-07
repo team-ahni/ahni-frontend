@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_edit_controller.dart';
@@ -291,7 +292,9 @@ class _GradeList extends StatelessWidget {
               const SizedBox(height: 8),
               WhitespaceWrappedText(
                 '입력한 성적을 최신 학기부터 모아 보여드려요.',
-                style: Theme.of(context).textTheme.bodyLarge,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: 24),
               _GradeSummaryCard(summary: summary),
@@ -318,7 +321,7 @@ class _GradeSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     return Semantics(
       container: true,
       label:
@@ -328,40 +331,48 @@ class _GradeSummaryCard extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: colorScheme.primaryContainer,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            WhitespaceWrappedText(
-              '전체 성적',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(color: colorScheme.onPrimaryContainer),
-            ),
+            WhitespaceWrappedText('전체 성적', style: textTheme.titleMedium),
             const SizedBox(height: 8),
             Text(
               _formatGpa(summary.gpa),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.w700,
+              style: textTheme.headlineMedium?.copyWith(
+                fontSize: 34,
+                height: 1.2,
+                fontFeatures: const [FontFeature.tabularFigures()],
               ),
             ),
             const SizedBox(height: 4),
             WhitespaceWrappedText(
               '평점 반영 ${_formatNumber(summary.gpaCredits)}학점 · 이수 ${_formatNumber(summary.completedCredits)}학점',
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: colorScheme.onPrimaryContainer),
+              style: textTheme.bodySmall,
             ),
             if (summary.categories.isNotEmpty) ...[
-              const SizedBox(height: 20),
-              Wrap(
-                spacing: 24,
-                runSpacing: 16,
-                children: [
-                  for (final category in summary.categories)
-                    _CategorySummary(summary: category),
-                ],
+              const SizedBox(height: 16),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  const gap = 8.0;
+                  // 좁거나 글자를 키운 화면에서는 두 칸으로 줄인다.
+                  final columns = constraints.maxWidth >= 300 ? 3 : 2;
+                  final width =
+                      (constraints.maxWidth - gap * (columns - 1)) / columns;
+                  return Wrap(
+                    spacing: gap,
+                    runSpacing: gap,
+                    children: [
+                      for (final category in summary.categories)
+                        SizedBox(
+                          width: width,
+                          child: _CategorySummary(summary: category),
+                        ),
+                    ],
+                  );
+                },
               ),
             ],
           ],
@@ -378,27 +389,44 @@ class _CategorySummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.onPrimaryContainer;
-    return SizedBox(
-      width: 124,
+    final palette = AhniPalette.of(context);
+    final (tone, icon) = switch (summary.category) {
+      CourseCategory.major => (palette.blue, Icons.school_outlined),
+      CourseCategory.generalEducation => (
+        palette.teal,
+        Icons.menu_book_outlined,
+      ),
+      CourseCategory.elective => (palette.amber, Icons.interests_outlined),
+    };
+    final textTheme = Theme.of(context).textTheme;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: tone.soft,
+        borderRadius: BorderRadius.circular(14),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: 20, color: tone.ink),
+          const SizedBox(height: 8),
           Text(
             _categoryLabel(summary.category),
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: color),
+            style: textTheme.bodySmall?.copyWith(
+              color: tone.ink,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-          const SizedBox(height: 2),
           Text(
             _formatGpa(summary.gpa),
-            style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(color: color, fontWeight: FontWeight.w700),
+            style: textTheme.titleLarge?.copyWith(
+              color: tone.ink,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
           ),
           Text(
             '${_formatNumber(summary.completedCredits)}학점 이수',
-            style: Theme.of(context).textTheme.bodySmall
-                ?.copyWith(color: color),
+            style: textTheme.bodySmall?.copyWith(color: tone.ink),
           ),
         ],
       ),
@@ -421,9 +449,6 @@ class _GradeTermSection extends StatelessWidget {
       child: Material(
         key: Key('grade-term-${group.academicYear}-${group.term.apiName}'),
         color: Theme.of(context).colorScheme.surface,
-        elevation: 2,
-        shadowColor: Theme.of(context).colorScheme.onSurface
-            .withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(20),
@@ -635,14 +660,6 @@ class _CenteredState extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Theme.of(context).colorScheme.onSurface
-                        .withValues(alpha: 0.06),
-                    blurRadius: 24,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -662,7 +679,9 @@ class _CenteredState extends StatelessWidget {
                   WhitespaceWrappedText(
                     message,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   if (action case final value?) ...[
                     const SizedBox(height: 24),
