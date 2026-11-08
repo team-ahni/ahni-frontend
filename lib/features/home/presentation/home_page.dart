@@ -41,15 +41,15 @@ class HomePage extends StatelessWidget {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final title = constraints.maxWidth < 400
-                          ? '학사 생활을 위한\n준비를 시작합니다.'
-                          : '학사 생활을 위한 준비를 시작합니다.';
+                          ? '학사 생활을 위한\n준비를 시작해요.'
+                          : '학사 생활을 위한 준비를 시작해요.';
 
                       return Text(title, style: textTheme.headlineMedium);
                     },
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    '개발 환경이 준비되었습니다.',
+                    '개발 환경이 준비됐어요.',
                     style: textTheme.bodyLarge?.copyWith(
                       color: colorScheme.onSurfaceVariant,
                     ),

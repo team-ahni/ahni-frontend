@@ -186,7 +186,7 @@ ThemeData buildAppTheme() {
     chipTheme: ChipThemeData(
       backgroundColor: AppColors.subtle,
       side: BorderSide.none,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: const StadiumBorder(),
       labelStyle: label.copyWith(fontSize: 13, color: AppColors.secondaryText),
     ),
     snackBarTheme: SnackBarThemeData(

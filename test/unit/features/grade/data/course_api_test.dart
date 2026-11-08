@@ -125,7 +125,7 @@ void main() {
             .having(
               (failure) => failure.userMessage,
               'userMessage',
-              '과목 정보를 확인하지 못했습니다. 다시 시도해 주세요.',
+              '과목 정보를 확인하지 못했어요. 다시 시도해 주세요.',
             ),
       ),
     );
@@ -153,7 +153,7 @@ void main() {
             .having(
               (failure) => failure.userMessage,
               'userMessage',
-              '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+              '로그인이 만료됐어요. 다시 로그인해 주세요.',
             ),
       ),
     );

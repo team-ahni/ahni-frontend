@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/graduation/application/graduation_controller.dart';
 import 'package:ahni_mobile/features/graduation/domain/graduation_overview.dart';
@@ -69,10 +70,11 @@ class _GraduationPageState extends State<GraduationPage> {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const WhitespaceWrappedText(
-                  '등록한 성적과 학과 기준을 비교해 봐요. 학교의 최종 졸업 판정과는 다를 수 있어요.',
+                const NoticeCallout(
+                  icon: Icons.flag_outlined,
+                  message: '등록한 성적과 학과 기준을 비교해 봐요. 학교의 최종 졸업 판정과는 다를 수 있어요.',
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 if (controller.status == GraduationStatus.loading ||
                     controller.status == GraduationStatus.initial)
                   const Center(child: CircularProgressIndicator()),

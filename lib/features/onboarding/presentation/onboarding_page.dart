@@ -1524,7 +1524,7 @@ class _StatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,

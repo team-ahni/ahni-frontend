@@ -175,7 +175,7 @@ class _GradeEditPageState extends State<GradeEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     WhitespaceWrappedText(
-                      '등록한 성적을 수정하세요',
+                      '등록한 성적을 고칠 수 있어요',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 8),
@@ -275,6 +275,7 @@ class _GradeEditPageState extends State<GradeEditPage> {
                             KeyedSubtree(
                               key: const Key('edit-grade-code'),
                               child: DropdownButtonFormField<GradeCode>(
+                                isExpanded: true,
                                 key: _gradeFieldKey,
                                 initialValue: _gradeCode,
                                 decoration: const InputDecoration(

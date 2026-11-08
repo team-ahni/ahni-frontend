@@ -75,7 +75,7 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       WhitespaceWrappedText(
-                        '예상 성적으로 평점을 살펴보세요',
+                        '예상 성적으로 평점을 미리 계산해 봐요',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontSize: 20,

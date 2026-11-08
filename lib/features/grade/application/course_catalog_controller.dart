@@ -99,7 +99,7 @@ class CourseCatalogController extends ChangeNotifier {
       _setState(CourseCatalogFailure(failure.userMessage));
     } on Object catch (_) {
       if (requestGeneration != _generation) return;
-      _setState(const CourseCatalogFailure('과목 목록을 불러오지 못했습니다. 다시 시도해 주세요.'));
+      _setState(const CourseCatalogFailure('과목 목록을 불러오지 못했어요. 다시 시도해 주세요.'));
     }
   }
 

@@ -72,7 +72,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
     if (response.statusCode != 200) {
       throw _failure(
         response,
-        fallbackMessage: '성적 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+        fallbackMessage: '성적 목록을 불러오지 못했어요. 다시 시도해 주세요.',
       );
     }
     try {
@@ -98,7 +98,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
     if (response.statusCode != 200) {
       throw _failure(
         response,
-        fallbackMessage: '성적 요약을 불러오지 못했습니다. 다시 시도해 주세요.',
+        fallbackMessage: '성적 요약을 불러오지 못했어요. 다시 시도해 주세요.',
       );
     }
     try {
@@ -170,7 +170,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
       ),
     );
     if (response.statusCode != 201) {
-      throw _failure(response, fallbackMessage: '성적을 등록하지 못했습니다. 다시 시도해 주세요.');
+      throw _failure(response, fallbackMessage: '성적을 등록하지 못했어요. 다시 시도해 주세요.');
     }
     try {
       return GradeRecord.fromJson(_decodeMap(response));
@@ -198,7 +198,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
       ),
     );
     if (response.statusCode != 200) {
-      throw _failure(response, fallbackMessage: '성적을 수정하지 못했습니다. 다시 시도해 주세요.');
+      throw _failure(response, fallbackMessage: '성적을 수정하지 못했어요. 다시 시도해 주세요.');
     }
     try {
       return GradeRecord.fromJson(_decodeMap(response));
@@ -218,7 +218,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
       ),
     );
     if (response.statusCode != 204) {
-      throw _failure(response, fallbackMessage: '성적을 삭제하지 못했습니다. 다시 시도해 주세요.');
+      throw _failure(response, fallbackMessage: '성적을 삭제하지 못했어요. 다시 시도해 주세요.');
     }
   }
 
@@ -231,7 +231,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
       ),
     );
     if (response.statusCode != 204) {
-      throw _failure(response, fallbackMessage: '성적을 초기화하지 못했습니다. 다시 시도해 주세요.');
+      throw _failure(response, fallbackMessage: '성적을 초기화하지 못했어요. 다시 시도해 주세요.');
     }
   }
 
@@ -249,7 +249,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
     } on Exception catch (_) {
       throw const GradeApiFailure(
         GradeApiFailureKind.recoverable,
-        '서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.',
+        '서버에 연결하지 못했어요. 네트워크를 확인하고 다시 시도해 주세요.',
       );
     }
   }
@@ -262,7 +262,7 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
     if (response.statusCode == 401) {
       return const GradeApiFailure(
         GradeApiFailureKind.unauthorized,
-        '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+        '로그인이 만료됐어요. 다시 로그인해 주세요.',
       );
     }
     if (response.statusCode == 404 &&
@@ -319,6 +319,6 @@ class HttpGradeApi implements GradeApi, GradeResetApi {
 
   static const _malformedResponse = GradeApiFailure(
     GradeApiFailureKind.recoverable,
-    '성적 정보를 확인하지 못했습니다. 다시 시도해 주세요.',
+    '성적 정보를 확인하지 못했어요. 다시 시도해 주세요.',
   );
 }

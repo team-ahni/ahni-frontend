@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
@@ -151,6 +152,7 @@ class _TimetablePageState extends State<TimetablePage> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<int>(
+                    isExpanded: true,
                     key: ValueKey('year-${controller.year}'),
                     initialValue: controller.year,
                     decoration: const InputDecoration(labelText: '연도'),
@@ -170,6 +172,7 @@ class _TimetablePageState extends State<TimetablePage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<String>(
+                    isExpanded: true,
                     key: ValueKey('term-${controller.term}'),
                     initialValue: controller.term,
                     decoration: const InputDecoration(labelText: '학기'),
@@ -205,7 +208,10 @@ class _TimetablePageState extends State<TimetablePage> {
               _WeekGrid(entries: controller.entries),
               const SizedBox(height: 24),
               if (controller.entries.isEmpty)
-                const WhitespaceWrappedText('등록된 강의가 없어요.'),
+                const NoticeCallout(
+                  icon: Icons.add_circle_outline_rounded,
+                  message: '등록된 강의가 없어요. 오른쪽 위 + 버튼으로 이번 학기 강의를 담아 보세요.',
+                ),
               for (final entry in controller.entries) ...[
                 ListTile(
                   contentPadding: EdgeInsets.zero,

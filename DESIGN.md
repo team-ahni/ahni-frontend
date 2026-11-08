@@ -82,6 +82,11 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - Keep screen titles and primary actions outside cards; place form controls and profile details inside one dominant content card.
 - Future navigation follows the supplied wireframe and must be implemented per feature, not pre-created as inactive controls.
 
+## Voice
+
+- Write all user-facing copy, including errors, in polite casual 해요체 (`~했어요`, `~해 주세요`). Do not mix in `~습니다`.
+- Headlines describe what the screen offers (`학기별 성적을 한눈에 봐요`) rather than command the user (`~하세요`).
+
 ## 4. Components
 
 ### App shell
@@ -91,6 +96,9 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - The environment label is supporting developer information, not a user-facing production badge.
 - Keep onboarding copy warm, specific, and concise. Do not repeat the app or screen purpose in an eyebrow label.
 - Wrap Korean headings and explanatory copy only at whitespace boundaries with `WhitespaceWrappedText`; never add manual line breaks for a viewport. Identifiers and other unbroken values must use explicit overflow handling instead.
+- `WhitespaceWrappedText` lays out one `Text` per word in a `Wrap`, so the engine measures every word it paints. Do not go back to inserting invisible joiners (U+2060): with negative letter spacing they made lines measure narrower than they paint and clipped the last syllable.
+- `test/widget/layout_resilience_test.dart` opens every main screen at 320pt (1.0x, 1.6x text) and 390pt (2.0x text) and fails on any layout overflow. Add new screens to it.
+- Dropdowns always set `isExpanded: true` so long items ellipsize instead of overflowing narrow columns.
 
 ### Segmented control
 
@@ -105,6 +113,14 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - A small 13/600 section title sits above a white 20-radius group. Rows put the label left in secondary text and the value right in 15/600 primary text, separated by inset 1-pixel dividers.
 - Navigation rows lead with a 36-pixel accent-soft icon tile and end with a chevron.
 - Use for read-mostly profile and settings data instead of stacked label/value pairs inside a section card.
+
+### Notice callout
+
+- `NoticeCallout` (`lib/core/presentation/friendly_states.dart`): a 14-radius soft box with an 18-point icon and 13-point copy. Use it for screen intros and caveats instead of dense paragraphs. Default tone is accent soft; caveats may use an `AhniPalette` tone (for example amber for missing data, violet for retake rules).
+
+### Empty state
+
+- `EmptyStateView`: a 72-pixel accent-soft circle with an icon, a short title, an optional one-line explanation, and the next action. Use it for empty lists, failures, and re-login prompts.
 
 ### Section card
 

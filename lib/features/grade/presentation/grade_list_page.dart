@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
@@ -286,7 +287,7 @@ class _GradeList extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               WhitespaceWrappedText(
-                '학기별 성적을 확인하세요',
+                '학기별 성적을 한눈에 봐요',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
               const SizedBox(height: 8),
@@ -623,7 +624,7 @@ class _AuthenticationRequiredView extends StatelessWidget {
     return _CenteredState(
       icon: Icons.lock_outline_rounded,
       title: '다시 로그인이 필요해요',
-      message: '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+      message: '로그인이 만료됐어요. 다시 로그인해 주세요.',
       action: FilledButton(
         onPressed: onReturnToLogin,
         child: const Text('로그인으로 돌아가기'),
@@ -654,41 +655,11 @@ class _CenteredState extends StatelessWidget {
           constraints: const BoxConstraints(maxWidth: 400, minHeight: 360),
           child: Align(
             alignment: Alignment.topCenter,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
-                    size: 40,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(height: 16),
-                  WhitespaceWrappedText(
-                    title,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  WhitespaceWrappedText(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  if (action case final value?) ...[
-                    const SizedBox(height: 24),
-                    value,
-                  ],
-                ],
-              ),
+            child: EmptyStateView(
+              icon: icon,
+              title: title,
+              message: message,
+              action: action,
             ),
           ),
         ),

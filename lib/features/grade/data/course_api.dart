@@ -100,7 +100,7 @@ class HttpCourseApi implements CourseApi, CourseCatalogApi {
     } on Exception catch (_) {
       throw const CourseApiFailure(
         CourseApiFailureKind.recoverable,
-        '서버에 연결하지 못했습니다. 네트워크를 확인하고 다시 시도해 주세요.',
+        '서버에 연결하지 못했어요. 네트워크를 확인하고 다시 시도해 주세요.',
       );
     }
   }
@@ -109,17 +109,17 @@ class HttpCourseApi implements CourseApi, CourseCatalogApi {
     if (response.statusCode == 401) {
       return const CourseApiFailure(
         CourseApiFailureKind.unauthorized,
-        '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+        '로그인이 만료됐어요. 다시 로그인해 주세요.',
       );
     }
     return const CourseApiFailure(
       CourseApiFailureKind.recoverable,
-      '과목 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+      '과목 목록을 불러오지 못했어요. 다시 시도해 주세요.',
     );
   }
 
   static const _malformedResponse = CourseApiFailure(
     CourseApiFailureKind.recoverable,
-    '과목 정보를 확인하지 못했습니다. 다시 시도해 주세요.',
+    '과목 정보를 확인하지 못했어요. 다시 시도해 주세요.',
   );
 }

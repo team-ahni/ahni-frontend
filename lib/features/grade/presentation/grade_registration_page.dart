@@ -277,7 +277,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     WhitespaceWrappedText(
-                      '수강한 과목의 성적을 기록하세요',
+                      '들은 과목의 성적을 남겨 주세요',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 8),
@@ -497,6 +497,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                             KeyedSubtree(
                               key: const Key('grade-code'),
                               child: DropdownButtonFormField<GradeCode>(
+                                isExpanded: true,
                                 key: _gradeFieldKey,
                                 initialValue: _gradeCode,
                                 decoration: const InputDecoration(
@@ -702,7 +703,7 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
             ),
             const SizedBox(height: 20),
             WhitespaceWrappedText(
-              '과목을 선택하세요',
+              '과목을 골라 주세요',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
@@ -740,7 +741,7 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
         ),
       ),
       CourseCatalogAuthenticationRequired() => const _CoursePickerMessage(
-        message: '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+        message: '로그인이 만료됐어요. 다시 로그인해 주세요.',
       ),
       CourseCatalogReady state when state.courses.isEmpty => const Center(
         child: WhitespaceWrappedText('검색한 과목을 찾지 못했어요.'),

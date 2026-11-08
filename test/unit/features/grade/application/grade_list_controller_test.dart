@@ -44,7 +44,7 @@ void main() {
     final api = _FakeGradeApi()
       ..error = const GradeApiFailure(
         GradeApiFailureKind.recoverable,
-        '성적 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+        '성적 목록을 불러오지 못했어요. 다시 시도해 주세요.',
       );
     final controller = GradeListController(
       auth: _FakeAuthGateway(currentSession: _testSession),
@@ -57,7 +57,7 @@ void main() {
       isA<GradeListFailure>().having(
         (state) => state.message,
         'message',
-        '성적 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+        '성적 목록을 불러오지 못했어요. 다시 시도해 주세요.',
       ),
     );
 

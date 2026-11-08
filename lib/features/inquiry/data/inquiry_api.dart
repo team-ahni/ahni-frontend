@@ -292,7 +292,7 @@ class HttpInquiryApi implements InquiryApi {
     if (response.statusCode == 401) {
       return const InquiryApiFailure(
         InquiryApiFailureKind.unauthorized,
-        '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+        '로그인이 만료됐어요. 다시 로그인해 주세요.',
       );
     }
     if (response.statusCode == 404 && code == 'STUDENT_NOT_FOUND') {
