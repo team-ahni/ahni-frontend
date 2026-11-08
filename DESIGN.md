@@ -181,6 +181,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 ### Progress
 
 - Linear progress bars are 8 pixels high with 4-radius ends on a `subtle` track.
+- Use a linear bar only for a known ratio (for example credits completed out of required). Waiting of unknown length always uses a centered `CircularProgressIndicator`, never an indeterminate linear bar.
 
 ### Buttons
 

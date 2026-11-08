@@ -192,7 +192,10 @@ class _TimetablePageState extends State<TimetablePage> {
             ),
             const SizedBox(height: 24),
             if (controller.loading || controller.busy)
-              const LinearProgressIndicator(),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
             if (controller.message case final message?) ...[
               WhitespaceWrappedText(
                 message,

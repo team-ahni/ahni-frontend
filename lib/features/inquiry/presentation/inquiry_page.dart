@@ -588,7 +588,7 @@ class _AttachmentSection extends StatelessWidget {
               ],
               if (controller.isBusy) ...[
                 const SizedBox(height: 12),
-                const LinearProgressIndicator(),
+                const Center(child: CircularProgressIndicator()),
               ],
               if (controller.actionMessage case final message?) ...[
                 const SizedBox(height: 12),
