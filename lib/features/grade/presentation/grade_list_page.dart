@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
@@ -585,7 +586,7 @@ class _EmptyView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _CenteredState(
-      icon: Icons.school_outlined,
+      mood: AhniMood.hello,
       title: '아직 등록된 성적이 없어요',
       message: '성적을 등록하면 학기별 이력을 여기서 확인할 수 있어요.',
       action: FilledButton(
@@ -606,7 +607,7 @@ class _FailureView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _CenteredState(
-      icon: Icons.cloud_off_outlined,
+      mood: AhniMood.oops,
       title: '성적을 불러오지 못했어요',
       message: message,
       action: FilledButton(onPressed: onRetry, child: const Text('다시 시도')),
@@ -622,7 +623,7 @@ class _AuthenticationRequiredView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _CenteredState(
-      icon: Icons.lock_outline_rounded,
+      mood: AhniMood.curious,
       title: '다시 로그인이 필요해요',
       message: '로그인이 만료됐어요. 다시 로그인해 주세요.',
       action: FilledButton(
@@ -635,13 +636,13 @@ class _AuthenticationRequiredView extends StatelessWidget {
 
 class _CenteredState extends StatelessWidget {
   const _CenteredState({
-    required this.icon,
+    required this.mood,
     required this.title,
     required this.message,
     this.action,
   });
 
-  final IconData icon;
+  final AhniMood mood;
   final String title;
   final String message;
   final Widget? action;
@@ -656,7 +657,7 @@ class _CenteredState extends StatelessWidget {
           child: Align(
             alignment: Alignment.topCenter,
             child: EmptyStateView(
-              icon: icon,
+              mood: mood,
               title: title,
               message: message,
               action: action,

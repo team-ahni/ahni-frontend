@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:flutter/material.dart';
@@ -50,17 +51,17 @@ class NoticeCallout extends StatelessWidget {
   }
 }
 
-/// 빈 화면·오류 화면. 옅은 원 안의 아이콘, 짧은 제목, 설명, 다음 동작을 가운데에 둔다.
+/// 빈 화면·오류 화면. 상황에 맞는 표정의 '아니', 짧은 제목, 설명, 다음 동작을 가운데에 둔다.
 class EmptyStateView extends StatelessWidget {
   const EmptyStateView({
-    required this.icon,
+    required this.mood,
     required this.title,
     this.message,
     this.action,
     super.key,
   });
 
-  final IconData icon;
+  final AhniMood mood;
   final String title;
   final String? message;
   final Widget? action;
@@ -73,16 +74,8 @@ class EmptyStateView extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              color: colorScheme.primaryContainer,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 34, color: colorScheme.primary),
-          ),
-          const SizedBox(height: 20),
+          AhniMascot(mood: mood),
+          const SizedBox(height: 16),
           WhitespaceWrappedText(
             title,
             textAlign: TextAlign.center,

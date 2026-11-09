@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_attachment_controller.dart';
@@ -643,7 +644,7 @@ class _EmptyInquiries extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       children: [
         EmptyStateView(
-          icon: Icons.forum_outlined,
+          mood: AhniMood.hello,
           title: '등록된 문의가 없어요.',
           message: '학사 정보 이용 중 궁금한 점이 생기면 편하게 물어봐 주세요.',
           action: FilledButton.icon(

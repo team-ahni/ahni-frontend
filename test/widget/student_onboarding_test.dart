@@ -230,7 +230,9 @@ void main() {
       find.byKey(const Key('auth-password')),
       'password123',
     );
-    await tester.tap(find.widgetWithText(FilledButton, '로그인'));
+    final signInButton = find.widgetWithText(FilledButton, '로그인');
+    await tester.ensureVisible(signInButton);
+    await tester.tap(signInButton);
     await tester.pump();
     expect(find.text('인하대학교 이메일(@inha.edu)을 입력해 주세요.'), findsOneWidget);
 
