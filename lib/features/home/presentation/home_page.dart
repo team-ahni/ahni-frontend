@@ -16,16 +16,7 @@ class HomePage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         titleSpacing: 24,
-        title: const Text(
-          'AHNI',
-          style: TextStyle(
-            color: Color(0xFF18202A),
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            height: 1.4,
-            letterSpacing: -0.3,
-          ),
-        ),
+        title: const Text('AHNI'),
       ),
       body: SafeArea(
         top: false,
@@ -50,14 +41,19 @@ class HomePage extends StatelessWidget {
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final title = constraints.maxWidth < 400
-                          ? '학사 생활을 위한\n준비를 시작합니다.'
-                          : '학사 생활을 위한 준비를 시작합니다.';
+                          ? '학사 생활을 위한\n준비를 시작해요.'
+                          : '학사 생활을 위한 준비를 시작해요.';
 
                       return Text(title, style: textTheme.headlineMedium);
                     },
                   ),
                   const SizedBox(height: 12),
-                  Text('개발 환경이 준비되었습니다.', style: textTheme.bodyLarge),
+                  Text(
+                    '개발 환경이 준비됐어요.',
+                    style: textTheme.bodyLarge?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                   const Spacer(),
                   Text('환경: ${environment.name}', style: textTheme.bodySmall),
                 ],

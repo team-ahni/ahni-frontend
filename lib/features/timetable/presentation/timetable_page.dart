@@ -1,3 +1,5 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
+import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/recommendation/presentation/course_recommendation_page.dart';
@@ -150,6 +152,7 @@ class _TimetablePageState extends State<TimetablePage> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<int>(
+                    isExpanded: true,
                     key: ValueKey('year-${controller.year}'),
                     initialValue: controller.year,
                     decoration: const InputDecoration(labelText: '연도'),
@@ -169,6 +172,7 @@ class _TimetablePageState extends State<TimetablePage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<String>(
+                    isExpanded: true,
                     key: ValueKey('term-${controller.term}'),
                     initialValue: controller.term,
                     decoration: const InputDecoration(labelText: '학기'),
@@ -188,7 +192,10 @@ class _TimetablePageState extends State<TimetablePage> {
             ),
             const SizedBox(height: 24),
             if (controller.loading || controller.busy)
-              const LinearProgressIndicator(),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: Center(child: CircularProgressIndicator()),
+              ),
             if (controller.message case final message?) ...[
               WhitespaceWrappedText(
                 message,
@@ -204,7 +211,10 @@ class _TimetablePageState extends State<TimetablePage> {
               _WeekGrid(entries: controller.entries),
               const SizedBox(height: 24),
               if (controller.entries.isEmpty)
-                const WhitespaceWrappedText('등록된 강의가 없어요.'),
+                const NoticeCallout(
+                  icon: Icons.add_circle_outline_rounded,
+                  message: '등록된 강의가 없어요. 오른쪽 위 + 버튼으로 이번 학기 강의를 담아 보세요.',
+                ),
               for (final entry in controller.entries) ...[
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -341,6 +351,13 @@ class _WeekGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 같은 과목은 요일이 달라도 같은 색, 다른 과목은 등록 순서대로 색을 돌린다.
+    final cycle = AhniPalette.of(context).cycle;
+    final courseOrder = [
+      for (final code in {for (final e in entries) e.lecture.courseCode}) code,
+    ];
+    Tone toneOf(TimetableEntry entry) =>
+        cycle[courseOrder.indexOf(entry.lecture.courseCode) % cycle.length];
     final schedules = entries
         .expand((entry) => entry.lecture.schedules)
         .toList();
@@ -429,15 +446,8 @@ class _WeekGrid extends StatelessWidget {
                             message:
                                 '${entry.lecture.courseName} · ${s.label} · ${s.classroom ?? ''}',
                             child: Material(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
-                              shape: RoundedRectangleBorder(
-                                side: BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
+                              color: toneOf(entry).soft,
+                              borderRadius: BorderRadius.circular(8),
                               clipBehavior: Clip.antiAlias,
                               child: InkWell(
                                 onTap: () => showDialog<void>(
@@ -460,11 +470,33 @@ class _WeekGrid extends StatelessWidget {
                                   ),
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(2),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    6,
+                                    6,
+                                    4,
+                                    4,
+                                  ),
                                   child: ClipRect(
-                                    child: Text(
-                                      entry.lecture.courseName,
-                                      style: const TextStyle(fontSize: 12),
+                                    child: Text.rich(
+                                      TextSpan(
+                                        text: entry.lecture.courseName,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          height: 1.25,
+                                          fontWeight: FontWeight.w600,
+                                          color: toneOf(entry).ink,
+                                        ),
+                                        children: [
+                                          if (s.classroom case final room?)
+                                            TextSpan(
+                                              text: '\n$room',
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                       overflow: TextOverflow.clip,
                                       semanticsLabel:
                                           '${entry.lecture.courseName} ${s.label} ${s.classroom ?? ''}',

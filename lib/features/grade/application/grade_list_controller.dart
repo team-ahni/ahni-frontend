@@ -79,7 +79,7 @@ class GradeListController extends ChangeNotifier {
     } on Object {
       if (generation != _generation) return null;
       _setState(previous);
-      return '성적을 초기화하지 못했습니다. 다시 시도해 주세요.';
+      return '성적을 초기화하지 못했어요. 다시 시도해 주세요.';
     }
   }
 
@@ -120,7 +120,7 @@ class GradeListController extends ChangeNotifier {
       _setState(GradeListFailure(failure.userMessage));
     } on Object catch (_) {
       if (requestGeneration != _generation) return;
-      _setState(const GradeListFailure('성적 목록을 불러오지 못했습니다. 다시 시도해 주세요.'));
+      _setState(const GradeListFailure('성적 목록을 불러오지 못했어요. 다시 시도해 주세요.'));
     }
   }
 

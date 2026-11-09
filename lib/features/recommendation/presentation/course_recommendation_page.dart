@@ -1,3 +1,5 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
+import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/recommendation/domain/course_recommendation.dart';
@@ -78,10 +80,11 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
             child: ListView(
               padding: const EdgeInsets.all(20),
               children: [
-                const WhitespaceWrappedText(
-                  '등록한 성적과 공개된 교과과정으로 들으면 좋은 과목을 골라 봤어요. 선수과목, 정원, 수강신청 자격은 확인하지 않으니 학교 안내를 함께 확인해 주세요.',
+                const NoticeCallout(
+                  icon: Icons.lightbulb_outline_rounded,
+                  message: '등록한 성적과 공개된 교과과정으로 들으면 좋은 과목을 골라 봤어요. 선수과목, 정원, 수강신청 자격은 확인하지 않으니 학교 안내를 함께 확인해 주세요.',
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 if (loading) const Center(child: CircularProgressIndicator()),
                 if (controller.status ==
                     CourseRecommendationStatus.failure) ...[
@@ -105,32 +108,48 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
     BuildContext context,
     CourseRecommendation recommendation,
   ) => [
-    WhitespaceWrappedText(
-      '성적 기준 ${recommendation.semesterLabel}로 계산했어요.',
-      key: const Key('recommendation-semester'),
-      style: Theme.of(context).textTheme.bodySmall,
+    Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: WhitespaceWrappedText(
+          '성적 기준 ${recommendation.semesterLabel}로 계산했어요.',
+          key: const Key('recommendation-semester'),
+          style: Theme.of(context).textTheme.bodySmall
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ),
     ),
     if (!recommendation.lectureDataAvailable) ...[
       const SizedBox(height: 8),
-      const WhitespaceWrappedText(
-        key: Key('recommendation-no-lectures'),
-        '이 학기 개설 강의 정보가 아직 없어서 교과과정 기준으로만 추천했어요.',
+      NoticeCallout(
+        key: const Key('recommendation-no-lectures'),
+        icon: Icons.event_note_outlined,
+        tone: AhniPalette.of(context).amber,
+        message: '이 학기 개설 강의 정보가 아직 없어서 교과과정 기준으로만 추천했어요.',
       ),
     ],
     // 인하대 재수강에 관한 규정 제3조 ③·제5조 ④. 앱 기록과 학교 기록이 다를 수 있어 거르지 않고 안내만 한다.
     if (recommendation.hasRetake) ...[
       const SizedBox(height: 8),
-      WhitespaceWrappedText(
+      NoticeCallout(
         key: const Key('recommendation-retake-limit'),
-        '재수강은 학기당 8학점(최대 2과목), 졸업까지 24학점까지 신청할 수 있고 최고 성적은 A0예요.',
-        style: Theme.of(context).textTheme.bodySmall,
+        icon: Icons.replay_rounded,
+        tone: AhniPalette.of(context).violet,
+        message: '재수강은 학기당 8학점(최대 2과목), 졸업까지 24학점까지 신청할 수 있고 최고 성적은 A0예요.',
       ),
     ],
     const SizedBox(height: 16),
     if (recommendation.majors.isEmpty)
-      const WhitespaceWrappedText(
+      const EmptyStateView(
         key: Key('recommendation-no-major'),
-        '등록된 전공이 없어요. 내 정보에서 전공을 등록해 주세요.',
+        icon: Icons.school_outlined,
+        title: '등록된 전공이 없어요',
+        message: '내 정보에서 전공을 등록하면 맞춤 추천을 받을 수 있어요.',
       ),
     for (final major in recommendation.majors) _MajorSection(major: major),
   ];
@@ -156,9 +175,16 @@ class _MajorSection extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           if (!major.curriculumAvailable)
-            const WhitespaceWrappedText('이 학기 교과과정이 아직 공개되지 않아 추천할 수 없어요.')
+            const NoticeCallout(
+              icon: Icons.hourglass_empty_rounded,
+              message: '이 학기 교과과정이 아직 공개되지 않아 추천할 수 없어요.',
+            )
           else if (major.courses.isEmpty)
-            const WhitespaceWrappedText('지금 추천할 과목이 없어요.'),
+            NoticeCallout(
+              icon: Icons.check_circle_outline_rounded,
+              tone: AhniPalette.of(context).teal,
+              message: '지금 추천할 과목이 없어요.',
+            ),
           for (final course in major.courses) _CourseCard(course: course),
         ],
       ),
@@ -203,11 +229,8 @@ class _CourseCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 4,
               children: [
-                for (final label in course.reasonLabels)
-                  Chip(
-                    label: Text(label),
-                    visualDensity: VisualDensity.compact,
-                  ),
+                for (final (index, label) in course.reasonLabels.indexed)
+                  _ReasonChip(reason: course.reasons[index], label: label),
               ],
             ),
             for (final lecture in course.lectures)
@@ -237,3 +260,29 @@ String _schedule(Lecture lecture) => lecture.schedules.isEmpty
 String _credit(double value) => value == value.truncateToDouble()
     ? value.toInt().toString()
     : value.toString();
+
+/// 추천 이유마다 색을 달리해 훑어보기 쉽게 한다. 뜻은 항상 글자로도 전한다.
+class _ReasonChip extends StatelessWidget {
+  const _ReasonChip({required this.reason, required this.label});
+
+  final String reason;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = AhniPalette.of(context);
+    final tone = switch (reason) {
+      'GRADUATION_REQUIRED' => palette.rose,
+      'OVERDUE' => palette.amber,
+      'RECOMMENDED_NOW' => palette.blue,
+      _ => palette.violet,
+    };
+    return Chip(
+      label: Text(label),
+      visualDensity: VisualDensity.compact,
+      backgroundColor: tone.soft,
+      labelStyle: Theme.of(context).chipTheme.labelStyle
+          ?.copyWith(color: tone.ink),
+    );
+  }
+}

@@ -121,7 +121,7 @@ class OnboardingController extends ChangeNotifier {
     _signedInSubscription = _auth.signedInSessions.listen(
       (session) => unawaited(_loadProfile(session)),
       onError: (Object _) {
-        _setState(const RetryableFailure('이메일 인증 상태를 확인하지 못했습니다. 다시 시도해 주세요.'));
+        _setState(const RetryableFailure('이메일 인증 상태를 확인하지 못했어요. 다시 시도해 주세요.'));
       },
     );
     _passwordRecoverySubscription = _auth.passwordRecoverySessions.listen(
@@ -129,7 +129,7 @@ class OnboardingController extends ChangeNotifier {
       onError: (Object _) {
         _setState(
           const AuthenticationRequired(
-            message: '비밀번호 재설정 링크를 확인하지 못했습니다. 다시 시도해 주세요.',
+            message: '비밀번호 재설정 링크를 확인하지 못했어요. 다시 시도해 주세요.',
             isError: true,
           ),
         );
@@ -154,7 +154,7 @@ class OnboardingController extends ChangeNotifier {
       if (session == null) {
         _setState(
           const AuthenticationRequired(
-            message: '로그인을 완료하지 못했습니다. 다시 시도해 주세요.',
+            message: '로그인을 완료하지 못했어요. 다시 시도해 주세요.',
             isError: true,
           ),
         );
@@ -168,7 +168,7 @@ class OnboardingController extends ChangeNotifier {
     } on Object catch (_) {
       _setState(
         const AuthenticationRequired(
-          message: '인증을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+          message: '인증을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.',
           isError: true,
         ),
       );
@@ -192,7 +192,7 @@ class OnboardingController extends ChangeNotifier {
     } on Object catch (_) {
       _setState(
         const AuthenticationRequired(
-          message: '계정을 만들지 못했습니다. 잠시 후 다시 시도해 주세요.',
+          message: '계정을 만들지 못했어요. 잠시 후 다시 시도해 주세요.',
           isError: true,
         ),
       );
@@ -213,7 +213,7 @@ class OnboardingController extends ChangeNotifier {
     } on Object catch (_) {
       _completeResend(
         current.email,
-        '인증 메일을 다시 보내지 못했습니다. 잠시 후 다시 시도해 주세요.',
+        '인증 메일을 다시 보내지 못했어요. 잠시 후 다시 시도해 주세요.',
         isError: true,
       );
     }
@@ -236,7 +236,7 @@ class OnboardingController extends ChangeNotifier {
     } on Object catch (_) {
       _setState(
         const AuthenticationRequired(
-          message: '비밀번호 재설정 메일을 보내지 못했습니다. 잠시 후 다시 시도해 주세요.',
+          message: '비밀번호 재설정 메일을 보내지 못했어요. 잠시 후 다시 시도해 주세요.',
           isError: true,
         ),
       );
@@ -260,7 +260,7 @@ class OnboardingController extends ChangeNotifier {
     } on Object catch (_) {
       _setState(
         const PasswordRecoveryRequired(
-          message: '비밀번호를 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+          message: '비밀번호를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.',
           isError: true,
         ),
       );
@@ -311,7 +311,7 @@ class OnboardingController extends ChangeNotifier {
       _setState(
         RegistrationRequired(
           departments: previous.departments,
-          message: '학생 정보를 등록하지 못했습니다. 다시 시도해 주세요.',
+          message: '학생 정보를 등록하지 못했어요. 다시 시도해 주세요.',
         ),
       );
     }
@@ -351,7 +351,7 @@ class OnboardingController extends ChangeNotifier {
       _setState(
         RegistrationRequired(
           departments: previous.departments,
-          message: '기존 정보 연결을 요청하지 못했습니다. 다시 시도해 주세요.',
+          message: '기존 정보 연결을 요청하지 못했어요. 다시 시도해 주세요.',
           relinkStage: RelinkStage.available,
         ),
       );
@@ -359,7 +359,7 @@ class OnboardingController extends ChangeNotifier {
       _setState(
         RegistrationRequired(
           departments: previous.departments,
-          message: '기존 정보 연결을 요청하지 못했습니다. 다시 시도해 주세요.',
+          message: '기존 정보 연결을 요청하지 못했어요. 다시 시도해 주세요.',
           relinkStage: RelinkStage.available,
         ),
       );
@@ -376,7 +376,7 @@ class OnboardingController extends ChangeNotifier {
         _setState(
           ProfileReady(
             previous.profile,
-            message: '학과 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+            message: '학과 목록을 불러오지 못했어요. 다시 시도해 주세요.',
           ),
         );
         return;
@@ -390,7 +390,7 @@ class OnboardingController extends ChangeNotifier {
       _setState(
         ProfileReady(
           previous.profile,
-          message: '학과 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+          message: '학과 목록을 불러오지 못했어요. 다시 시도해 주세요.',
         ),
       );
     }
@@ -431,7 +431,7 @@ class OnboardingController extends ChangeNotifier {
         MajorEditing(
           profile: previous.profile,
           departments: previous.departments,
-          message: '전공 정보를 저장하지 못했습니다. 다시 시도해 주세요.',
+          message: '전공 정보를 저장하지 못했어요. 다시 시도해 주세요.',
         ),
       );
     }
@@ -481,7 +481,7 @@ class OnboardingController extends ChangeNotifier {
           return;
       }
     } on Object catch (_) {
-      _setState(const RetryableFailure('학생 정보를 불러오지 못했습니다.\n다시 시도해 주세요.'));
+      _setState(const RetryableFailure('학생 정보를 불러오지 못했어요.\n다시 시도해 주세요.'));
     }
   }
 
@@ -489,14 +489,14 @@ class OnboardingController extends ChangeNotifier {
     try {
       final departments = await _api.getDepartments();
       if (departments.isEmpty) {
-        _setState(const RetryableFailure('학과 목록을 불러오지 못했습니다.\n다시 시도해 주세요.'));
+        _setState(const RetryableFailure('학과 목록을 불러오지 못했어요.\n다시 시도해 주세요.'));
         return;
       }
       _setState(RegistrationRequired(departments: departments));
     } on StudentApiFailure catch (failure) {
       _setState(RetryableFailure(failure.userMessage));
     } on Object catch (_) {
-      _setState(const RetryableFailure('학과 목록을 불러오지 못했습니다.\n다시 시도해 주세요.'));
+      _setState(const RetryableFailure('학과 목록을 불러오지 못했어요.\n다시 시도해 주세요.'));
     }
   }
 
@@ -504,7 +504,7 @@ class OnboardingController extends ChangeNotifier {
     await _auth.signOut();
     _setState(
       const AuthenticationRequired(
-        message: '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+        message: '로그인이 만료됐어요. 다시 로그인해 주세요.',
         isError: true,
       ),
     );

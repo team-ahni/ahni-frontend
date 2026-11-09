@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_attachment_controller.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
@@ -587,7 +588,7 @@ class _AttachmentSection extends StatelessWidget {
               ],
               if (controller.isBusy) ...[
                 const SizedBox(height: 12),
-                const LinearProgressIndicator(),
+                const Center(child: CircularProgressIndicator()),
               ],
               if (controller.actionMessage case final message?) ...[
                 const SizedBox(height: 12),
@@ -641,12 +642,15 @@ class _EmptyInquiries extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const WhitespaceWrappedText('등록된 문의가 없어요.'),
-        const SizedBox(height: 16),
-        FilledButton.icon(
-          onPressed: onCreate,
-          icon: const Icon(Icons.add_rounded),
-          label: const Text('문의 등록'),
+        EmptyStateView(
+          icon: Icons.forum_outlined,
+          title: '등록된 문의가 없어요.',
+          message: '학사 정보 이용 중 궁금한 점이 생기면 편하게 물어봐 주세요.',
+          action: FilledButton.icon(
+            onPressed: onCreate,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('문의 등록'),
+          ),
         ),
       ],
     );

@@ -527,6 +527,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<GradeCode>(
+                isExpanded: true,
                 key: const Key('ocr-edit-grade'),
                 initialValue: _grade,
                 decoration: const InputDecoration(labelText: '성적'),

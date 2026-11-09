@@ -4,6 +4,7 @@
 
 - Product references: the supplied AHNI wireframe, use-case specification, ERD, DFD, and mini specification.
 - Visual reference: [Student Portal Dashboard Mobile App UI Design](https://dribbble.com/shots/26239990-Student-Portal-Dashboard-Mobile-App-UI-Design) by Ronas IT.
+- Layout principles (2026-11): flat cards on a neutral canvas, tinted secondary buttons, and a text-first bottom bar. These are general mobile conventions shared by many Korean finance and lifestyle apps; AHNI keeps its own palette and does not reproduce any specific product's colors, typeface, or brand assets.
 - Reuse the reference's calm dashboard hierarchy, inset content cards, compact segmented controls, and profile-summary composition. Do not copy its brand assets, sample data, or purple/green palette.
 - This harness branch implements only a development-ready shell. Product screens remain feature work.
 - The wireframe's student-first information architecture is authoritative for future flows; it is not copied into placeholder UI.
@@ -18,36 +19,60 @@ The signature detail is an accent-soft summary surface that gives the current ta
 
 ### Color
 
-| Role | Value |
-| --- | --- |
-| Canvas | `#F7F8FA` |
-| Surface | `#FFFFFF` |
-| Primary text | `#18202A` |
-| Secondary text | `#5B6470` |
-| Accent | `#1558A6` |
-| Accent soft | `#EAF2FC` |
-| Divider | `#DDE2E8` |
-| Shadow | `#0F18202A` |
+Tokens live in `lib/app/app_theme.dart` (`AppColors`). Screens read them through `Theme.of(context).colorScheme`, never as literals.
 
-Only status semantics may add colors beyond this set in future feature branches.
+| Role | Token | Value |
+| --- | --- | --- |
+| Canvas | `canvas` | `#F7F8FA` |
+| Surface | white | `#FFFFFF` |
+| Field, chip, disabled fill | `subtle` | `#EEF1F4` |
+| Divider, field border | `line` | `#DDE2E8` |
+| Placeholder, disabled text | `muted` | `#9AA3AE` |
+| Supporting text, inactive tab | `supportingText` | `#646E7A` |
+| Secondary text | `secondaryText` | `#5B6470` |
+| Primary text | `primaryText` | `#18202A` |
+| Snack bar | `inverse` | `#2A323D` |
+| Accent (AHNI blue) | `accent` | `#1558A6` |
+| Accent soft (summary, secondary button) | `accentSoft` | `#EAF2FC` |
+| Accent text on soft | `accentStrong` | `#0F4A8C` |
+| Error | `danger` / `dangerSoft` / `dangerStrong` | `#D63B3B` / `#FDECEC` / `#A52A2A` |
+
+Text colors meet WCAG AA on white and on the canvas; `muted` is only for placeholders and disabled states.
+
+#### Category tones
+
+`AhniPalette` (`lib/core/presentation/ahni_palette.dart`, a `ThemeExtension`) holds pastel `soft`/`ink` pairs for telling categories apart. Every `ink` meets 4.5:1 on its `soft`. Color never carries meaning alone; a label is always shown.
+
+| Tone | Soft / ink | Used for |
+| --- | --- | --- |
+| `blue` | `#E6F0FB` / `#14529C` | Major, "this term" recommendation |
+| `teal` | `#E2F4F0` / `#12695A` | General education |
+| `amber` | `#FBF1DD` / `#8A5A0B` | Free elective, overdue recommendation |
+| `rose` | `#FCE9EC` / `#A3304A` | Graduation-required recommendation |
+| `violet` | `#EFEAFB` / `#5B3FA8` | Retake recommendation |
+
+Surfaces are flat: no card shadows. Only status semantics may add colors beyond this set.
 
 ### Type
 
 - Use the platform system sans-serif so Korean and Latin text render consistently without a network font dependency.
-- Display: 24/32, weight 700.
-- Title: 20/28, weight 700.
-- Body: 16/24, weight 400.
-- Supporting: 14/20, weight 400.
+- Display (`headlineMedium`): 24/32, weight 700, letter spacing -0.5.
+- Title (`titleLarge`, app bar): 20/28, weight 700, letter spacing -0.4. App bar titles are left-aligned on every platform.
+- Section title (`titleMedium`): 17/24, weight 600.
+- Lead body (`bodyLarge`): 16/24, weight 400, primary text. Field values use this style; screen description paragraphs lower it to `onSurfaceVariant`.
+- Body (`bodyMedium`): 15/22, weight 400.
+- Supporting (`bodySmall`): 13/19, weight 400.
+- Korean body text uses letter spacing -0.3. Component text (buttons, chips, tabs, snack bars) derives from the theme text styles so it never falls back to a different platform font.
 
 ### Space and shape
 
 - Base spacing unit: 4 logical pixels.
 - Screen gutter: 24.
 - Content gaps: 8, 12, 16, 24, 32.
-- Small control radius: 10.
-- Input and button radius: 12.
-- Surface radius: 20.
-- Dialog radius: 24.
+- Small control radius: 8 (chips), 10.
+- Input and secondary button radius: 12.
+- Primary button: 56 high, radius 16.
+- Surface and dialog radius: 20; bottom sheet top radius 24.
 
 ## 3. Layout
 
@@ -56,6 +81,11 @@ Only status semantics may add colors beyond this set in future feature branches.
 - Use cards only to group a complete task, summary, or related data set. Do not wrap individual labels or every section in separate cards.
 - Keep screen titles and primary actions outside cards; place form controls and profile details inside one dominant content card.
 - Future navigation follows the supplied wireframe and must be implemented per feature, not pre-created as inactive controls.
+
+## Voice
+
+- Write all user-facing copy, including errors, in polite casual 해요체 (`~했어요`, `~해 주세요`). Do not mix in `~습니다`.
+- Headlines describe what the screen offers (`학기별 성적을 한눈에 봐요`) rather than command the user (`~하세요`).
 
 ## 4. Components
 
@@ -66,6 +96,9 @@ Only status semantics may add colors beyond this set in future feature branches.
 - The environment label is supporting developer information, not a user-facing production badge.
 - Keep onboarding copy warm, specific, and concise. Do not repeat the app or screen purpose in an eyebrow label.
 - Wrap Korean headings and explanatory copy only at whitespace boundaries with `WhitespaceWrappedText`; never add manual line breaks for a viewport. Identifiers and other unbroken values must use explicit overflow handling instead.
+- `WhitespaceWrappedText` lays out one `Text` per word in a `Wrap`, so the engine measures every word it paints. Do not go back to inserting invisible joiners (U+2060): with negative letter spacing they made lines measure narrower than they paint and clipped the last syllable.
+- `test/widget/layout_resilience_test.dart` opens every main screen at 320pt (1.0x, 1.6x text) and 390pt (2.0x text) and fails on any layout overflow. Add new screens to it.
+- Dropdowns always set `isExpanded: true` so long items ellipsize instead of overflowing narrow columns.
 
 ### Segmented control
 
@@ -74,15 +107,32 @@ Only status semantics may add colors beyond this set in future feature branches.
 - Every segment keeps a 44-pixel minimum touch target and visible selected semantics.
 - Authentication modes do not share entered credentials, validation state, or feedback messages.
 
+### Info group (settings list)
+
+- `SectionHeader` + `InfoGroup` + `InfoRow`/`NavigationRow` in `lib/core/presentation/info_group.dart`.
+- A small 13/600 section title sits above a white 20-radius group. Rows put the label left in secondary text and the value right in 15/600 primary text, separated by inset 1-pixel dividers.
+- Navigation rows lead with a 36-pixel accent-soft icon tile and end with a chevron.
+- Use for read-mostly profile and settings data instead of stacked label/value pairs inside a section card.
+
+### Notice callout
+
+- `NoticeCallout` (`lib/core/presentation/friendly_states.dart`): a 14-radius soft box with an 18-point icon and 13-point copy. Use it for screen intros and caveats instead of dense paragraphs. Default tone is accent soft; caveats may use an `AhniPalette` tone (for example amber for missing data, violet for retake rules).
+
+### Empty state
+
+- `EmptyStateView`: a 72-pixel accent-soft circle with an icon, a short title, an optional one-line explanation, and the next action. Use it for empty lists, failures, and re-login prompts.
+
 ### Section card
 
-- White surface, 20-pixel radius, 20-pixel internal padding, and the declared low shadow.
+- White surface, 20-pixel radius, 20-pixel internal padding, no shadow. The grey canvas alone separates cards.
 - A card groups one complete user task. Nested cards are not allowed.
 - Passive loading indicators are not cards; show them directly on the canvas.
 
 ### Form field
 
-- Neutral filled resting state with no decorative border.
+- Soft filled field: `subtle` fill, 14 radius, no resting border, so there is no Material outline notch.
+- The label always sits small inside the top of the field (13/600, `supportingText`; accent on focus, error ink on error). Units such as `년` and `학점` are suffix text in secondary color.
+- Focus draws a 1.5 accent border; errors draw a danger border.
 - Focus state uses the accent outline. Error text remains inline and is never communicated by color alone.
 
 ### Department selector
@@ -93,8 +143,13 @@ Only status semantics may add colors beyond this set in future feature branches.
 
 ### Profile summary
 
-- Accent-soft surface containing the student's display identity, primary department, and account or enrollment status.
+- White surface with the accent avatar, the display name in title size, `department · admission year` as supporting text, and an accent-soft enrollment badge.
 - Use only real profile data; omit unavailable dashboard metrics rather than inventing placeholders.
+
+### Grade summary
+
+- White surface with the cumulative GPA at 34 with tabular figures, then credits as supporting text.
+- Category GPAs are tone tiles (major `blue`, general `teal`, elective `amber`) with an icon, label, GPA, and credits. Three columns from 300 logical pixels, otherwise two.
 
 ### Grade list
 
@@ -115,7 +170,24 @@ Only status semantics may add colors beyond this set in future feature branches.
 
 - Show bottom navigation only after an authenticated student profile is ready.
 - The real destinations are `성적`, `졸업`, and `내 정보`; inactive or future destinations are not shown. Graduation progress separates recorded credits from official school certification and displays its policy source.
+- White bar without a selection pill: the selected icon and label use primary text, inactive ones `supportingText`.
 - Preserve a clear selected label and icon, and reset student-owned feature state when the authenticated student changes.
+
+### Timetable
+
+- Lecture blocks have no border: an 8-radius `AhniPalette.cycle` tone fill, the course name in 12/600 ink, and the classroom on a second 10-point line.
+- The same course keeps one tone on every day; different courses take tones in registration order.
+
+### Progress
+
+- Linear progress bars are 8 pixels high with 4-radius ends on a `subtle` track.
+- Use a linear bar only for a known ratio (for example credits completed out of required). Waiting of unknown length always uses a centered `CircularProgressIndicator`, never an indeterminate linear bar.
+
+### Buttons
+
+- Primary (`FilledButton`): accent fill, white 17/600 label, 56 high.
+- Secondary (`OutlinedButton`): `accentSoft` fill, `accentStrong` label, no border. A grey fill would vanish on the canvas.
+- Text actions (`TextButton`): accent label, 44-pixel minimum target.
 
 ### Status message
 

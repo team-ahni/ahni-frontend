@@ -243,7 +243,7 @@ class HttpStudentApi implements StudentApi {
     } on Exception catch (_) {
       throw const StudentApiFailure(
         StudentApiFailureKind.recoverable,
-        '서버에 연결하지 못했습니다.\n네트워크를 확인하고 다시 시도해 주세요.',
+        '서버에 연결하지 못했어요.\n네트워크를 확인하고 다시 시도해 주세요.',
       );
     }
   }
@@ -263,7 +263,7 @@ class HttpStudentApi implements StudentApi {
     if (response.statusCode == 401) {
       return const StudentApiFailure(
         StudentApiFailureKind.unauthorized,
-        '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+        '로그인이 만료됐어요. 다시 로그인해 주세요.',
       );
     }
     if (response.statusCode == 404 && code == 'STUDENT_NOT_FOUND') {
@@ -283,7 +283,7 @@ class HttpStudentApi implements StudentApi {
     if (response.statusCode >= 500) {
       return const StudentApiFailure(
         StudentApiFailureKind.recoverable,
-        '서버 응답이 지연되고 있습니다.\n잠시 후 다시 시도해 주세요.',
+        '서버 응답이 지연되고 있어요.\n잠시 후 다시 시도해 주세요.',
       );
     }
     return StudentApiFailure(StudentApiFailureKind.validation, switch (code) {
@@ -309,6 +309,6 @@ class HttpStudentApi implements StudentApi {
 
   static const _malformedResponse = StudentApiFailure(
     StudentApiFailureKind.recoverable,
-    '서버 응답을 확인하지 못했습니다.\n다시 시도해 주세요.',
+    '서버 응답을 확인하지 못했어요.\n다시 시도해 주세요.',
   );
 }

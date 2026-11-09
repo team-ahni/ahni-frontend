@@ -1,4 +1,5 @@
 import 'package:ahni_mobile/app/ahni_app.dart';
+import 'package:ahni_mobile/app/app_theme.dart';
 import 'package:ahni_mobile/core/config/app_environment.dart';
 import 'package:ahni_mobile/features/onboarding/application/onboarding_controller.dart';
 import 'package:flutter/material.dart';
@@ -40,8 +41,15 @@ void main() {
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
     final theme = Theme.of(tester.element(find.byType(Scaffold)));
 
-    expect(theme.colorScheme.primary, const Color(0xFF1558A6));
+    expect(theme.colorScheme.primary, AppColors.accent);
+    expect(theme.scaffoldBackgroundColor, AppColors.canvas);
+    expect(theme.navigationBarTheme.indicatorColor, Colors.transparent);
     expect(theme.textTheme.headlineMedium!.fontSize, 24);
+    // 컴포넌트 글꼴이 테마 글꼴과 같아야 한다(플랫폼 기본 글꼴로 빠지지 않음).
+    expect(
+      theme.appBarTheme.titleTextStyle!.fontFamily,
+      theme.textTheme.bodyMedium!.fontFamily,
+    );
     expect(appBar.titleSpacing, 24);
     expect(theme.appBarTheme.titleTextStyle!.fontSize, 20);
     expect(theme.appBarTheme.titleTextStyle!.height, 1.4);

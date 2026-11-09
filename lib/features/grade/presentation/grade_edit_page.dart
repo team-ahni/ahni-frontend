@@ -175,20 +175,19 @@ class _GradeEditPageState extends State<GradeEditPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     WhitespaceWrappedText(
-                      '등록한 성적을 수정하세요',
+                      '등록한 성적을 고칠 수 있어요',
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 8),
                     WhitespaceWrappedText(
                       '과목은 그대로 두고 학기와 성적 정보만 변경할 수 있어요.',
-                      style: Theme.of(context).textTheme.bodyLarge,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Material(
                       color: Theme.of(context).colorScheme.surface,
-                      elevation: 2,
-                      shadowColor: Theme.of(context).colorScheme.onSurface
-                          .withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
@@ -276,6 +275,7 @@ class _GradeEditPageState extends State<GradeEditPage> {
                             KeyedSubtree(
                               key: const Key('edit-grade-code'),
                               child: DropdownButtonFormField<GradeCode>(
+                                isExpanded: true,
                                 key: _gradeFieldKey,
                                 initialValue: _gradeCode,
                                 decoration: const InputDecoration(

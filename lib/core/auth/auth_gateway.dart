@@ -136,8 +136,8 @@ class SupabaseAuthGateway implements AuthGateway {
       'user_already_exists' => '이미 가입된 이메일입니다. 로그인해 주세요.',
       'weak_password' => '비밀번호를 더 길고 안전하게 입력해 주세요.',
       'email_address_invalid' => '올바른 학교 이메일을 입력해 주세요.',
-      'over_email_send_rate_limit' => '요청이 많습니다. 잠시 후 다시 시도해 주세요.',
-      _ => '인증을 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+      'over_email_send_rate_limit' => '요청이 많아요. 잠시 후 다시 시도해 주세요.',
+      _ => '인증을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.',
     };
   }
 }

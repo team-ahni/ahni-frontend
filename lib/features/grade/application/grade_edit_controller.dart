@@ -65,7 +65,7 @@ class GradeEditController extends ChangeNotifier {
     } on GradeApiFailure catch (failure) {
       _handleFailure(failure);
     } on Object catch (_) {
-      _setState(const GradeEditFailure('성적을 수정하지 못했습니다. 다시 시도해 주세요.'));
+      _setState(const GradeEditFailure('성적을 수정하지 못했어요. 다시 시도해 주세요.'));
     }
   }
 
@@ -81,7 +81,7 @@ class GradeEditController extends ChangeNotifier {
     } on GradeApiFailure catch (failure) {
       _handleFailure(failure);
     } on Object catch (_) {
-      _setState(const GradeEditFailure('성적을 삭제하지 못했습니다. 다시 시도해 주세요.'));
+      _setState(const GradeEditFailure('성적을 삭제하지 못했어요. 다시 시도해 주세요.'));
     }
   }
 

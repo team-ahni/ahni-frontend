@@ -50,7 +50,7 @@ void main() {
     await tester.pumpWidget(_testApp(controller));
     await tester.pumpAndSettle();
 
-    expect(findWhitespaceWrappedText('학기별 성적을 확인하세요'), findsOneWidget);
+    expect(findWhitespaceWrappedText('학기별 성적을 한눈에 봐요'), findsOneWidget);
     expect(find.text('2025년 2학기'), findsOneWidget);
     expect(find.byKey(const Key('grade-summary')), findsOneWidget);
     expect(find.text('3.83'), findsOneWidget);
@@ -165,14 +165,14 @@ void main() {
     final api = FakeGradeApi()
       ..error = const GradeApiFailure(
         GradeApiFailureKind.recoverable,
-        '성적 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+        '성적 목록을 불러오지 못했어요. 다시 시도해 주세요.',
       );
     final controller = GradeListController(auth: _authenticated(), api: api);
     await tester.pumpWidget(_testApp(controller));
     await tester.pumpAndSettle();
 
     expect(
-      findWhitespaceWrappedText('성적 목록을 불러오지 못했습니다. 다시 시도해 주세요.'),
+      findWhitespaceWrappedText('성적 목록을 불러오지 못했어요. 다시 시도해 주세요.'),
       findsOneWidget,
     );
 
@@ -201,7 +201,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      findWhitespaceWrappedText('로그인이 만료되었습니다. 다시 로그인해 주세요.'),
+      findWhitespaceWrappedText('로그인이 만료됐어요. 다시 로그인해 주세요.'),
       findsOneWidget,
     );
     await tester.tap(find.widgetWithText(FilledButton, '로그인으로 돌아가기'));

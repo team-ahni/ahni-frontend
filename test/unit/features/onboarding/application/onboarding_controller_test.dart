@@ -49,7 +49,7 @@ void main() {
       ..getProfileHandler = (_) => Future.error(
         const StudentApiFailure(
           StudentApiFailureKind.unauthorized,
-          '로그인이 만료되었습니다.',
+          '로그인이 만료됐어요.',
         ),
       );
     final controller = OnboardingController(auth: auth, api: api);
@@ -119,7 +119,7 @@ void main() {
     'resend failure keeps the pending email and shows safe feedback',
     () async {
       final auth = FakeAuthGateway()
-        ..resendError = const AuthFailure('요청이 많습니다. 잠시 후 다시 시도해 주세요.');
+        ..resendError = const AuthFailure('요청이 많아요. 잠시 후 다시 시도해 주세요.');
       final controller = OnboardingController(
         auth: auth,
         api: FakeStudentApi(),
@@ -132,7 +132,7 @@ void main() {
 
       final state = controller.state as EmailVerificationPending;
       expect(state.email, 'student@inha.edu');
-      expect(state.message, '요청이 많습니다. 잠시 후 다시 시도해 주세요.');
+      expect(state.message, '요청이 많아요. 잠시 후 다시 시도해 주세요.');
       expect(state.isError, isTrue);
     },
   );
@@ -241,7 +241,7 @@ void main() {
         if (requests == 1) {
           throw const StudentApiFailure(
             StudentApiFailureKind.recoverable,
-            '학생 정보를 불러오지 못했습니다. 다시 시도해 주세요.',
+            '학생 정보를 불러오지 못했어요. 다시 시도해 주세요.',
           );
         }
         return testProfile;
@@ -402,7 +402,7 @@ void main() {
       api.replaceMajorsHandler = (_, _) => Future.error(
         const StudentApiFailure(
           StudentApiFailureKind.unauthorized,
-          '로그인이 만료되었습니다.',
+          '로그인이 만료됐어요.',
         ),
       );
       final controller = OnboardingController(auth: auth, api: api);
@@ -455,7 +455,7 @@ void main() {
       await controller.requestRelink();
       var state = controller.state as RegistrationRequired;
       expect(state.relinkStage, RelinkStage.available);
-      expect(state.message, '기존 정보 연결을 요청하지 못했습니다. 다시 시도해 주세요.');
+      expect(state.message, '기존 정보 연결을 요청하지 못했어요. 다시 시도해 주세요.');
 
       api.requestRelinkHandler = null;
       await controller.requestRelink();

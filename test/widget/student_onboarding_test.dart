@@ -50,12 +50,12 @@ void main() {
     firstRequest.completeError(
       const StudentApiFailure(
         StudentApiFailureKind.recoverable,
-        '학생 정보를 불러오지 못했습니다.\n다시 시도해 주세요.',
+        '학생 정보를 불러오지 못했어요.\n다시 시도해 주세요.',
       ),
     );
     await tester.pump();
     expect(
-      findWhitespaceWrappedText('학생 정보를 불러오지 못했습니다.\n다시 시도해 주세요.'),
+      findWhitespaceWrappedText('학생 정보를 불러오지 못했어요.\n다시 시도해 주세요.'),
       findsOneWidget,
     );
 
@@ -141,7 +141,7 @@ void main() {
     api.replaceMajorsHandler = (_, _) => Future.error(
       const StudentApiFailure(
         StudentApiFailureKind.recoverable,
-        '전공 정보를 저장하지 못했습니다. 다시 시도해 주세요.',
+        '전공 정보를 저장하지 못했어요. 다시 시도해 주세요.',
       ),
     );
     final controller = OnboardingController(
@@ -183,7 +183,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      findWhitespaceWrappedText('전공 정보를 저장하지 못했습니다. 다시 시도해 주세요.'),
+      findWhitespaceWrappedText('전공 정보를 저장하지 못했어요. 다시 시도해 주세요.'),
       findsOneWidget,
     );
     expect(find.text('금융투자학과'), findsOneWidget);
@@ -423,7 +423,7 @@ void main() {
     await tester.binding.setSurfaceSize(const Size(320, 568));
     addTearDown(() => tester.binding.setSurfaceSize(null));
     final auth = FakeAuthGateway()
-      ..resendError = const AuthFailure('요청이 많습니다. 잠시 후 다시 시도해 주세요.');
+      ..resendError = const AuthFailure('요청이 많아요. 잠시 후 다시 시도해 주세요.');
     final controller = OnboardingController(auth: auth, api: FakeStudentApi());
     addTearDown(controller.dispose);
     addTearDown(auth.dispose);
@@ -455,7 +455,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      findWhitespaceWrappedText('요청이 많습니다. 잠시 후 다시 시도해 주세요.'),
+      findWhitespaceWrappedText('요청이 많아요. 잠시 후 다시 시도해 주세요.'),
       findsOneWidget,
     );
     expect(find.byType(Scrollable), findsWidgets);

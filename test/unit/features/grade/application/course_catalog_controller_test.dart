@@ -138,7 +138,7 @@ void main() {
     final api = _FakeCourseApi()
       ..error = const CourseApiFailure(
         CourseApiFailureKind.recoverable,
-        '과목 목록을 불러오지 못했습니다. 다시 시도해 주세요.',
+        '과목 목록을 불러오지 못했어요. 다시 시도해 주세요.',
       );
     final controller = CourseCatalogController(
       auth: FakeAuthGateway(currentSession: testSession),

@@ -151,7 +151,7 @@ class InquiryAttachmentController extends ChangeNotifier {
   String? _accessToken() {
     final token = _auth.currentSession?.accessToken;
     if (token == null) {
-      _state = const InquiryAttachmentFailure('로그인이 만료되었습니다. 다시 로그인해 주세요.');
+      _state = const InquiryAttachmentFailure('로그인이 만료됐어요. 다시 로그인해 주세요.');
       _notify();
     }
     return token;

@@ -75,7 +75,7 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       WhitespaceWrappedText(
-                        '예상 성적으로 평점을 살펴보세요',
+                        '예상 성적으로 평점을 미리 계산해 봐요',
                         style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
                               fontSize: 20,
@@ -85,7 +85,9 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
                       const SizedBox(height: 8),
                       WhitespaceWrappedText(
                         '기존 성적에 앞으로 받을 성적을 더해 계산해요. 실제 성적은 바뀌지 않아요.',
-                        style: Theme.of(context).textTheme.bodyLarge,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       Material(
