@@ -25,6 +25,7 @@ class FakeTimetableApi implements TimetableApi {
   List<TimetableEntry> current = [];
   TimetableApiFailure? failure;
   Completer<List<TimetableEntry>>? pending;
+  final savedLectureIds = <String>[];
   @override
   Future<List<Lecture>> lectures(String token, int year, String term) async => [
     testLecture,
@@ -38,6 +39,7 @@ class FakeTimetableApi implements TimetableApi {
   @override
   Future<void> save(String token, String lectureId, {String? entryId}) async {
     if (failure != null) throw failure!;
+    savedLectureIds.add(lectureId);
     current = [
       TimetableEntry(entityId: entryId ?? 'entry-1', lecture: testLecture),
     ];

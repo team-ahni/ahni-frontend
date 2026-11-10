@@ -13,6 +13,8 @@ class CourseRecommendationPage extends StatefulWidget {
     required this.academicYear,
     required this.term,
     required this.onAuthenticationRequired,
+    this.onAddLecture,
+    this.addedLectureIds = const {},
     super.key,
   });
   final CourseRecommendationController controller;
@@ -20,12 +22,44 @@ class CourseRecommendationPage extends StatefulWidget {
   final String term;
   final VoidCallback onAuthenticationRequired;
 
+  /// 분반을 시간표에 바로 넣는다. 성공하면 null, 실패하면 보여 줄 문구를 돌려준다.
+  /// 없으면 추가 버튼을 그리지 않는다.
+  final Future<String?> Function(Lecture lecture)? onAddLecture;
+
+  /// 이미 시간표에 있는 분반. 이 분반은 '추가됨'으로 보인다.
+  final Set<String> addedLectureIds;
+
   @override
   State<CourseRecommendationPage> createState() =>
       _CourseRecommendationPageState();
 }
 
 class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
+  late final Set<String> _added = {...widget.addedLectureIds};
+  String? _adding;
+
+  Future<void> _add(Lecture lecture) async {
+    final onAdd = widget.onAddLecture;
+    if (onAdd == null || _adding != null) return;
+    setState(() => _adding = lecture.entityId);
+    final failure = await onAdd(lecture);
+    if (!mounted) return;
+    setState(() {
+      _adding = null;
+      if (failure == null) _added.add(lecture.entityId);
+    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            failure ??
+                '${lecture.courseName} ${lecture.section}분반을 시간표에 추가했어요.',
+          ),
+        ),
+      );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -152,13 +186,20 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
         title: '등록된 전공이 없어요',
         message: '내 정보에서 전공을 등록하면 맞춤 추천을 받을 수 있어요.',
       ),
-    for (final major in recommendation.majors) _MajorSection(major: major),
+    for (final major in recommendation.majors)
+      _MajorSection(
+        major: major,
+        lectureAction: widget.onAddLecture == null
+            ? null
+            : (added: _added, adding: _adding, onAdd: _add),
+      ),
   ];
 }
 
 class _MajorSection extends StatelessWidget {
-  const _MajorSection({required this.major});
+  const _MajorSection({required this.major, required this.lectureAction});
   final MajorRecommendation major;
+  final _LectureAction? lectureAction;
 
   @override
   Widget build(BuildContext context) {
@@ -186,7 +227,8 @@ class _MajorSection extends StatelessWidget {
               tone: AhniPalette.of(context).teal,
               message: '지금 추천할 과목이 없어요.',
             ),
-          for (final course in major.courses) _CourseCard(course: course),
+          for (final course in major.courses)
+            _CourseCard(course: course, lectureAction: lectureAction),
         ],
       ),
     );
@@ -194,8 +236,9 @@ class _MajorSection extends StatelessWidget {
 }
 
 class _CourseCard extends StatelessWidget {
-  const _CourseCard({required this.course});
+  const _CourseCard({required this.course, required this.lectureAction});
   final RecommendedCourse course;
+  final _LectureAction? lectureAction;
 
   @override
   Widget build(BuildContext context) {
@@ -237,13 +280,57 @@ class _CourseCard extends StatelessWidget {
             for (final lecture in course.lectures)
               Padding(
                 padding: const EdgeInsets.only(top: 6),
-                child: WhitespaceWrappedText(
-                  '${lecture.section}분반 · ${lecture.professorName} · ${_schedule(lecture)}',
-                  style: textTheme.bodySmall,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: WhitespaceWrappedText(
+                        '${lecture.section}분반 · ${lecture.professorName} · ${_schedule(lecture)}',
+                        style: textTheme.bodySmall,
+                      ),
+                    ),
+                    if (lectureAction case final action?)
+                      _AddLectureButton(lecture: lecture, action: action),
+                  ],
                 ),
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// 분반 추가에 필요한 화면 상태. 이미 넣은 분반, 지금 넣는 중인 분반, 넣는 동작.
+typedef _LectureAction = ({
+  Set<String> added,
+  String? adding,
+  Future<void> Function(Lecture lecture) onAdd,
+});
+
+class _AddLectureButton extends StatelessWidget {
+  const _AddLectureButton({required this.lecture, required this.action});
+  final Lecture lecture;
+  final _LectureAction action;
+
+  @override
+  Widget build(BuildContext context) {
+    final added = action.added.contains(lecture.entityId);
+    final adding = action.adding == lecture.entityId;
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: TextButton.icon(
+        key: ValueKey('add-lecture-${lecture.entityId}'),
+        // 다른 분반을 넣는 중에는 기다리게 해 요청이 겹치지 않게 한다.
+        onPressed: added || action.adding != null
+            ? null
+            : () => action.onAdd(lecture),
+        icon: adding
+            ? const SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(added ? Icons.check_rounded : Icons.add_rounded, size: 18),
+        label: Text(added ? '추가됨' : '추가'),
       ),
     );
   }

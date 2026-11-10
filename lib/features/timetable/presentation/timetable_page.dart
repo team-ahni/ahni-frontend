@@ -80,6 +80,12 @@ class _TimetablePageState extends State<TimetablePage> {
           controller: recommendationController,
           academicYear: controller.year,
           term: controller.term,
+          addedLectureIds: {
+            for (final entry in controller.entries) entry.lecture.entityId,
+          },
+          onAddLecture: (lecture) async => await controller.save(lecture)
+              ? null
+              : controller.message ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.',
           onAuthenticationRequired: () {
             if (routeContext.mounted) Navigator.of(routeContext).pop();
             widget.onAuthenticationRequired();
