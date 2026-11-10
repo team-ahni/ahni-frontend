@@ -83,7 +83,7 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
               children: [
                 Expanded(
                   child: WhitespaceWrappedText(
-                    '수강신청 내역 가져오기',
+                    preview == null ? '수강신청 내역 가져오기' : '찾은 강의',
                     style: textTheme.titleLarge,
                   ),
                 ),
@@ -94,58 +94,59 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            WhitespaceWrappedText(
-              '학교 수강신청 확인 화면을 캡처하거나 복사한 내역을 붙여 넣으면, 이 학기 강의를 찾아 한 번에 넣어요. 캡처는 기기 안에서만 읽어요.',
-              style: textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 20),
-            FilledButton.tonalIcon(
-              key: const Key('import-registration-screenshot'),
-              onPressed: _reading ? null : _readScreenshot,
-              icon: _reading
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.image_outlined),
-              label: const Text('캡처 이미지 선택'),
-            ),
-            const SizedBox(height: 20),
-            LabeledField(
-              label: '또는 복사한 내역 붙여넣기',
-              child: TextField(
-                key: const Key('import-registration-text'),
-                controller: _pasted,
-                minLines: 3,
-                maxLines: 6,
-                decoration: const InputDecoration(
-                  hintText: 'GEE7007  001  디지털 경영  3.0 …',
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerRight,
-              child: OutlinedButton(
-                key: const Key('import-registration-find'),
-                onPressed: _reading ? null : () => _match(_pasted.text),
-                child: const Text('강의 찾기'),
-              ),
-            ),
-            if (_error case final error?) ...[
-              const SizedBox(height: 12),
+            if (preview == null) ...[
+              const SizedBox(height: 8),
               WhitespaceWrappedText(
-                error,
+                '학교 수강신청 확인 화면을 캡처하거나 복사한 내역을 붙여 넣으면, 이 학기 강의를 찾아 한 번에 넣어요. 캡처는 기기 안에서만 읽어요.',
                 style: textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.error,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-            ],
-            if (preview != null) ...[
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
+              FilledButton.tonalIcon(
+                key: const Key('import-registration-screenshot'),
+                onPressed: _reading ? null : _readScreenshot,
+                icon: _reading
+                    ? const SizedBox.square(
+                        dimension: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.image_outlined),
+                label: const Text('캡처 이미지 선택'),
+              ),
+              const SizedBox(height: 20),
+              LabeledField(
+                label: '또는 복사한 내역 붙여넣기',
+                child: TextField(
+                  key: const Key('import-registration-text'),
+                  controller: _pasted,
+                  minLines: 3,
+                  maxLines: 6,
+                  decoration: const InputDecoration(
+                    hintText: 'GEE7007  001  디지털 경영  3.0 …',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: OutlinedButton(
+                  key: const Key('import-registration-find'),
+                  onPressed: _reading ? null : () => _match(_pasted.text),
+                  child: const Text('강의 찾기'),
+                ),
+              ),
+              if (_error case final error?) ...[
+                const SizedBox(height: 12),
+                WhitespaceWrappedText(
+                  error,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ],
+            ] else ...[
+              const SizedBox(height: 16),
               if (preview.toAdd.isNotEmpty) ...[
                 FieldLabel('추가할 강의 ${preview.toAdd.length}개'),
                 for (final lecture in preview.toAdd)
@@ -176,6 +177,14 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
                     ? null
                     : () => Navigator.pop(context, preview.toAdd),
                 child: Text('${preview.toAdd.length}개 시간표에 추가'),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                key: const Key('import-registration-retry'),
+                // 붙여 넣은 글은 남겨 둬 고쳐서 다시 찾을 수 있게 한다.
+                onPressed: () => setState(() => _preview = null),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('다시 선택하기'),
               ),
             ],
           ],

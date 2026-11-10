@@ -88,6 +88,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('추가할 강의 1개'), findsOneWidget);
+    // 결과 단계에서는 입력란 없이 찾은 강의만 보인다.
+    expect(findWhitespaceWrappedText('찾은 강의'), findsOneWidget);
+    expect(find.byKey(const Key('import-registration-text')), findsNothing);
     // 학교 화면과 대조할 수 있게 카드에 분반·교수·시간까지 보인다.
     final card = find.byKey(const ValueKey('import-lecture-lecture-net'));
     expect(card, findsOneWidget);
@@ -115,6 +118,34 @@ void main() {
 
     expect(api.savedLectureIds, ['lecture-net']);
     expect(find.text('강의 1개를 시간표에 넣었어요.'), findsOneWidget);
+  });
+
+  testWidgets('goes back to choosing input and keeps the pasted text', (
+    tester,
+  ) async {
+    await open(tester);
+    const pasted = 'ITC3410 002 컴퓨터네트워크';
+    await tester.enterText(
+      find.byKey(const Key('import-registration-text')),
+      pasted,
+    );
+    await tester.tap(find.byKey(const Key('import-registration-find')));
+    await tester.pumpAndSettle();
+
+    final retry = find.byKey(const Key('import-registration-retry'));
+    await tester.ensureVisible(retry);
+    await tester.tap(retry);
+    await tester.pumpAndSettle();
+
+    expect(findWhitespaceWrappedText('수강신청 내역 가져오기'), findsOneWidget);
+    expect(find.byKey(const Key('import-registration-confirm')), findsNothing);
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('import-registration-text')))
+          .controller
+          ?.text,
+      pasted,
+    );
   });
 
   testWidgets('reads a screenshot and adds the matched section', (
