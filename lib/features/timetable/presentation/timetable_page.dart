@@ -418,22 +418,27 @@ class _WeekGrid extends StatelessWidget {
                         bottom: 0,
                         child: VerticalDivider(width: 1, thickness: 1),
                       ),
+                    // 눈금선은 정확히 그 시각 위치에, 시간 숫자는 선 바로 아래에 둔다.
+                    // 숫자와 선을 한 Row에 두면 선이 숫자 높이의 절반만큼 내려가 강의 칸과 어긋난다.
+                    for (var hour = firstHour; hour <= lastHour; hour++)
+                      Positioned(
+                        key: Key('timetable-hour-line-$hour'),
+                        top: (hour - firstHour) * hourHeight,
+                        left: timeWidth,
+                        right: 0,
+                        height: 1,
+                        child: ColoredBox(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      ),
                     for (var hour = firstHour; hour < lastHour; hour++)
                       Positioned(
-                        top: (hour - firstHour) * hourHeight,
+                        top: (hour - firstHour) * hourHeight + 2,
                         left: 0,
-                        right: 0,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: timeWidth,
-                              child: Text(
-                                hour.toString().padLeft(2, '0'),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ),
-                            const Expanded(child: Divider(height: 1)),
-                          ],
+                        width: timeWidth,
+                        child: Text(
+                          hour.toString().padLeft(2, '0'),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                     for (final entry in entries)
