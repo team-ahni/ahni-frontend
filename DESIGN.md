@@ -127,6 +127,12 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - It is decorative and excluded from semantics; the title next to it carries the meaning.
 - Original art only. Never use or imitate Inha University's mascots (안뇽이, 인덕이): they are trademark-pending and need the university's prior permission.
 
+### Same situation, same pattern
+
+- One situation gets one UI pattern across every flow. Before building or fixing a flow, find where the app already handles the same situation and reuse that component; the second use is the moment to extract it.
+- Timetable overlap: every flow that puts a lecture into the timetable (single add, change, recommendation add, registration import) checks overlaps on the client and asks with `showTimetableConflictDialog` (`lib/features/timetable/presentation/timetable_conflict_dialog.dart`): an `old → new` list and two equal buttons on one row, `다시 선택하기 | 바꾸기`. Never a three-button vertical dialog, never an inline decision panel.
+- Refusals that the client could not foresee (server errors) appear in a SnackBar, not in the page's load-error area.
+
 ### Empty state
 
 - `EmptyStateView`: '아니' in the matching mood, a short title, an optional one-line explanation, and the next action. Use it for empty lists, failures, and re-login prompts.

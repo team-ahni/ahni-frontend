@@ -22,9 +22,11 @@ class CourseRecommendationPage extends StatefulWidget {
   final String term;
   final VoidCallback onAuthenticationRequired;
 
-  /// 분반을 시간표에 바로 넣는다. 성공하면 null, 실패하면 보여 줄 문구를 돌려준다.
+  /// 분반을 시간표에 바로 넣는다. 넣었는지와, 넣지 못했으면 보여 줄 문구를 돌려준다.
+  /// 넣지 않았고 문구도 없으면 사용자가 확인 창에서 다시 고르기로 한 것이다.
   /// 없으면 추가 버튼을 그리지 않는다.
-  final Future<String?> Function(Lecture lecture)? onAddLecture;
+  final Future<({bool added, String? message})> Function(Lecture lecture)?
+  onAddLecture;
 
   /// 이미 시간표에 있는 분반. 이 분반은 '추가됨'으로 보인다.
   final Set<String> addedLectureIds;
@@ -42,22 +44,19 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
     final onAdd = widget.onAddLecture;
     if (onAdd == null || _adding != null) return;
     setState(() => _adding = lecture.entityId);
-    final failure = await onAdd(lecture);
+    final (:added, :message) = await onAdd(lecture);
     if (!mounted) return;
     setState(() {
       _adding = null;
-      if (failure == null) _added.add(lecture.entityId);
+      if (added) _added.add(lecture.entityId);
     });
+    final text = added
+        ? '${lecture.courseName} ${lecture.section}분반을 시간표에 추가했어요.'
+        : message;
+    if (text == null) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            failure ??
-                '${lecture.courseName} ${lecture.section}분반을 시간표에 추가했어요.',
-          ),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
