@@ -376,8 +376,9 @@ class _WeekGrid extends StatelessWidget {
           ? LectureSchedule.minutes(s.startTime)
           : value,
     );
+    // 야간 강의(최대 22시)까지 늘 같은 높이로 그리고, 화면보다 길면 세로로 스크롤해 본다.
     final end = schedules.fold(
-      18 * 60,
+      22 * 60,
       (value, s) => LectureSchedule.minutes(s.endTime) > value
           ? LectureSchedule.minutes(s.endTime)
           : value,
@@ -387,6 +388,8 @@ class _WeekGrid extends StatelessWidget {
     final days = schedules.any((s) => s.dayOfWeek == 7) ? 7 : 6;
     const hourHeight = 64.0;
     final height = (lastHour - firstHour) * hourHeight;
+    // 마지막 시각 숫자가 격자 아래에 들어갈 자리. 없으면 끝 시각이 안 보여 칸이 잘린 것처럼 보인다.
+    final endLabelSpace = MediaQuery.textScalerOf(context).scale(20);
     return LayoutBuilder(
       builder: (context, constraints) {
         const timeWidth = 32.0;
@@ -408,32 +411,37 @@ class _WeekGrid extends StatelessWidget {
                 ],
               ),
               SizedBox(
-                height: height,
+                height: height + endLabelSpace,
                 child: Stack(
                   children: [
                     for (var day = 0; day <= days; day++)
                       Positioned(
                         left: timeWidth + day * dayWidth - 1,
                         top: 0,
-                        bottom: 0,
+                        height: height,
                         child: VerticalDivider(width: 1, thickness: 1),
                       ),
-                    for (var hour = firstHour; hour < lastHour; hour++)
+                    // 눈금선은 정확히 그 시각 위치에, 시간 숫자는 선 바로 아래에 둔다.
+                    // 숫자와 선을 한 Row에 두면 선이 숫자 높이의 절반만큼 내려가 강의 칸과 어긋난다.
+                    for (var hour = firstHour; hour <= lastHour; hour++)
                       Positioned(
+                        key: Key('timetable-hour-line-$hour'),
                         top: (hour - firstHour) * hourHeight,
-                        left: 0,
+                        left: timeWidth,
                         right: 0,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: timeWidth,
-                              child: Text(
-                                hour.toString().padLeft(2, '0'),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ),
-                            const Expanded(child: Divider(height: 1)),
-                          ],
+                        height: 1,
+                        child: ColoredBox(
+                          color: Theme.of(context).dividerColor,
+                        ),
+                      ),
+                    for (var hour = firstHour; hour <= lastHour; hour++)
+                      Positioned(
+                        top: (hour - firstHour) * hourHeight + 2,
+                        left: 0,
+                        width: timeWidth,
+                        child: Text(
+                          hour.toString().padLeft(2, '0'),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ),
                     for (final entry in entries)
