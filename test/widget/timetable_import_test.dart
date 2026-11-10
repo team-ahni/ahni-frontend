@@ -88,13 +88,28 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('추가할 강의 1개'), findsOneWidget);
-    // 학교 화면과 대조할 수 있게 교수와 시간까지 보인다.
+    // 학교 화면과 대조할 수 있게 카드에 분반·교수·시간까지 보인다.
+    final card = find.byKey(const ValueKey('import-lecture-lecture-net'));
+    expect(card, findsOneWidget);
+    for (final text in ['컴퓨터네트워크', '교수가', '화 09:00–10:30']) {
+      expect(
+        find.descendant(of: card, matching: findWhitespaceWrappedText(text)),
+        findsOneWidget,
+      );
+    }
     expect(
-      findWhitespaceWrappedText('컴퓨터네트워크 · ITC3410-002 · 교수가 · 화 09:00–10:30'),
+      find.descendant(of: card, matching: find.text('ITC3410-002 · 3학점')),
       findsOneWidget,
     );
-    expect(find.text('찾지 못했어요'), findsOneWidget);
-    expect(findWhitespaceWrappedText('ITC9999-001'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('import-registration-not-found')),
+        matching: findWhitespaceWrappedText(
+          '찾지 못했어요: ITC9999-001\n이 학기에 없거나 분반을 정할 수 없는 강의예요. 강의 추가에서 직접 골라 주세요.',
+        ),
+      ),
+      findsOneWidget,
+    );
 
     await confirm(tester);
 

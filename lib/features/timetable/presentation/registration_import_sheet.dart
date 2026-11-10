@@ -1,3 +1,5 @@
+import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/timetable/data/registration_screenshot_reader.dart';
@@ -144,19 +146,29 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
             ],
             if (preview != null) ...[
               const SizedBox(height: 24),
-              _PreviewGroup(
-                title: '추가할 강의 ${preview.toAdd.length}개',
-                items: [for (final l in preview.toAdd) _label(l)],
-              ),
-              _PreviewGroup(
-                title: '이미 시간표에 있어요',
-                items: [for (final l in preview.alreadyAdded) _label(l)],
-              ),
-              _PreviewGroup(
-                title: '찾지 못했어요',
-                note: '이 학기에 없거나 분반을 정할 수 없는 강의예요. 강의 추가에서 직접 골라 주세요.',
-                items: preview.notFound,
-              ),
+              if (preview.toAdd.isNotEmpty) ...[
+                FieldLabel('추가할 강의 ${preview.toAdd.length}개'),
+                for (final lecture in preview.toAdd)
+                  _LectureCard(lecture: lecture),
+              ],
+              if (preview.alreadyAdded.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                const FieldLabel('이미 시간표에 있어요'),
+                for (final lecture in preview.alreadyAdded)
+                  _LectureCard(lecture: lecture, alreadyAdded: true),
+              ],
+              if (preview.notFound.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                NoticeCallout(
+                  key: const Key('import-registration-not-found'),
+                  icon: Icons.help_outline_rounded,
+                  tone: AhniPalette.of(context).amber,
+                  message:
+                      '찾지 못했어요: ${preview.notFound.join(', ')}\n'
+                      '이 학기에 없거나 분반을 정할 수 없는 강의예요. 강의 추가에서 직접 골라 주세요.',
+                ),
+                const SizedBox(height: 16),
+              ],
               const SizedBox(height: 8),
               FilledButton(
                 key: const Key('import-registration-confirm'),
@@ -171,53 +183,97 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
       ),
     );
   }
-
-  // 교수와 시간까지 보여 줘 학교 화면과 대조하게 한다. 분반을 잘못 읽었는데
-  // 그 분반도 개설돼 있으면 자동으로는 알 수 없어서다.
-  static String _label(Lecture lecture) => [
-    lecture.courseName,
-    '${lecture.courseCode}-${lecture.section}',
-    lecture.professorName,
-    if (lecture.schedules.isEmpty)
-      '고정시간 없음'
-    else
-      lecture.schedules
-          .map((s) => '${timetableDays[s.dayOfWeek - 1]} ${s.label}')
-          .join(', '),
-  ].join(' · ');
 }
 
-class _PreviewGroup extends StatelessWidget {
-  const _PreviewGroup({required this.title, required this.items, this.note});
+/// 수강 추천의 과목 카드와 같은 모양. 교수와 시간까지 보여 줘 학교 화면과 대조하게 한다.
+/// 분반을 잘못 읽었는데 그 분반도 개설돼 있으면 자동으로는 알 수 없어서다.
+class _LectureCard extends StatelessWidget {
+  const _LectureCard({required this.lecture, this.alreadyAdded = false});
 
-  final String title;
-  final List<String> items;
-  final String? note;
+  final Lecture lecture;
+  final bool alreadyAdded;
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) return const SizedBox.shrink();
     final textTheme = Theme.of(context).textTheme;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
+    final colorScheme = Theme.of(context).colorScheme;
+    final teal = AhniPalette.of(context).teal;
+    final schedule = lecture.schedules.isEmpty
+        ? '고정시간 없음'
+        : lecture.schedules
+              .map((s) => '${timetableDays[s.dayOfWeek - 1]} ${s.label}')
+              .join(', ');
+    Widget detail(IconData icon, String text) => Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FieldLabel(title),
-          for (final item in items)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: WhitespaceWrappedText(item, style: textTheme.bodyMedium),
-            ),
-          if (note case final value?)
-            WhitespaceWrappedText(
-              value,
-              style: textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.only(top: 1),
+            child: Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: WhitespaceWrappedText(text, style: textTheme.bodySmall),
+          ),
         ],
       ),
     );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        key: ValueKey('import-lecture-${lecture.entityId}'),
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          // 시트 바탕이 흰색이라 카드는 옅은 회색 면으로 구분한다.
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: WhitespaceWrappedText(
+                    lecture.courseName,
+                    style: textTheme.titleSmall,
+                  ),
+                ),
+                if (alreadyAdded)
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: ShapeDecoration(
+                      color: teal.soft,
+                      shape: const StadiumBorder(),
+                    ),
+                    child: Text(
+                      '이미 있음',
+                      style: textTheme.labelMedium?.copyWith(color: teal.ink),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${lecture.courseCode}-${lecture.section} · ${_credit(lecture.credit)}학점',
+              style: textTheme.bodySmall,
+            ),
+            detail(Icons.person_outline_rounded, lecture.professorName),
+            detail(Icons.schedule_rounded, schedule),
+          ],
+        ),
+      ),
+    );
   }
+
+  static String _credit(double value) => value == value.truncateToDouble()
+      ? value.toInt().toString()
+      : value.toString();
 }
