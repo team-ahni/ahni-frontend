@@ -114,6 +114,93 @@ void main() {
     expect(api.requests, [(2026, 'SECOND')]);
   });
 
+  testWidgets('adds a recommended section straight to the timetable', (
+    tester,
+  ) async {
+    final auth = FakeAuthGateway(currentSession: testSession);
+    final timetableApi = FakeTimetableApi();
+    final timetable = TimetableController(auth: auth, api: timetableApi)
+      ..year = 2026
+      ..term = 'SECOND';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TimetablePage(
+          controller: timetable,
+          recommendationController: buildTestRecommendationController(),
+          onAuthenticationRequired: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-course-recommendation')));
+    await tester.pumpAndSettle();
+
+    const key = Key('add-lecture-00000000-0000-0000-0000-000000000901');
+    await tester.ensureVisible(find.byKey(key));
+    await tester.tap(find.byKey(key));
+    await tester.pumpAndSettle();
+
+    expect(timetableApi.savedLectureIds, [
+      '00000000-0000-0000-0000-000000000901',
+    ]);
+    expect(find.text('컴퓨터네트워크 001분반을 시간표에 추가했어요.'), findsOneWidget);
+    expect(tester.widget<TextButton>(find.byKey(key)).onPressed, isNull);
+    expect(
+      find.descendant(of: find.byKey(key), matching: find.text('추가됨')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('keeps the add button and explains when adding fails', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseRecommendationPage(
+          controller: buildTestRecommendationController(),
+          academicYear: 2026,
+          term: 'SECOND',
+          onAuthenticationRequired: () {},
+          onAddLecture: (_) async => '같은 시간에 이미 다른 강의가 있어요.',
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    const key = Key('add-lecture-00000000-0000-0000-0000-000000000901');
+    await tester.ensureVisible(find.byKey(key));
+    await tester.tap(find.byKey(key));
+    await tester.pumpAndSettle();
+
+    expect(find.text('같은 시간에 이미 다른 강의가 있어요.'), findsOneWidget);
+    expect(tester.widget<TextButton>(find.byKey(key)).onPressed, isNotNull);
+  });
+
+  testWidgets('marks sections already in the timetable as added', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CourseRecommendationPage(
+          controller: buildTestRecommendationController(),
+          academicYear: 2026,
+          term: 'SECOND',
+          onAuthenticationRequired: () {},
+          onAddLecture: (_) async => null,
+          addedLectureIds: const {'00000000-0000-0000-0000-000000000901'},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    const key = Key('add-lecture-00000000-0000-0000-0000-000000000901');
+    expect(tester.widget<TextButton>(find.byKey(key)).onPressed, isNull);
+    expect(
+      find.descendant(of: find.byKey(key), matching: find.text('추가됨')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('disables recommendations for seasonal terms', (tester) async {
     final auth = FakeAuthGateway(currentSession: testSession);
     final timetable = TimetableController(auth: auth, api: FakeTimetableApi())
