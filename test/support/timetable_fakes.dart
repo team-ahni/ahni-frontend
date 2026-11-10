@@ -26,10 +26,10 @@ class FakeTimetableApi implements TimetableApi {
   TimetableApiFailure? failure;
   Completer<List<TimetableEntry>>? pending;
   final savedLectureIds = <String>[];
+  List<Lecture> offered = [testLecture];
   @override
-  Future<List<Lecture>> lectures(String token, int year, String term) async => [
-    testLecture,
-  ];
+  Future<List<Lecture>> lectures(String token, int year, String term) async =>
+      offered;
   @override
   Future<List<TimetableEntry>> entries(
     String token,

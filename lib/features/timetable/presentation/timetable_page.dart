@@ -5,7 +5,9 @@ import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/recommendation/presentation/course_recommendation_page.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
+import 'package:ahni_mobile/features/timetable/data/registration_screenshot_reader.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
+import 'package:ahni_mobile/features/timetable/presentation/registration_import_sheet.dart';
 import 'package:flutter/material.dart';
 
 class TimetablePage extends StatefulWidget {
@@ -14,9 +16,11 @@ class TimetablePage extends StatefulWidget {
     required this.onAuthenticationRequired,
     this.recommendationController,
     this.bottomNavigationBar,
+    this.screenshotReader = const OnDeviceRegistrationScreenshotReader(),
     super.key,
   });
   final TimetableController controller;
+  final RegistrationScreenshotReader screenshotReader;
   final CourseRecommendationController? recommendationController;
   final VoidCallback onAuthenticationRequired;
   final Widget? bottomNavigationBar;
@@ -51,6 +55,37 @@ class _TimetablePageState extends State<TimetablePage> {
   void dispose() {
     controller.removeListener(_refresh);
     super.dispose();
+  }
+
+  Future<void> _import() async {
+    final lectures = await showModalBottomSheet<List<Lecture>>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => RegistrationImportSheet(
+        lectures: controller.lectures,
+        addedLectureIds: {
+          for (final entry in controller.entries) entry.lecture.entityId,
+        },
+        reader: widget.screenshotReader,
+      ),
+    );
+    if (lectures == null || lectures.isEmpty || !mounted) return;
+    final failures = await controller.saveAll(lectures);
+    if (!mounted) return;
+    final added = lectures.length - failures.length;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(
+            failures.isEmpty
+                ? '강의 $added개를 시간표에 넣었어요.'
+                : '$added개를 넣었고 ${failures.length}개는 넣지 못했어요. '
+                      '${failures.first.lecture.courseName}: ${failures.first.message}',
+          ),
+        ),
+      );
   }
 
   Future<void> _choose({TimetableEntry? entry}) async {
@@ -142,6 +177,12 @@ class _TimetablePageState extends State<TimetablePage> {
             tooltip: '새로고침',
             onPressed: disabled ? null : controller.load,
             icon: const Icon(Icons.refresh),
+          ),
+          IconButton(
+            key: const Key('import-registration'),
+            tooltip: '수강신청 내역 가져오기',
+            onPressed: disabled || !controller.loaded ? null : _import,
+            icon: const Icon(Icons.playlist_add_rounded),
           ),
           IconButton(
             tooltip: '강의 추가',
