@@ -54,7 +54,6 @@ ThemeData buildAppTheme() {
   final buttonShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(16),
   );
-  const fieldBorder = _FilledFieldBorder();
 
   // 컴포넌트 글꼴은 테마 textTheme에서 파생해 플랫폼 기본 글꼴과 섞이지 않게 한다.
   final base = ThemeData(
@@ -81,42 +80,22 @@ ThemeData buildAppTheme() {
       centerTitle: false,
       titleTextStyle: text.titleLarge,
     ),
-    // 외곽선과 라벨 홈 대신, 옅은 면 안에 작은 라벨을 두고 포커스일 때만 강조 테두리를 그린다.
+    // 흰 바탕에 옅은 테두리를 두르고, 이름은 박스 위 `LabeledField`가 그린다.
+    // 포커스일 때만 강조색으로 테두리를 굵게 해 지금 입력하는 칸을 보여 준다.
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.subtle,
-      floatingLabelBehavior: FloatingLabelBehavior.always,
-      labelStyle: text.bodySmall!.copyWith(
-        color: AppColors.supportingText,
-        fontWeight: FontWeight.w600,
-      ),
-      floatingLabelStyle: WidgetStateTextStyle.resolveWith(
-        (states) => text.bodySmall!.copyWith(
-          fontWeight: FontWeight.w600,
-          color: states.contains(WidgetState.error)
-              ? AppColors.dangerStrong
-              : states.contains(WidgetState.focused)
-              ? AppColors.accent
-              : AppColors.supportingText,
-        ),
-      ),
+      fillColor: Colors.white,
       hintStyle: text.bodyLarge!.copyWith(color: AppColors.muted),
       suffixStyle: text.bodyLarge!.copyWith(color: AppColors.secondaryText),
       helperStyle: text.bodySmall,
       errorStyle: text.bodySmall!.copyWith(color: AppColors.dangerStrong),
-      contentPadding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      border: fieldBorder,
-      enabledBorder: fieldBorder,
-      disabledBorder: fieldBorder,
-      focusedBorder: const _FilledFieldBorder(
-        borderSide: BorderSide(color: AppColors.accent, width: 1.5),
-      ),
-      errorBorder: const _FilledFieldBorder(
-        borderSide: BorderSide(color: AppColors.danger),
-      ),
-      focusedErrorBorder: const _FilledFieldBorder(
-        borderSide: BorderSide(color: AppColors.danger, width: 1.5),
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: _fieldBorder(AppColors.line),
+      enabledBorder: _fieldBorder(AppColors.line),
+      disabledBorder: _fieldBorder(AppColors.subtle),
+      focusedBorder: _fieldBorder(AppColors.accent, width: 1.5),
+      errorBorder: _fieldBorder(AppColors.danger),
+      focusedErrorBorder: _fieldBorder(AppColors.danger, width: 1.5),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
@@ -273,42 +252,8 @@ const _textTheme = TextTheme(
 const _tight = -0.3;
 
 /// 둥근 면 테두리. `isOutline`이 false라 라벨이 면 안쪽에 놓이고, 외곽선에 라벨 홈이 파이지 않는다.
-class _FilledFieldBorder extends OutlineInputBorder {
-  const _FilledFieldBorder({super.borderSide = BorderSide.none})
-    : super(borderRadius: const BorderRadius.all(Radius.circular(14)));
-
-  @override
-  bool get isOutline => false;
-
-  @override
-  _FilledFieldBorder copyWith({
-    BorderSide? borderSide,
-    BorderRadius? borderRadius,
-    double? gapPadding,
-  }) => _FilledFieldBorder(borderSide: borderSide ?? this.borderSide);
-
-  // 포커스 전환 중에도 같은 종류로 보간해 라벨 홈이 잠깐 생기지 않게 한다.
-  @override
-  ShapeBorder? lerpFrom(ShapeBorder? a, double t) => a is _FilledFieldBorder
-      ? _FilledFieldBorder(
-          borderSide: BorderSide.lerp(a.borderSide, borderSide, t),
-        )
-      : super.lerpFrom(a, t);
-
-  @override
-  ShapeBorder? lerpTo(ShapeBorder? b, double t) => b is _FilledFieldBorder
-      ? _FilledFieldBorder(
-          borderSide: BorderSide.lerp(borderSide, b.borderSide, t),
-        )
-      : super.lerpTo(b, t);
-
-  @override
-  void paint(
-    Canvas canvas,
-    Rect rect, {
-    double? gapStart,
-    double gapExtent = 0.0,
-    double gapPercentage = 0.0,
-    TextDirection? textDirection,
-  }) => super.paint(canvas, rect, textDirection: textDirection);
-}
+OutlineInputBorder _fieldBorder(Color color, {double width = 1}) =>
+    OutlineInputBorder(
+      borderRadius: const BorderRadius.all(Radius.circular(12)),
+      borderSide: BorderSide(color: color, width: width),
+    );

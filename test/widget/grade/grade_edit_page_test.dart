@@ -93,7 +93,13 @@ void main() {
     await tester.pumpWidget(_testApp(api: api));
 
     await tester.enterText(find.byKey(const Key('edit-academic-year')), '2024');
+    // 입력 중인 칸은 커서를 보이려고 화면을 되돌리므로 입력을 마친 뒤 저장을 누른다.
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
     await _tapVisible(tester, 'save-grade');
+    await tester.pumpAndSettle();
+    // 안내는 폼 위쪽에 있어 저장 버튼까지 내려간 화면에서는 다시 올려 봐야 한다.
+    await tester.ensureVisible(find.text('이미 ').first);
     await tester.pumpAndSettle();
 
     expect(

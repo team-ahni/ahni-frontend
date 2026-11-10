@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_ocr_import_controller.dart';
@@ -482,65 +483,74 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<CourseCatalogItem>(
-                key: const Key('ocr-edit-course'),
-                initialValue: _course,
-                isExpanded: true,
-                menuMaxHeight: 320,
-                decoration: const InputDecoration(labelText: '과목'),
-                items: options
-                    .map(
-                      (course) => DropdownMenuItem(
-                        value: course,
-                        child: Text(
-                          '${course.name} (${course.code})',
-                          overflow: TextOverflow.ellipsis,
+              LabeledField(
+                label: '과목',
+                child: DropdownButtonFormField<CourseCatalogItem>(
+                  key: const Key('ocr-edit-course'),
+                  initialValue: _course,
+                  isExpanded: true,
+                  menuMaxHeight: 320,
+                  decoration: const InputDecoration(),
+                  items: options
+                      .map(
+                        (course) => DropdownMenuItem(
+                          value: course,
+                          child: Text(
+                            '${course.name} (${course.code})',
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() {
-                  _course = value;
-                  if (_credit.text.isEmpty && value != null) {
-                    _credit.text = value.credit.toString();
-                  }
-                }),
-                validator: (value) => value == null ? '과목을 선택해 주세요.' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                key: const Key('ocr-edit-credit'),
-                controller: _credit,
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() {
+                    _course = value;
+                    if (_credit.text.isEmpty && value != null) {
+                      _credit.text = value.credit.toString();
+                    }
+                  }),
+                  validator: (value) => value == null ? '과목을 선택해 주세요.' : null,
                 ),
-                decoration: const InputDecoration(labelText: '학점'),
-                validator: (value) {
-                  final credit = double.tryParse(value?.trim() ?? '');
-                  return credit == null ||
-                          credit <= 0 ||
-                          credit > 30 ||
-                          !RegExp(r'^\d{1,2}(\.\d)?$').hasMatch(value!.trim())
-                      ? '학점은 0 초과 30 이하, 소수점 한 자리까지 입력해 주세요.'
-                      : null;
-                },
               ),
               const SizedBox(height: 16),
-              DropdownButtonFormField<GradeCode>(
-                isExpanded: true,
-                key: const Key('ocr-edit-grade'),
-                initialValue: _grade,
-                decoration: const InputDecoration(labelText: '성적'),
-                items: GradeCode.values
-                    .map(
-                      (grade) => DropdownMenuItem(
-                        value: grade,
-                        child: Text(grade.label),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => _grade = value,
-                validator: (value) => value == null ? '성적을 선택해 주세요.' : null,
+              LabeledField(
+                label: '학점',
+                child: TextFormField(
+                  key: const Key('ocr-edit-credit'),
+                  controller: _credit,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(),
+                  validator: (value) {
+                    final credit = double.tryParse(value?.trim() ?? '');
+                    return credit == null ||
+                            credit <= 0 ||
+                            credit > 30 ||
+                            !RegExp(r'^\d{1,2}(\.\d)?$').hasMatch(value!.trim())
+                        ? '학점은 0 초과 30 이하, 소수점 한 자리까지 입력해 주세요.'
+                        : null;
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              LabeledField(
+                label: '성적',
+                child: DropdownButtonFormField<GradeCode>(
+                  isExpanded: true,
+                  key: const Key('ocr-edit-grade'),
+                  initialValue: _grade,
+                  decoration: const InputDecoration(),
+                  items: GradeCode.values
+                      .map(
+                        (grade) => DropdownMenuItem(
+                          value: grade,
+                          child: Text(grade.label),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => _grade = value,
+                  validator: (value) => value == null ? '성적을 선택해 주세요.' : null,
+                ),
               ),
               const SizedBox(height: 24),
               SizedBox(

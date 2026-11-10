@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
@@ -151,41 +152,47 @@ class _TimetablePageState extends State<TimetablePage> {
             Row(
               children: [
                 Expanded(
-                  child: DropdownButtonFormField<int>(
-                    isExpanded: true,
-                    key: ValueKey('year-${controller.year}'),
-                    initialValue: controller.year,
-                    decoration: const InputDecoration(labelText: '연도'),
-                    items: [
-                      for (
-                        var year = 2000;
-                        year <= DateTime.now().year + 1;
-                        year++
-                      )
-                        DropdownMenuItem(value: year, child: Text('$year년')),
-                    ],
-                    onChanged: disabled
-                        ? null
-                        : (year) => controller.load(academicYear: year),
+                  child: LabeledField(
+                    label: '연도',
+                    child: DropdownButtonFormField<int>(
+                      isExpanded: true,
+                      key: ValueKey('year-${controller.year}'),
+                      initialValue: controller.year,
+                      decoration: const InputDecoration(),
+                      items: [
+                        for (
+                          var year = 2000;
+                          year <= DateTime.now().year + 1;
+                          year++
+                        )
+                          DropdownMenuItem(value: year, child: Text('$year년')),
+                      ],
+                      onChanged: disabled
+                          ? null
+                          : (year) => controller.load(academicYear: year),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    key: ValueKey('term-${controller.term}'),
-                    initialValue: controller.term,
-                    decoration: const InputDecoration(labelText: '학기'),
-                    items: [
-                      for (final term in timetableTerms.entries)
-                        DropdownMenuItem(
-                          value: term.key,
-                          child: Text(term.value),
-                        ),
-                    ],
-                    onChanged: disabled
-                        ? null
-                        : (term) => controller.load(academicTerm: term),
+                  child: LabeledField(
+                    label: '학기',
+                    child: DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      key: ValueKey('term-${controller.term}'),
+                      initialValue: controller.term,
+                      decoration: const InputDecoration(),
+                      items: [
+                        for (final term in timetableTerms.entries)
+                          DropdownMenuItem(
+                            value: term.key,
+                            child: Text(term.value),
+                          ),
+                      ],
+                      onChanged: disabled
+                          ? null
+                          : (term) => controller.load(academicTerm: term),
+                    ),
                   ),
                 ),
               ],
@@ -301,12 +308,14 @@ class _LecturePickerState extends State<_LecturePicker> {
               ],
             ),
             const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: '과목명·코드·교수 검색',
-                prefixIcon: Icon(Icons.search),
+            LabeledField(
+              label: '과목명·코드·교수 검색',
+              child: TextField(
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                ),
+                onChanged: (value) => setState(() => query = value),
               ),
-              onChanged: (value) => setState(() => query = value),
             ),
             const SizedBox(height: 16),
             Expanded(

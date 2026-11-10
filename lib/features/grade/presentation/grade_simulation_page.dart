@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_simulation_controller.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
@@ -222,64 +223,70 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
         ],
       ),
       const SizedBox(height: 12),
-      DropdownButtonFormField<CourseCategory>(
-        key: Key('expected-category-${row.id}'),
-        initialValue: row.category,
-        isExpanded: true,
-        decoration: const InputDecoration(labelText: '과목 분류'),
-        items: CourseCategory.values
-            .map(
-              (category) => DropdownMenuItem(
-                value: category,
-                child: Text(switch (category) {
-                  CourseCategory.major => '전공',
-                  CourseCategory.generalEducation => '교양',
-                  CourseCategory.elective => '일반선택',
-                }),
-              ),
-            )
-            .toList(),
-        onChanged: busy
-            ? null
-            : (category) {
-                if (category != null) _change(() => row.category = category);
-              },
-      ),
-      const SizedBox(height: 16),
-      TextFormField(
-        key: Key('expected-credit-${row.id}'),
-        controller: row.credit,
-        enabled: !busy,
-        style: const TextStyle(fontSize: 16),
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        decoration: const InputDecoration(
-          labelText: '학점',
-          hintText: '예: 3 또는 1.5',
+      LabeledField(
+        label: '과목 분류',
+        child: DropdownButtonFormField<CourseCategory>(
+          key: Key('expected-category-${row.id}'),
+          initialValue: row.category,
+          isExpanded: true,
+          decoration: const InputDecoration(),
+          items: CourseCategory.values
+              .map(
+                (category) => DropdownMenuItem(
+                  value: category,
+                  child: Text(switch (category) {
+                    CourseCategory.major => '전공',
+                    CourseCategory.generalEducation => '교양',
+                    CourseCategory.elective => '일반선택',
+                  }),
+                ),
+              )
+              .toList(),
+          onChanged: busy
+              ? null
+              : (category) {
+                  if (category != null) _change(() => row.category = category);
+                },
         ),
-        validator: (value) => ExpectedGrade.parseCredit(value ?? '') == null
-            ? '학점은 0 초과 30 이하, 소수점 한 자리까지 입력해 주세요.'
-            : null,
-        errorBuilder: (_, message) => WhitespaceWrappedText(message),
-        onChanged: (_) => widget.controller.reset(),
-        onFieldSubmitted: (_) => _calculate(),
       ),
       const SizedBox(height: 16),
-      DropdownButtonFormField<GradeCode>(
-        key: Key('expected-code-${row.id}'),
-        initialValue: row.gradeCode,
-        isExpanded: true,
-        decoration: const InputDecoration(labelText: '예상 등급'),
-        items: GradeCode.values
-            .map(
-              (grade) =>
-                  DropdownMenuItem(value: grade, child: Text(grade.label)),
-            )
-            .toList(),
-        onChanged: busy
-            ? null
-            : (grade) => _change(() => row.gradeCode = grade),
-        validator: (grade) => grade == null ? '예상 등급을 선택해 주세요.' : null,
-        errorBuilder: (_, message) => WhitespaceWrappedText(message),
+      LabeledField(
+        label: '학점',
+        child: TextFormField(
+          key: Key('expected-credit-${row.id}'),
+          controller: row.credit,
+          enabled: !busy,
+          style: const TextStyle(fontSize: 16),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(hintText: '예: 3 또는 1.5'),
+          validator: (value) => ExpectedGrade.parseCredit(value ?? '') == null
+              ? '학점은 0 초과 30 이하, 소수점 한 자리까지 입력해 주세요.'
+              : null,
+          errorBuilder: (_, message) => WhitespaceWrappedText(message),
+          onChanged: (_) => widget.controller.reset(),
+          onFieldSubmitted: (_) => _calculate(),
+        ),
+      ),
+      const SizedBox(height: 16),
+      LabeledField(
+        label: '예상 등급',
+        child: DropdownButtonFormField<GradeCode>(
+          key: Key('expected-code-${row.id}'),
+          initialValue: row.gradeCode,
+          isExpanded: true,
+          decoration: const InputDecoration(),
+          items: GradeCode.values
+              .map(
+                (grade) =>
+                    DropdownMenuItem(value: grade, child: Text(grade.label)),
+              )
+              .toList(),
+          onChanged: busy
+              ? null
+              : (grade) => _change(() => row.gradeCode = grade),
+          validator: (grade) => grade == null ? '예상 등급을 선택해 주세요.' : null,
+          errorBuilder: (_, message) => WhitespaceWrappedText(message),
+        ),
       ),
     ],
   );

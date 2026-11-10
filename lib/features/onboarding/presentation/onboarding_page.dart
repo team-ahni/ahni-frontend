@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/info_group.dart';
 import 'package:ahni_mobile/core/network/student_api.dart';
@@ -288,28 +289,30 @@ class _PasswordRecoveryViewState extends State<_PasswordRecoveryView> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  TextFormField(
-                    key: const Key('new-password'),
-                    controller: _passwordController,
-                    enabled: !isSubmitting,
-                    obscureText: _obscurePassword,
-                    autofillHints: const [AutofillHints.newPassword],
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
-                    validator: _validatePassword,
-                    decoration: InputDecoration(
-                      labelText: '새 비밀번호',
-                      suffixIcon: IconButton(
-                        tooltip: _obscurePassword ? '비밀번호 표시' : '비밀번호 숨기기',
-                        onPressed: isSubmitting
-                            ? null
-                            : () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                  LabeledField(
+                    label: '새 비밀번호',
+                    child: TextFormField(
+                      key: const Key('new-password'),
+                      controller: _passwordController,
+                      enabled: !isSubmitting,
+                      obscureText: _obscurePassword,
+                      autofillHints: const [AutofillHints.newPassword],
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
+                      validator: _validatePassword,
+                      decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                          tooltip: _obscurePassword ? '비밀번호 표시' : '비밀번호 숨기기',
+                          onPressed: isSubmitting
+                              ? null
+                              : () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
                         ),
                       ),
                     ),
@@ -464,51 +467,55 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
                     ),
                     const SizedBox(height: 16),
                   ],
-                  TextFormField(
-                    key: const Key('auth-email'),
-                    controller: _emailController,
-                    enabled: !isSubmitting,
-                    autofillHints: const [AutofillHints.email],
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autocorrect: false,
-                    forceErrorText: _passwordResetEmailError,
-                    onChanged: (_) {
-                      if (_passwordResetEmailError != null) {
-                        setState(() => _passwordResetEmailError = null);
-                      }
-                    },
-                    validator: _validateEmail,
-                    decoration: const InputDecoration(
-                      labelText: '학교 이메일',
-                      hintText: 'student@inha.edu',
+                  LabeledField(
+                    label: '학교 이메일',
+                    child: TextFormField(
+                      key: const Key('auth-email'),
+                      controller: _emailController,
+                      enabled: !isSubmitting,
+                      autofillHints: const [AutofillHints.email],
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autocorrect: false,
+                      forceErrorText: _passwordResetEmailError,
+                      onChanged: (_) {
+                        if (_passwordResetEmailError != null) {
+                          setState(() => _passwordResetEmailError = null);
+                        }
+                      },
+                      validator: _validateEmail,
+                      decoration: const InputDecoration(
+                        hintText: 'student@inha.edu',
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    key: const Key('auth-password'),
-                    controller: _passwordController,
-                    enabled: !isSubmitting,
-                    obscureText: _obscurePassword,
-                    autofillHints: _isSignUp
-                        ? const [AutofillHints.newPassword]
-                        : const [AutofillHints.password],
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
-                    validator: _validatePassword,
-                    decoration: InputDecoration(
-                      labelText: '비밀번호',
-                      suffixIcon: IconButton(
-                        tooltip: _obscurePassword ? '비밀번호 표시' : '비밀번호 숨기기',
-                        onPressed: isSubmitting
-                            ? null
-                            : () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                  LabeledField(
+                    label: '비밀번호',
+                    child: TextFormField(
+                      key: const Key('auth-password'),
+                      controller: _passwordController,
+                      enabled: !isSubmitting,
+                      obscureText: _obscurePassword,
+                      autofillHints: _isSignUp
+                          ? const [AutofillHints.newPassword]
+                          : const [AutofillHints.password],
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
+                      validator: _validatePassword,
+                      decoration: InputDecoration(
+                        suffixIcon: IconButton(
+                          tooltip: _obscurePassword ? '비밀번호 표시' : '비밀번호 숨기기',
+                          onPressed: isSubmitting
+                              ? null
+                              : () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
                         ),
                       ),
                     ),
@@ -743,28 +750,31 @@ class _RegistrationViewState extends State<_RegistrationView> {
                         _validateDepartment(value, isRequired: false),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    key: const Key('admission-year'),
-                    controller: _admissionYearController,
-                    enabled: !isSubmitting,
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.next,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    validator: _validateAdmissionYear,
-                    decoration: const InputDecoration(
-                      labelText: '입학연도',
-                      hintText: '2024',
+                  LabeledField(
+                    label: '입학연도',
+                    child: TextFormField(
+                      key: const Key('admission-year'),
+                      controller: _admissionYearController,
+                      enabled: !isSubmitting,
+                      keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.next,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      validator: _validateAdmissionYear,
+                      decoration: const InputDecoration(hintText: '2024'),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    key: const Key('nickname'),
-                    controller: _nicknameController,
-                    enabled: !isSubmitting,
-                    maxLength: 100,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
-                    decoration: const InputDecoration(labelText: '닉네임 (선택)'),
+                  LabeledField(
+                    label: '닉네임 (선택)',
+                    child: TextFormField(
+                      key: const Key('nickname'),
+                      controller: _nicknameController,
+                      enabled: !isSubmitting,
+                      maxLength: 100,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
+                      decoration: const InputDecoration(),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -1400,24 +1410,27 @@ class _DepartmentField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      key: fieldKey,
-      initialValue: value ?? (isRequired ? null : _none),
-      isExpanded: true,
-      decoration: InputDecoration(labelText: label),
-      items: [
-        if (!isRequired)
-          const DropdownMenuItem(value: _none, child: Text('선택 안 함')),
-        for (final department in departments)
-          DropdownMenuItem(
-            value: department.entityId,
-            child: Text(department.name, overflow: TextOverflow.ellipsis),
-          ),
-      ],
-      onChanged: isEnabled
-          ? (selected) => onChanged(selected == _none ? null : selected)
-          : null,
-      validator: validator,
+    return LabeledField(
+      label: label,
+      child: DropdownButtonFormField<String>(
+        key: fieldKey,
+        initialValue: value ?? (isRequired ? null : _none),
+        isExpanded: true,
+        decoration: InputDecoration(),
+        items: [
+          if (!isRequired)
+            const DropdownMenuItem(value: _none, child: Text('선택 안 함')),
+          for (final department in departments)
+            DropdownMenuItem(
+              value: department.entityId,
+              child: Text(department.name, overflow: TextOverflow.ellipsis),
+            ),
+        ],
+        onChanged: isEnabled
+            ? (selected) => onChanged(selected == _none ? null : selected)
+            : null,
+        validator: validator,
+      ),
     );
   }
 }
