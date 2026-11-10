@@ -185,7 +185,7 @@ class _TimetablePageState extends State<TimetablePage> {
             key: const Key('import-registration'),
             tooltip: '수강신청 내역 가져오기',
             onPressed: disabled || !controller.loaded ? null : _import,
-            icon: const Icon(Icons.playlist_add_rounded),
+            icon: const Icon(Icons.document_scanner_outlined),
           ),
           IconButton(
             tooltip: '강의 추가',
