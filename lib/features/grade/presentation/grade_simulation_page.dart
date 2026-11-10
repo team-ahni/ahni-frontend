@@ -3,6 +3,7 @@ import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_simulation_controller.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_simulation.dart';
+import 'package:ahni_mobile/features/grade/domain/grade_summary.dart';
 import 'package:flutter/material.dart';
 
 class GradeSimulationPage extends StatefulWidget {
@@ -321,10 +322,17 @@ class _SimulationResult extends StatelessWidget {
             spacing: 32,
             runSpacing: 16,
             children: [
-              _metric(context, '현재 평점', result.current.gpa),
-              _metric(context, '예상 평점', result.projected.gpa),
+              _metric(context, '현재 평점', result.current),
+              _metric(context, '예상 평점', result.projected),
             ],
           ),
+          if (result.current.gpaCredits == 0) ...[
+            const SizedBox(height: 16),
+            const WhitespaceWrappedText(
+              key: Key('simulation-no-current-gpa'),
+              '아직 평점에 반영된 성적이 없어요. 예상 평점은 입력한 과목만으로 계산했어요.',
+            ),
+          ],
           const SizedBox(height: 16),
           WhitespaceWrappedText(
             '이수학점 ${result.current.completedCredits.toStringAsFixed(1)} → ${result.projected.completedCredits.toStringAsFixed(1)}학점',
@@ -336,19 +344,24 @@ class _SimulationResult extends StatelessWidget {
     ),
   );
 
-  Widget _metric(BuildContext context, String label, double value) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label, style: Theme.of(context).textTheme.bodyMedium),
-      const SizedBox(height: 8),
-      Text(
-        value.toStringAsFixed(2),
-        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-          fontSize: 24,
-          fontWeight: FontWeight.w700,
-          fontFeatures: const [FontFeature.tabularFigures()],
+  // 평점에 들어가는 학점이 없으면 0.00은 실제 평점처럼 읽히므로 값 대신 '-'를 보인다.
+  Widget _metric(BuildContext context, String label, GradeSummary summary) {
+    final hasGpa = summary.gpaCredits > 0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 8),
+        Text(
+          hasGpa ? summary.gpa.toStringAsFixed(2) : '-',
+          semanticsLabel: hasGpa ? null : '반영된 성적 없음',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }

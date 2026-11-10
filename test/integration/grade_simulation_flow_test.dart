@@ -94,7 +94,13 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(button);
       await tester.pumpAndSettle();
-      expect(find.text('0.00'), findsOneWidget);
+      // 실제 성적이 없으면 0.00 대신 '-'와 안내를 보인다.
+      expect(find.text('0.00'), findsNothing);
+      expect(find.text('-'), findsOneWidget);
+      expect(
+        find.byKey(const Key('simulation-no-current-gpa')),
+        findsOneWidget,
+      );
       expect(find.text('4.50'), findsOneWidget);
       expect(calculations, 1);
       await tester.pageBack();
