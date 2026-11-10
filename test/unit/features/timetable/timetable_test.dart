@@ -101,7 +101,9 @@ void main() {
     await controller.load();
     expect(await controller.save(testLecture), isFalse);
     expect(controller.entries, hasLength(1));
-    expect(controller.message, contains('겹칩니다'));
+    // 거절 이유는 불러오기 실패 안내(message)와 따로 담는다.
+    expect(controller.actionError, contains('겹칩니다'));
+    expect(controller.message, isNull);
     controller.dispose();
     await auth.dispose();
   });

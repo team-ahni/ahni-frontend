@@ -171,4 +171,45 @@ void main() {
     controller.dispose();
     await auth.dispose();
   });
+
+  testWidgets('explains a refused addition even when scrolled down', (
+    tester,
+  ) async {
+    final auth = FakeAuthGateway(currentSession: testSession);
+    final api = FakeTimetableApi()..rejectedLectureIds = {'lecture-1'};
+    final controller = TimetableController(auth: auth, api: api);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TimetablePage(
+          controller: controller,
+          onAuthenticationRequired: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // 22시까지 그린 시간표를 내려 본 상태에서 추가한다.
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, -600));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byTooltip('강의 추가'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('자료구조'));
+    await tester.pumpAndSettle();
+
+    // 시트가 닫힌 뒤 거절 이유가 화면 위치와 상관없이 보인다.
+    expect(
+      find.descendant(
+        of: find.byType(SnackBar),
+        matching: find.text('시간이 겹칩니다.'),
+      ),
+      findsOneWidget,
+    );
+    // 불러오기 실패용 '다시 시도' 안내는 나오지 않는다.
+    expect(find.text('다시 시도'), findsNothing);
+    expect(controller.entries, isEmpty);
+
+    await tester.pumpWidget(const SizedBox());
+    controller.dispose();
+    await auth.dispose();
+  });
 }

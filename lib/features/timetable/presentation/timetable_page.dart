@@ -105,7 +105,19 @@ class _TimetablePageState extends State<TimetablePage> {
       ),
     );
     if (lecture == null || !mounted) return;
-    await controller.save(lecture, entryId: entry?.entityId);
+    if (!await controller.save(lecture, entryId: entry?.entityId)) {
+      _showActionError();
+    }
+  }
+
+  /// 추가·변경·삭제가 거절되면 시트가 닫힌 뒤에도 보이도록 알림으로 알린다.
+  /// 화면 위쪽 안내는 불러오기 실패용이라, 스크롤한 상태에서는 보이지 않는다.
+  void _showActionError() {
+    final error = controller.actionError;
+    if (!mounted || controller.unauthorized || error == null) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(error)));
   }
 
   Future<void> _openRecommendation(
@@ -123,7 +135,7 @@ class _TimetablePageState extends State<TimetablePage> {
           },
           onAddLecture: (lecture) async => await controller.save(lecture)
               ? null
-              : controller.message ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.',
+              : controller.actionError ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.',
           onAuthenticationRequired: () {
             if (routeContext.mounted) Navigator.of(routeContext).pop();
             widget.onAuthenticationRequired();
@@ -153,7 +165,11 @@ class _TimetablePageState extends State<TimetablePage> {
         ],
       ),
     );
-    if (confirmed == true && mounted) await controller.delete(entry.entityId);
+    if (confirmed == true &&
+        mounted &&
+        !await controller.delete(entry.entityId)) {
+      _showActionError();
+    }
   }
 
   @override

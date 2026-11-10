@@ -15,7 +15,12 @@ class TimetableController extends ChangeNotifier {
   bool busy = false;
   bool unauthorized = false;
   bool loaded = false;
+
+  /// 시간표를 불러오지 못한 이유. 화면 위쪽에 '다시 시도'와 함께 보인다.
   String? message;
+
+  /// 추가·변경·삭제가 거절된 이유(시간 겹침 등). 시간표는 그대로라 알림으로만 보인다.
+  String? actionError;
   int _generation = 0;
 
   Future<void> load({int? academicYear, String? academicTerm}) async {
@@ -99,7 +104,10 @@ class TimetableController extends ChangeNotifier {
       ...failures,
       for (final lecture in lectures)
         if (!failed.contains(lecture.entityId))
-          (lecture: lecture, message: message ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.'),
+          (
+            lecture: lecture,
+            message: actionError ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.',
+          ),
     ];
   }
 
@@ -116,7 +124,7 @@ class TimetableController extends ChangeNotifier {
     }
     final generation = _generation;
     busy = true;
-    message = null;
+    actionError = null;
     notifyListeners();
     try {
       await action(session.accessToken);
@@ -129,11 +137,11 @@ class TimetableController extends ChangeNotifier {
       return loaded;
     } on TimetableApiFailure catch (failure) {
       if (generation != _generation) return false;
-      message = failure.message;
+      actionError = failure.message;
       unauthorized = failure.unauthorized;
     } on Object catch (_) {
       if (generation != _generation) return false;
-      message = '시간표를 변경하지 못했어요. 다시 시도해 주세요.';
+      actionError = '시간표를 변경하지 못했어요. 다시 시도해 주세요.';
     }
     if (generation != _generation) return false;
     busy = false;
