@@ -119,6 +119,14 @@ void main() {
     );
     expect(block.top, moreOrLessEquals(line13.top));
     expect(block.bottom, moreOrLessEquals(line16.top));
+    // 마지막 시각(16시)도 숫자로 보여 격자가 그 시각에서 끝난다는 걸 알 수 있다.
+    expect(find.text('16'), findsOneWidget);
+    expect(
+      tester.getRect(find.text('16')).bottom,
+      lessThanOrEqualTo(
+        tester.getRect(find.byKey(const Key('timetable-week-grid'))).bottom,
+      ),
+    );
 
     await tester.pumpWidget(const SizedBox());
     controller.dispose();
@@ -149,6 +157,9 @@ void main() {
       250,
       scrollable: find.byType(Scrollable).first,
     );
+    // 목록 끝에 걸쳐 보이면 버튼 가운데가 화면 밖일 수 있어 한 번 더 맞춘다.
+    await tester.ensureVisible(find.byTooltip('강의 삭제'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('강의 삭제'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextButton, '삭제'));

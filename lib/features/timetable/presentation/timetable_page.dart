@@ -387,6 +387,8 @@ class _WeekGrid extends StatelessWidget {
     final days = schedules.any((s) => s.dayOfWeek == 7) ? 7 : 6;
     const hourHeight = 64.0;
     final height = (lastHour - firstHour) * hourHeight;
+    // 마지막 시각 숫자가 격자 아래에 들어갈 자리. 없으면 끝 시각이 안 보여 칸이 잘린 것처럼 보인다.
+    final endLabelSpace = MediaQuery.textScalerOf(context).scale(20);
     return LayoutBuilder(
       builder: (context, constraints) {
         const timeWidth = 32.0;
@@ -408,14 +410,14 @@ class _WeekGrid extends StatelessWidget {
                 ],
               ),
               SizedBox(
-                height: height,
+                height: height + endLabelSpace,
                 child: Stack(
                   children: [
                     for (var day = 0; day <= days; day++)
                       Positioned(
                         left: timeWidth + day * dayWidth - 1,
                         top: 0,
-                        bottom: 0,
+                        height: height,
                         child: VerticalDivider(width: 1, thickness: 1),
                       ),
                     // 눈금선은 정확히 그 시각 위치에, 시간 숫자는 선 바로 아래에 둔다.
@@ -431,7 +433,7 @@ class _WeekGrid extends StatelessWidget {
                           color: Theme.of(context).dividerColor,
                         ),
                       ),
-                    for (var hour = firstHour; hour < lastHour; hour++)
+                    for (var hour = firstHour; hour <= lastHour; hour++)
                       Positioned(
                         top: (hour - firstHour) * hourHeight + 2,
                         left: 0,
