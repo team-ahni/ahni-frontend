@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/info_group.dart';
 import 'package:ahni_mobile/core/network/student_api.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
@@ -431,6 +432,8 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const AhniMascot(size: 88),
+            const SizedBox(height: 16),
             WhitespaceWrappedText(
               '학사 준비, 함께 이어가요',
               style: Theme.of(context).textTheme.headlineMedium,

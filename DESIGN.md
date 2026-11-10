@@ -13,7 +13,7 @@
 
 AHNI is a calm, trustworthy academic tool. The surface is light and restrained, with one blue accent that connects the product to its Inha University origin without hard-coding university-specific behavior. Information is grouped like a student portal dashboard: clear screen title, one dominant task or summary, then quiet supporting cards.
 
-The signature detail is an accent-soft summary surface that gives the current task or student identity visual priority without decorative illustration or fake product data.
+The signature detail is an accent-soft summary surface that gives the current task or student identity visual priority without fake product data. The only illustration is the AHNI character '아니' (see Components).
 
 ## 2. Tokens
 
@@ -118,9 +118,18 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 - `NoticeCallout` (`lib/core/presentation/friendly_states.dart`): a 14-radius soft box with an 18-point icon and 13-point copy. Use it for screen intros and caveats instead of dense paragraphs. Default tone is accent soft; caveats may use an `AhniPalette` tone (for example amber for missing data, violet for retake rules).
 
+### Character '아니'
+
+- AHNI is INHA spelled backwards; '아니' is the friend who looks at school from the student's side. A round AHNI-blue body, a light belly, and a two-leaf sprout that grows each semester.
+- `AhniMascot` (`lib/core/presentation/ahni_mascot.dart`) is drawn in code: no image files or packages, sharp at any size. Its colors are fixed art colors inside that file, not theme tokens.
+- Moods: `hello` (first visit, nothing yet), `curious` (something is needed), `oops` (load failure, expired login), `cheer` (a task is done).
+- Places: the login header (88) and every `EmptyStateView` (104). Do not put it on data screens, cards, or buttons; one character per screen at most.
+- It is decorative and excluded from semantics; the title next to it carries the meaning.
+- Original art only. Never use or imitate Inha University's mascots (안뇽이, 인덕이): they are trademark-pending and need the university's prior permission.
+
 ### Empty state
 
-- `EmptyStateView`: a 72-pixel accent-soft circle with an icon, a short title, an optional one-line explanation, and the next action. Use it for empty lists, failures, and re-login prompts.
+- `EmptyStateView`: '아니' in the matching mood, a short title, an optional one-line explanation, and the next action. Use it for empty lists, failures, and re-login prompts.
 
 ### Section card
 

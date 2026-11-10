@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
@@ -147,7 +148,7 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
     if (recommendation.majors.isEmpty)
       const EmptyStateView(
         key: Key('recommendation-no-major'),
-        icon: Icons.school_outlined,
+        mood: AhniMood.curious,
         title: '등록된 전공이 없어요',
         message: '내 정보에서 전공을 등록하면 맞춤 추천을 받을 수 있어요.',
       ),
