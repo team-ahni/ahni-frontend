@@ -223,18 +223,28 @@ void main() {
     );
   });
 
-  Future<void> findOverlapping(WidgetTester tester) async {
+  Future<void> findOverlapping(
+    WidgetTester tester, {
+    String text = 'ITC4609 001 컴퓨터보안',
+  }) async {
     await tester.enterText(
       find.byKey(const Key('import-registration-text')),
-      'ITC4609 001 컴퓨터보안',
+      text,
     );
     await tester.tap(find.byKey(const Key('import-registration-find')));
     await tester.pumpAndSettle();
   }
 
+  Future<void> tapKey(WidgetTester tester, String key) async {
+    final button = find.byKey(Key(key));
+    await tester.ensureVisible(button);
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+  }
+
   const existing = TimetableEntry(entityId: 'entry-old', lecture: testLecture);
 
-  testWidgets('warns about overlaps and replaces the old lecture when asked', (
+  testWidgets('shows what gets replaced and replaces it in one tap', (
     tester,
   ) async {
     final api = await open(
@@ -248,31 +258,46 @@ void main() {
       findWhitespaceWrappedText('시간이 겹쳐요: 자료구조(월 09:30–11:00)'),
       findsOneWidget,
     );
-    await confirm(tester);
-    expect(find.text('시간이 겹치는 강의가 있어요'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('import-conflict-replace')));
-    await tester.pumpAndSettle();
+    // 대화상자 없이 결과 화면에서 빠질 강의와 들어올 강의를 보고 바로 고른다.
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byKey(const Key('import-registration-confirm')), findsNothing);
+    final decision = find.byKey(const Key('import-conflict-decision'));
+    expect(
+      find.descendant(of: decision, matching: find.text('빠짐')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: decision, matching: find.text('바꿔서 1개 추가')),
+      findsOneWidget,
+    );
+    // 겹치지 않는 강의가 없으면 빼고 추가할 것도 없어 버튼을 보이지 않는다.
+    expect(find.byKey(const Key('import-conflict-skip')), findsNothing);
+
+    await tapKey(tester, 'import-conflict-replace');
 
     expect(api.deletedEntryIds, ['entry-old']);
     expect(api.savedLectureIds, ['lecture-sec']);
     expect(find.text('강의 1개를 시간표에 넣었어요.'), findsOneWidget);
   });
 
-  testWidgets('keeps the timetable as is when skipping overlaps', (
+  testWidgets('adds only the lectures that do not overlap when skipping', (
     tester,
   ) async {
     final api = await open(
       tester,
       current: [existing],
-      offered: [_overlapping],
+      offered: [_overlapping, _network],
     );
-    await findOverlapping(tester);
-    await confirm(tester);
-    await tester.tap(find.byKey(const Key('import-conflict-skip')));
-    await tester.pumpAndSettle();
+    await findOverlapping(
+      tester,
+      text: 'ITC4609 001 컴퓨터보안\nITC3410 002 컴퓨터네트워크',
+    );
+
+    expect(find.text('겹치는 강의 빼고 1개 추가'), findsOneWidget);
+    await tapKey(tester, 'import-conflict-skip');
 
     expect(api.deletedEntryIds, isEmpty);
-    expect(api.savedLectureIds, isEmpty);
+    expect(api.savedLectureIds, ['lecture-net']);
   });
 
   testWidgets('puts the old lecture back when the replacement is refused', (
@@ -285,9 +310,7 @@ void main() {
       rejected: {'lecture-sec'},
     );
     await findOverlapping(tester);
-    await confirm(tester);
-    await tester.tap(find.byKey(const Key('import-conflict-replace')));
-    await tester.pumpAndSettle();
+    await tapKey(tester, 'import-conflict-replace');
 
     expect(api.deletedEntryIds, ['entry-old']);
     // 새 강의를 넣지 못해 뺐던 기존 강의를 다시 넣었다.

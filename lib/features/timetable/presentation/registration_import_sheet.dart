@@ -26,8 +26,6 @@ class RegistrationImportSheet extends StatefulWidget {
       _RegistrationImportSheetState();
 }
 
-enum _ConflictChoice { replace, skip }
-
 class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
   final _pasted = TextEditingController();
   bool _reading = false;
@@ -69,61 +67,22 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
     }
   }
 
-  /// 겹치는 기존 강의가 있으면 바꿀지, 겹치는 강의만 뺄지 묻고 결과를 돌려준다.
-  Future<void> _confirm(TimetableImportPreview preview) async {
-    final conflicts = preview.conflicts;
-    if (conflicts.isEmpty) {
-      Navigator.pop(context, TimetableImportPlan(add: preview.toAdd));
-      return;
-    }
-    final existing = {
-      for (final list in conflicts.values)
-        for (final entry in list) entry.entityId: entry,
-    }.values;
-    final choice = await showDialog<_ConflictChoice>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('시간이 겹치는 강의가 있어요'),
-        // 과목명 뒤에 조사를 붙이지 않게 목록으로 따로 보인다.
-        content: WhitespaceWrappedText(
-          '새로 넣을 강의 ${conflicts.length}개가 시간표에 있는 강의와 시간이 겹쳐요.\n'
-          '겹치는 강의: ${existing.map((e) => e.lecture.courseName).join(', ')}\n\n'
-          '새 내용으로 바꾸면 겹치는 기존 강의는 시간표에서 빠져요.',
-        ),
-        // 버튼이 세로로 쌓이면 주요 동작이 맨 위에 오게 한다.
-        actionsOverflowDirection: VerticalDirection.up,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            key: const Key('import-conflict-skip'),
-            onPressed: () => Navigator.pop(context, _ConflictChoice.skip),
-            child: const Text('겹치는 강의는 빼고 추가'),
-          ),
-          FilledButton(
-            key: const Key('import-conflict-replace'),
-            onPressed: () => Navigator.pop(context, _ConflictChoice.replace),
-            child: const Text('새 내용으로 바꾸기'),
-          ),
-        ],
-      ),
-    );
-    if (choice == null || !mounted) return;
-    Navigator.pop(context, switch (choice) {
-      _ConflictChoice.replace => TimetableImportPlan(
-        add: preview.toAdd,
-        replacing: conflicts,
-      ),
-      _ConflictChoice.skip => TimetableImportPlan(
-        add: [
-          for (final lecture in preview.toAdd)
-            if (!conflicts.containsKey(lecture.entityId)) lecture,
-        ],
-      ),
-    });
-  }
+  /// 겹치는 기존 강의를 새 강의로 바꿔서 모두 넣는다.
+  void _addReplacing(TimetableImportPreview preview) => Navigator.pop(
+    context,
+    TimetableImportPlan(add: preview.toAdd, replacing: preview.conflicts),
+  );
+
+  /// 시간표는 그대로 두고 겹치지 않는 강의만 넣는다.
+  void _addSkipping(TimetableImportPreview preview) => Navigator.pop(
+    context,
+    TimetableImportPlan(
+      add: [
+        for (final lecture in preview.toAdd)
+          if (!preview.conflicts.containsKey(lecture.entityId)) lecture,
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -232,15 +191,23 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
                 const SizedBox(height: 16),
               ],
               const SizedBox(height: 8),
-              FilledButton(
-                key: const Key('import-registration-confirm'),
-                onPressed: preview.toAdd.isEmpty
-                    ? null
-                    : () => _confirm(preview),
-                child: Text('${preview.toAdd.length}개 시간표에 추가'),
-              ),
+              if (preview.conflicts.isEmpty)
+                FilledButton(
+                  key: const Key('import-registration-confirm'),
+                  onPressed: preview.toAdd.isEmpty
+                      ? null
+                      : () => _addSkipping(preview),
+                  child: Text('${preview.toAdd.length}개 시간표에 추가'),
+                )
+              else
+                _ConflictDecision(
+                  preview: preview,
+                  onReplace: () => _addReplacing(preview),
+                  onSkip: () => _addSkipping(preview),
+                ),
               const SizedBox(height: 8),
-              OutlinedButton.icon(
+              // 추가 버튼들보다 한 단계 낮은 동작이라 글자 버튼으로 둔다.
+              TextButton.icon(
                 key: const Key('import-registration-retry'),
                 // 붙여 넣은 글은 남겨 둬 고쳐서 다시 찾을 수 있게 한다.
                 onPressed: () => setState(() => _preview = null),
@@ -251,6 +218,133 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 시간이 겹치는 강의가 있을 때 결과 화면 안에서 바로 고르게 한다.
+/// 빠지는 기존 강의와 들어오는 새 강의를 나란히 보여 주고, 버튼에 결과 개수를 적는다.
+class _ConflictDecision extends StatelessWidget {
+  const _ConflictDecision({
+    required this.preview,
+    required this.onReplace,
+    required this.onSkip,
+  });
+
+  final TimetableImportPreview preview;
+  final VoidCallback onReplace;
+  final VoidCallback onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final amber = AhniPalette.of(context).amber;
+    final newLectures = {for (final l in preview.toAdd) l.entityId: l};
+    final skipCount = preview.toAdd.length - preview.conflicts.length;
+    Widget row(
+      String tag,
+      Color tagColor,
+      Lecture lecture, {
+      bool muted = false,
+    }) => Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 36,
+          child: Text(
+            tag,
+            style: textTheme.labelMedium?.copyWith(
+              color: tagColor,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              WhitespaceWrappedText(
+                lecture.courseName,
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: muted ? colorScheme.onSurfaceVariant : null,
+                  decoration: muted ? TextDecoration.lineThrough : null,
+                ),
+              ),
+              WhitespaceWrappedText(
+                _schedule(lecture),
+                style: textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+    return Column(
+      key: const Key('import-conflict-decision'),
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: amber.soft,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, size: 20, color: amber.ink),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: WhitespaceWrappedText(
+                      '시간표의 강의와 ${preview.conflicts.length}개가 겹쳐요',
+                      style: textTheme.titleSmall?.copyWith(color: amber.ink),
+                    ),
+                  ),
+                ],
+              ),
+              for (final MapEntry(key: id, value: olds)
+                  in preview.conflicts.entries) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (final old in olds) ...[
+                        row('빠짐', colorScheme.error, old.lecture, muted: true),
+                        const SizedBox(height: 8),
+                      ],
+                      row('추가', colorScheme.primary, newLectures[id]!),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        FilledButton(
+          key: const Key('import-conflict-replace'),
+          onPressed: onReplace,
+          child: Text('바꿔서 ${preview.toAdd.length}개 추가'),
+        ),
+        if (skipCount > 0) ...[
+          const SizedBox(height: 8),
+          OutlinedButton(
+            key: const Key('import-conflict-skip'),
+            onPressed: onSkip,
+            child: Text('겹치는 강의 빼고 $skipCount개 추가'),
+          ),
+        ],
+      ],
     );
   }
 }
