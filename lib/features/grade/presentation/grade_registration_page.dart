@@ -719,7 +719,7 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
                 autofocus: false,
                 onChanged: widget.controller.search,
                 decoration: const InputDecoration(
-                  hintText: '과목명 또는 과목 코드',
+                  hintText: '과목명, 과목 코드 또는 교수명',
                   prefixIcon: Icon(Icons.search_rounded),
                 ),
               ),

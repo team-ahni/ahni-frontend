@@ -117,6 +117,25 @@ void main() {
     );
   });
 
+  test('search also matches professor names shown in the list', () async {
+    final controller = CourseCatalogController(
+      auth: FakeAuthGateway(currentSession: testSession),
+      api: _FakeCourseApi()..results = _courses,
+    );
+    await controller.load(academicYear: 2024);
+
+    controller.search(' 이교수 ');
+
+    expect(
+      controller.state,
+      isA<CourseCatalogReady>().having(
+        (state) => state.courses.map((course) => course.code),
+        'course codes',
+        ['CSE101'],
+      ),
+    );
+  });
+
   test('a query without matches keeps a searchable ready state', () async {
     final controller = CourseCatalogController(
       auth: FakeAuthGateway(currentSession: testSession),
@@ -201,6 +220,7 @@ const _courses = [
     credit: 3,
     category: CourseCategory.major,
     department: GradeDepartment(entityId: 'department-id', name: '소프트웨어융합공학과'),
+    professorNames: ['김교수', '이교수'],
   ),
   CourseCatalogItem(
     entityId: 'course-id-2',

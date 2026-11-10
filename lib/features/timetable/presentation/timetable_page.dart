@@ -278,7 +278,7 @@ class _LecturePickerState extends State<_LecturePicker> {
           (lecture) =>
               '${lecture.courseName} ${lecture.courseCode} ${lecture.professorName}'
                   .toLowerCase()
-                  .contains(query.toLowerCase()),
+                  .contains(query.trim().toLowerCase()),
         )
         .toList();
     return SizedBox(

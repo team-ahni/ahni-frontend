@@ -112,7 +112,10 @@ class CourseCatalogController extends ChangeNotifier {
               .where(
                 (course) =>
                     course.code.toLowerCase().contains(normalizedQuery) ||
-                    course.name.toLowerCase().contains(normalizedQuery),
+                    course.name.toLowerCase().contains(normalizedQuery) ||
+                    course.professorNames.any(
+                      (name) => name.toLowerCase().contains(normalizedQuery),
+                    ),
               )
               .toList(growable: false);
     _setState(
