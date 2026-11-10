@@ -32,6 +32,37 @@ void main() {
     },
   );
 
+  testWidgets('shows no current GPA instead of 0.00 without graded credits', (
+    tester,
+  ) async {
+    final api = FakeGradeApi()
+      ..simulationHandler = (_, _) async => const GradeSimulation(
+        current: GradeSummary(
+          gpa: 0,
+          completedCredits: 0,
+          gpaCredits: 0,
+          categories: [],
+        ),
+        projected: GradeSummary(
+          gpa: 4.5,
+          completedCredits: 3,
+          gpaCredits: 3,
+          categories: [],
+        ),
+      );
+    await tester.pumpWidget(_app(api));
+    await _fill(tester);
+    await _calculate(tester);
+    await tester.ensureVisible(find.byKey(const Key('simulation-result')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('0.00'), findsNothing);
+    expect(find.text('-'), findsOneWidget);
+    expect(find.bySemanticsLabel(RegExp('반영된 성적 없음')), findsOneWidget);
+    expect(find.text('4.50'), findsOneWidget);
+    expect(find.byKey(const Key('simulation-no-current-gpa')), findsOneWidget);
+  });
+
   testWidgets(
     'adds and removes expected courses without touching saved grades',
     (tester) async {
