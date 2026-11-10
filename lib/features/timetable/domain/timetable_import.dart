@@ -61,6 +61,7 @@ class TimetableImportPreview {
     required this.toAdd,
     required this.alreadyAdded,
     required this.notFound,
+    this.conflicts = const {},
   });
 
   /// 시간표에 새로 넣을 분반.
@@ -72,6 +73,10 @@ class TimetableImportPreview {
   /// 이 학기 개설 강의에서 찾지 못했거나 분반을 정할 수 없는 항목. `ITC3410-002`처럼 보인다.
   final List<String> notFound;
 
+  /// 새로 넣을 분반(entityId)마다 시간이 겹치는 기존 시간표 항목.
+  /// 서버는 겹치는 강의를 받지 않으므로 바꿀지 뺄지 먼저 정해야 한다.
+  final Map<String, List<TimetableEntry>> conflicts;
+
   bool get isEmpty => toAdd.isEmpty && alreadyAdded.isEmpty && notFound.isEmpty;
 }
 
@@ -80,8 +85,9 @@ class TimetableImportPreview {
 TimetableImportPreview matchRegisteredSections(
   List<RegisteredSection> sections,
   List<Lecture> lectures,
-  Set<String> addedLectureIds,
+  List<TimetableEntry> entries,
 ) {
+  final addedLectureIds = {for (final e in entries) e.lecture.entityId};
   final toAdd = <Lecture>[];
   final alreadyAdded = <Lecture>[];
   final notFound = <String>[];
@@ -103,5 +109,33 @@ TimetableImportPreview matchRegisteredSections(
     toAdd: List.unmodifiable(toAdd),
     alreadyAdded: List.unmodifiable(alreadyAdded),
     notFound: List.unmodifiable(notFound),
+    conflicts: {
+      for (final lecture in toAdd)
+        if (entries.where((e) => lecturesOverlap(e.lecture, lecture)).toList()
+            case final overlapping when overlapping.isNotEmpty)
+          lecture.entityId: List.unmodifiable(overlapping),
+    },
   );
+}
+
+/// 같은 요일에 수업 시간이 조금이라도 겹치면 true. 서버의 겹침 판단과 같다.
+bool lecturesOverlap(Lecture a, Lecture b) => a.schedules.any(
+  (x) => b.schedules.any(
+    (y) =>
+        x.dayOfWeek == y.dayOfWeek &&
+        LectureSchedule.minutes(x.startTime) <
+            LectureSchedule.minutes(y.endTime) &&
+        LectureSchedule.minutes(y.startTime) <
+            LectureSchedule.minutes(x.endTime),
+  ),
+);
+
+/// 시트에서 정한 결과. 넣을 분반과, 그 분반 대신 뺄 기존 시간표 항목.
+class TimetableImportPlan {
+  const TimetableImportPlan({required this.add, this.replacing = const {}});
+
+  final List<Lecture> add;
+
+  /// 새 분반(entityId)마다 바꿔서 뺄 기존 항목. 비어 있으면 그냥 넣는다.
+  final Map<String, List<TimetableEntry>> replacing;
 }

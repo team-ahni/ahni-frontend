@@ -2,14 +2,27 @@ import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-Lecture _lecture(String code, String section) => Lecture(
+Lecture _lecture(
+  String code,
+  String section, [
+  List<(int, String, String)> times = const [],
+]) => Lecture(
   entityId: '$code-$section',
   courseCode: code,
   courseName: code,
   credit: 3,
   professorName: '교수',
   section: section,
-  schedules: const [],
+  schedules: [
+    for (final (day, start, end) in times)
+      LectureSchedule(
+        entityId: '$code-$section-$day',
+        dayOfWeek: day,
+        startTime: start,
+        endTime: end,
+        classroom: null,
+      ),
+  ],
 );
 
 void main() {
@@ -78,7 +91,7 @@ void main() {
         (code: 'ITC9999', section: '001'),
       ],
       lectures,
-      {'GEE7007-001'},
+      [TimetableEntry(entityId: 'entry-1', lecture: lectures.first)],
     );
 
     expect(preview.alreadyAdded.map((l) => l.entityId), ['GEE7007-001']);
@@ -88,5 +101,32 @@ void main() {
     ]);
     // 분반이 여럿인데 분반을 못 읽은 과목과 개설되지 않은 과목은 직접 확인하게 한다.
     expect(preview.notFound, ['ITC3410', 'ITC9999-001']);
+  });
+
+  test('lists existing entries whose times overlap a new section', () {
+    final existing = TimetableEntry(
+      entityId: 'entry-old',
+      lecture: _lecture('ITC1000', '001', [(1, '09:00:00', '10:30:00')]),
+    );
+    final touching = TimetableEntry(
+      entityId: 'entry-touch',
+      lecture: _lecture('ITC2000', '001', [(1, '10:30:00', '12:00:00')]),
+    );
+    final overlapping = _lecture('ITC3410', '002', [
+      (1, '10:00:00', '10:30:00'),
+    ]);
+    final free = _lecture('ITC4603', '001', [(2, '10:00:00', '11:00:00')]);
+
+    final preview = matchRegisteredSections(
+      [(code: 'ITC3410', section: '002'), (code: 'ITC4603', section: '001')],
+      [overlapping, free],
+      [existing, touching],
+    );
+
+    // 끝나는 시각과 시작하는 시각이 같으면 겹치지 않는다(서버와 같은 기준).
+    expect(preview.conflicts.keys, ['ITC3410-002']);
+    expect(preview.conflicts['ITC3410-002']!.map((e) => e.entityId), [
+      'entry-old',
+    ]);
   });
 }

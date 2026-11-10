@@ -59,18 +59,36 @@ class TimetableController extends ChangeNotifier {
       _mutate((token) => api.save(token, lecture.entityId, entryId: entryId));
 
   /// 여러 분반을 차례로 넣고 시간표는 마지막에 한 번만 다시 불러온다.
+  /// [replacing]에 있는 분반은 겹치는 기존 항목을 먼저 빼고 넣는다. 넣지 못하면
+  /// 뺀 기존 강의를 다시 넣어 시간표가 비지 않게 한다.
   /// 넣지 못한 분반과 그 이유를 돌려준다. 로그인이 만료되면 나머지는 넣지 않는다.
   Future<List<({Lecture lecture, String message})>> saveAll(
-    List<Lecture> lectures,
-  ) async {
+    List<Lecture> lectures, {
+    Map<String, List<TimetableEntry>> replacing = const {},
+  }) async {
     final failures = <({Lecture lecture, String message})>[];
+    final removed = <String>{};
     final added = await _mutate((token) async {
       for (final lecture in lectures) {
+        final dropping = [
+          for (final entry
+              in replacing[lecture.entityId] ?? const <TimetableEntry>[])
+            if (removed.add(entry.entityId)) entry,
+        ];
         try {
+          for (final entry in dropping) {
+            await api.delete(token, entry.entityId);
+          }
           await api.save(token, lecture.entityId);
         } on TimetableApiFailure catch (failure) {
           if (failure.unauthorized) rethrow;
           failures.add((lecture: lecture, message: failure.message));
+          for (final entry in dropping) {
+            // ponytail: 되돌리기 실패는 다시 불러온 시간표로만 드러난다. 잦으면 서버에 한 번에 바꾸는 API를 둔다.
+            try {
+              await api.save(token, entry.lecture.entityId);
+            } on TimetableApiFailure catch (_) {}
+          }
         }
       }
     });

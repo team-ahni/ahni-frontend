@@ -26,6 +26,10 @@ class FakeTimetableApi implements TimetableApi {
   TimetableApiFailure? failure;
   Completer<List<TimetableEntry>>? pending;
   final savedLectureIds = <String>[];
+  final deletedEntryIds = <String>[];
+
+  /// 저장을 거절할 강의(entityId). 서버가 겹침 등으로 거절하는 경우를 흉내 낸다.
+  Set<String> rejectedLectureIds = {};
   List<Lecture> offered = [testLecture];
   @override
   Future<List<Lecture>> lectures(String token, int year, String term) async =>
@@ -39,6 +43,9 @@ class FakeTimetableApi implements TimetableApi {
   @override
   Future<void> save(String token, String lectureId, {String? entryId}) async {
     if (failure != null) throw failure!;
+    if (rejectedLectureIds.contains(lectureId)) {
+      throw const TimetableApiFailure('시간이 겹칩니다.');
+    }
     savedLectureIds.add(lectureId);
     current = [
       TimetableEntry(entityId: entryId ?? 'entry-1', lecture: testLecture),
@@ -48,6 +55,7 @@ class FakeTimetableApi implements TimetableApi {
   @override
   Future<void> delete(String token, String entryId) async {
     if (failure != null) throw failure!;
+    deletedEntryIds.add(entryId);
     current = [];
   }
 }

@@ -12,19 +12,21 @@ import 'package:flutter/material.dart';
 class RegistrationImportSheet extends StatefulWidget {
   const RegistrationImportSheet({
     required this.lectures,
-    required this.addedLectureIds,
+    required this.entries,
     required this.reader,
     super.key,
   });
 
   final List<Lecture> lectures;
-  final Set<String> addedLectureIds;
+  final List<TimetableEntry> entries;
   final RegistrationScreenshotReader reader;
 
   @override
   State<RegistrationImportSheet> createState() =>
       _RegistrationImportSheetState();
 }
+
+enum _ConflictChoice { replace, skip }
 
 class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
   final _pasted = TextEditingController();
@@ -42,7 +44,7 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
     final preview = matchRegisteredSections(
       parseRegisteredSections(text),
       widget.lectures,
-      widget.addedLectureIds,
+      widget.entries,
     );
     setState(() {
       _preview = preview.isEmpty ? null : preview;
@@ -65,6 +67,62 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
     } finally {
       if (mounted) setState(() => _reading = false);
     }
+  }
+
+  /// 겹치는 기존 강의가 있으면 바꿀지, 겹치는 강의만 뺄지 묻고 결과를 돌려준다.
+  Future<void> _confirm(TimetableImportPreview preview) async {
+    final conflicts = preview.conflicts;
+    if (conflicts.isEmpty) {
+      Navigator.pop(context, TimetableImportPlan(add: preview.toAdd));
+      return;
+    }
+    final existing = {
+      for (final list in conflicts.values)
+        for (final entry in list) entry.entityId: entry,
+    }.values;
+    final choice = await showDialog<_ConflictChoice>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('시간이 겹치는 강의가 있어요'),
+        // 과목명 뒤에 조사를 붙이지 않게 목록으로 따로 보인다.
+        content: WhitespaceWrappedText(
+          '새로 넣을 강의 ${conflicts.length}개가 시간표에 있는 강의와 시간이 겹쳐요.\n'
+          '겹치는 강의: ${existing.map((e) => e.lecture.courseName).join(', ')}\n\n'
+          '새 내용으로 바꾸면 겹치는 기존 강의는 시간표에서 빠져요.',
+        ),
+        // 버튼이 세로로 쌓이면 주요 동작이 맨 위에 오게 한다.
+        actionsOverflowDirection: VerticalDirection.up,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            key: const Key('import-conflict-skip'),
+            onPressed: () => Navigator.pop(context, _ConflictChoice.skip),
+            child: const Text('겹치는 강의는 빼고 추가'),
+          ),
+          FilledButton(
+            key: const Key('import-conflict-replace'),
+            onPressed: () => Navigator.pop(context, _ConflictChoice.replace),
+            child: const Text('새 내용으로 바꾸기'),
+          ),
+        ],
+      ),
+    );
+    if (choice == null || !mounted) return;
+    Navigator.pop(context, switch (choice) {
+      _ConflictChoice.replace => TimetableImportPlan(
+        add: preview.toAdd,
+        replacing: conflicts,
+      ),
+      _ConflictChoice.skip => TimetableImportPlan(
+        add: [
+          for (final lecture in preview.toAdd)
+            if (!conflicts.containsKey(lecture.entityId)) lecture,
+        ],
+      ),
+    });
   }
 
   @override
@@ -150,7 +208,10 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
               if (preview.toAdd.isNotEmpty) ...[
                 FieldLabel('추가할 강의 ${preview.toAdd.length}개'),
                 for (final lecture in preview.toAdd)
-                  _LectureCard(lecture: lecture),
+                  _LectureCard(
+                    lecture: lecture,
+                    conflicts: preview.conflicts[lecture.entityId] ?? const [],
+                  ),
               ],
               if (preview.alreadyAdded.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -175,7 +236,7 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
                 key: const Key('import-registration-confirm'),
                 onPressed: preview.toAdd.isEmpty
                     ? null
-                    : () => Navigator.pop(context, preview.toAdd),
+                    : () => _confirm(preview),
                 child: Text('${preview.toAdd.length}개 시간표에 추가'),
               ),
               const SizedBox(height: 8),
@@ -197,21 +258,24 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
 /// 수강 추천의 과목 카드와 같은 모양. 교수와 시간까지 보여 줘 학교 화면과 대조하게 한다.
 /// 분반을 잘못 읽었는데 그 분반도 개설돼 있으면 자동으로는 알 수 없어서다.
 class _LectureCard extends StatelessWidget {
-  const _LectureCard({required this.lecture, this.alreadyAdded = false});
+  const _LectureCard({
+    required this.lecture,
+    this.alreadyAdded = false,
+    this.conflicts = const [],
+  });
 
   final Lecture lecture;
   final bool alreadyAdded;
+
+  /// 시간이 겹치는 기존 시간표 항목.
+  final List<TimetableEntry> conflicts;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final teal = AhniPalette.of(context).teal;
-    final schedule = lecture.schedules.isEmpty
-        ? '고정시간 없음'
-        : lecture.schedules
-              .map((s) => '${timetableDays[s.dayOfWeek - 1]} ${s.label}')
-              .join(', ');
+    final schedule = _schedule(lecture);
     Widget detail(IconData icon, String text) => Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Row(
@@ -276,6 +340,29 @@ class _LectureCard extends StatelessWidget {
             ),
             detail(Icons.person_outline_rounded, lecture.professorName),
             detail(Icons.schedule_rounded, schedule),
+            for (final entry in conflicts)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 16,
+                      color: AhniPalette.of(context).amber.ink,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: WhitespaceWrappedText(
+                        '시간이 겹쳐요: ${entry.lecture.courseName}(${_schedule(entry.lecture)})',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AhniPalette.of(context).amber.ink,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
           ],
         ),
       ),
@@ -286,3 +373,9 @@ class _LectureCard extends StatelessWidget {
       ? value.toInt().toString()
       : value.toString();
 }
+
+String _schedule(Lecture lecture) => lecture.schedules.isEmpty
+    ? '고정시간 없음'
+    : lecture.schedules
+          .map((s) => '${timetableDays[s.dayOfWeek - 1]} ${s.label}')
+          .join(', ');

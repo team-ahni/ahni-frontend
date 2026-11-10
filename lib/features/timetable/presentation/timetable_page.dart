@@ -7,6 +7,7 @@ import 'package:ahni_mobile/features/recommendation/presentation/course_recommen
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
 import 'package:ahni_mobile/features/timetable/data/registration_screenshot_reader.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
+import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
 import 'package:ahni_mobile/features/timetable/presentation/registration_import_sheet.dart';
 import 'package:flutter/material.dart';
 
@@ -58,20 +59,22 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 
   Future<void> _import() async {
-    final lectures = await showModalBottomSheet<List<Lecture>>(
+    final plan = await showModalBottomSheet<TimetableImportPlan>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (_) => RegistrationImportSheet(
         lectures: controller.lectures,
-        addedLectureIds: {
-          for (final entry in controller.entries) entry.lecture.entityId,
-        },
+        entries: controller.entries,
         reader: widget.screenshotReader,
       ),
     );
-    if (lectures == null || lectures.isEmpty || !mounted) return;
-    final failures = await controller.saveAll(lectures);
+    if (plan == null || plan.add.isEmpty || !mounted) return;
+    final lectures = plan.add;
+    final failures = await controller.saveAll(
+      lectures,
+      replacing: plan.replacing,
+    );
     if (!mounted) return;
     final added = lectures.length - failures.length;
     ScaffoldMessenger.of(context)
