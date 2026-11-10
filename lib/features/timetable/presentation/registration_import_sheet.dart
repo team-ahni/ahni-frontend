@@ -172,8 +172,19 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
     );
   }
 
-  static String _label(Lecture lecture) =>
-      '${lecture.courseName} · ${lecture.courseCode}-${lecture.section}';
+  // 교수와 시간까지 보여 줘 학교 화면과 대조하게 한다. 분반을 잘못 읽었는데
+  // 그 분반도 개설돼 있으면 자동으로는 알 수 없어서다.
+  static String _label(Lecture lecture) => [
+    lecture.courseName,
+    '${lecture.courseCode}-${lecture.section}',
+    lecture.professorName,
+    if (lecture.schedules.isEmpty)
+      '고정시간 없음'
+    else
+      lecture.schedules
+          .map((s) => '${timetableDays[s.dayOfWeek - 1]} ${s.label}')
+          .join(', '),
+  ].join(' · ');
 }
 
 class _PreviewGroup extends StatelessWidget {

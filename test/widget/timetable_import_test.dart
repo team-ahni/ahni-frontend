@@ -25,7 +25,15 @@ const _network = Lecture(
   credit: 3,
   professorName: '교수가',
   section: '002',
-  schedules: [],
+  schedules: [
+    LectureSchedule(
+      entityId: 'schedule-net',
+      dayOfWeek: 2,
+      startTime: '09:00:00',
+      endTime: '10:30:00',
+      classroom: null,
+    ),
+  ],
 );
 
 void main() {
@@ -80,6 +88,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('추가할 강의 1개'), findsOneWidget);
+    // 학교 화면과 대조할 수 있게 교수와 시간까지 보인다.
+    expect(
+      findWhitespaceWrappedText('컴퓨터네트워크 · ITC3410-002 · 교수가 · 화 09:00–10:30'),
+      findsOneWidget,
+    );
     expect(find.text('찾지 못했어요'), findsOneWidget);
     expect(findWhitespaceWrappedText('ITC9999-001'), findsOneWidget);
 
