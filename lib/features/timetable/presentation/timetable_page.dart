@@ -376,8 +376,9 @@ class _WeekGrid extends StatelessWidget {
           ? LectureSchedule.minutes(s.startTime)
           : value,
     );
+    // 야간 강의(최대 22시)까지 늘 같은 높이로 그리고, 화면보다 길면 세로로 스크롤해 본다.
     final end = schedules.fold(
-      18 * 60,
+      22 * 60,
       (value, s) => LectureSchedule.minutes(s.endTime) > value
           ? LectureSchedule.minutes(s.endTime)
           : value,

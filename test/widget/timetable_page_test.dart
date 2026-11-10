@@ -119,10 +119,11 @@ void main() {
     );
     expect(block.top, moreOrLessEquals(line13.top));
     expect(block.bottom, moreOrLessEquals(line16.top));
-    // 마지막 시각(16시)도 숫자로 보여 격자가 그 시각에서 끝난다는 걸 알 수 있다.
-    expect(find.text('16'), findsOneWidget);
+    // 격자는 강의와 관계없이 22시까지 그리고, 끝 시각도 숫자로 보인다.
+    expect(find.byKey(const Key('timetable-hour-line-22')), findsOneWidget);
+    expect(find.text('22'), findsOneWidget);
     expect(
-      tester.getRect(find.text('16')).bottom,
+      tester.getRect(find.text('22')).bottom,
       lessThanOrEqualTo(
         tester.getRect(find.byKey(const Key('timetable-week-grid'))).bottom,
       ),
