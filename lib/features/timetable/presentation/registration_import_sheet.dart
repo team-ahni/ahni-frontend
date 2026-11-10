@@ -5,6 +5,7 @@ import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/timetable/data/registration_screenshot_reader.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
+import 'package:ahni_mobile/features/timetable/presentation/timetable_conflict_dialog.dart';
 import 'package:flutter/material.dart';
 
 /// 학교 수강신청 내역을 캡처나 붙여넣기로 받아 이 학기 시간표에 넣을 분반을 고른다.
@@ -74,10 +75,11 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
       Navigator.pop(context, TimetableImportPlan(add: preview.toAdd));
       return;
     }
-    final replace = await showDialog<bool>(
-      context: context,
-      builder: (context) => _ConflictDialog(preview: preview),
-    );
+    final next = {for (final l in preview.toAdd) l.entityId: l};
+    final replace = await showTimetableConflictDialog(context, [
+      for (final MapEntry(key: id, value: olds) in conflicts.entries)
+        for (final existing in olds) (existing: existing, next: next[id]!),
+    ]);
     if (!mounted || replace == null) return;
     if (replace) {
       Navigator.pop(
@@ -217,72 +219,6 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// 시간이 겹치는 강의를 알리고 바꿔서 넣을지 묻는다. 두 버튼을 같은 폭으로 나란히 둔다.
-/// true면 바꾸기, false면 다시 선택하기.
-class _ConflictDialog extends StatelessWidget {
-  const _ConflictDialog({required this.preview});
-
-  final TimetableImportPreview preview;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final names = {for (final l in preview.toAdd) l.entityId: l.courseName};
-    return AlertDialog(
-      key: const Key('import-conflict-dialog'),
-      title: const Text('시간이 겹치는 강의가 있어요'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          WhitespaceWrappedText(
-            '바꾸면 겹치는 기존 강의는 시간표에서 빠지고 새 강의가 들어가요.',
-            style: textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 12),
-          for (final MapEntry(key: id, value: olds)
-              in preview.conflicts.entries)
-            for (final old in olds)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: WhitespaceWrappedText(
-                  '${old.lecture.courseName} → ${names[id]}',
-                  style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-        ],
-      ),
-      actions: [
-        // 큰 글자에서 한쪽만 줄이 바뀌어도 두 버튼 높이를 맞춘다.
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  key: const Key('import-conflict-retry'),
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('다시 선택하기'),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: FilledButton(
-                  key: const Key('import-conflict-replace'),
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('바꾸기'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

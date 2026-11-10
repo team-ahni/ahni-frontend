@@ -260,7 +260,7 @@ void main() {
     );
     await tapKey(tester, 'import-registration-confirm');
 
-    final dialog = find.byKey(const Key('import-conflict-dialog'));
+    final dialog = find.byKey(const Key('timetable-conflict-dialog'));
     expect(dialog, findsOneWidget);
     expect(
       find.descendant(
@@ -271,15 +271,15 @@ void main() {
     );
     // 두 버튼은 같은 줄에 같은 폭으로 놓인다.
     final retry = tester.getRect(
-      find.byKey(const Key('import-conflict-retry')),
+      find.byKey(const Key('timetable-conflict-retry')),
     );
     final replace = tester.getRect(
-      find.byKey(const Key('import-conflict-replace')),
+      find.byKey(const Key('timetable-conflict-replace')),
     );
     expect(retry.top, replace.top);
     expect(retry.width, moreOrLessEquals(replace.width));
 
-    await tapKey(tester, 'import-conflict-replace');
+    await tapKey(tester, 'timetable-conflict-replace');
 
     expect(api.deletedEntryIds, ['entry-old']);
     expect(api.savedLectureIds, ['lecture-sec']);
@@ -296,9 +296,9 @@ void main() {
     );
     await findOverlapping(tester);
     await tapKey(tester, 'import-registration-confirm');
-    await tapKey(tester, 'import-conflict-retry');
+    await tapKey(tester, 'timetable-conflict-retry');
 
-    expect(find.byKey(const Key('import-conflict-dialog')), findsNothing);
+    expect(find.byKey(const Key('timetable-conflict-dialog')), findsNothing);
     expect(find.byKey(const Key('import-registration-text')), findsOneWidget);
     expect(api.deletedEntryIds, isEmpty);
     expect(api.savedLectureIds, isEmpty);
@@ -315,7 +315,7 @@ void main() {
     );
     await findOverlapping(tester);
     await tapKey(tester, 'import-registration-confirm');
-    await tapKey(tester, 'import-conflict-replace');
+    await tapKey(tester, 'timetable-conflict-replace');
 
     expect(api.deletedEntryIds, ['entry-old']);
     // 새 강의를 넣지 못해 뺐던 기존 강의를 다시 넣었다.

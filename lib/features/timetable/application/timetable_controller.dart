@@ -81,19 +81,10 @@ class TimetableController extends ChangeNotifier {
             if (removed.add(entry.entityId)) entry,
         ];
         try {
-          for (final entry in dropping) {
-            await api.delete(token, entry.entityId);
-          }
-          await api.save(token, lecture.entityId);
+          await _replaceWith(token, lecture, dropping);
         } on TimetableApiFailure catch (failure) {
           if (failure.unauthorized) rethrow;
           failures.add((lecture: lecture, message: failure.message));
-          for (final entry in dropping) {
-            // ponytail: 되돌리기 실패는 다시 불러온 시간표로만 드러난다. 잦으면 서버에 한 번에 바꾸는 API를 둔다.
-            try {
-              await api.save(token, entry.lecture.entityId);
-            } on TimetableApiFailure catch (_) {}
-          }
         }
       }
     });
@@ -109,6 +100,40 @@ class TimetableController extends ChangeNotifier {
             message: actionError ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.',
           ),
     ];
+  }
+
+  /// 겹치는 기존 항목을 빼고 강의를 넣는다(변경이면 [entryId] 항목을 바꾼다).
+  /// 넣지 못하면 뺀 기존 강의를 다시 넣어 시간표가 비지 않게 하고 거절 이유를 남긴다.
+  Future<bool> replace(
+    Lecture lecture,
+    List<TimetableEntry> overlapping, {
+    String? entryId,
+  }) => _mutate(
+    (token) => _replaceWith(token, lecture, overlapping, entryId: entryId),
+  );
+
+  /// [dropping]을 빼고 [lecture]를 넣는다. 거절되면 뺀 강의를 다시 넣고 거절을 그대로 던진다.
+  Future<void> _replaceWith(
+    String token,
+    Lecture lecture,
+    List<TimetableEntry> dropping, {
+    String? entryId,
+  }) async {
+    for (final entry in dropping) {
+      await api.delete(token, entry.entityId);
+    }
+    try {
+      await api.save(token, lecture.entityId, entryId: entryId);
+    } on TimetableApiFailure catch (failure) {
+      if (failure.unauthorized) rethrow;
+      for (final entry in dropping) {
+        // ponytail: 되돌리기 실패는 다시 불러온 시간표로만 드러난다. 잦으면 서버에 한 번에 바꾸는 API를 둔다.
+        try {
+          await api.save(token, entry.lecture.entityId);
+        } on TimetableApiFailure catch (_) {}
+      }
+      rethrow;
+    }
   }
 
   Future<bool> delete(String entryId) =>

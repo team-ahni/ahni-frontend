@@ -9,6 +9,7 @@ import 'package:ahni_mobile/features/timetable/data/registration_screenshot_read
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
 import 'package:ahni_mobile/features/timetable/presentation/registration_import_sheet.dart';
+import 'package:ahni_mobile/features/timetable/presentation/timetable_conflict_dialog.dart';
 import 'package:flutter/material.dart';
 
 class TimetablePage extends StatefulWidget {
@@ -105,6 +106,28 @@ class _TimetablePageState extends State<TimetablePage> {
       ),
     );
     if (lecture == null || !mounted) return;
+    // 수강신청 내역 가져오기와 같은 확인 창으로, 겹치면 바꿀지 다시 고를지 묻는다.
+    final overlapping = [
+      for (final item in controller.entries)
+        if (item.entityId != entry?.entityId &&
+            lecturesOverlap(item.lecture, lecture))
+          item,
+    ];
+    if (overlapping.isNotEmpty) {
+      final replace = await showTimetableConflictDialog(context, [
+        for (final existing in overlapping) (existing: existing, next: lecture),
+      ]);
+      if (!mounted || replace == null) return;
+      if (!replace) return _choose(entry: entry);
+      if (!await controller.replace(
+        lecture,
+        overlapping,
+        entryId: entry?.entityId,
+      )) {
+        _showActionError();
+      }
+      return;
+    }
     if (!await controller.save(lecture, entryId: entry?.entityId)) {
       _showActionError();
     }
@@ -120,6 +143,34 @@ class _TimetablePageState extends State<TimetablePage> {
       ..showSnackBar(SnackBar(content: Text(error)));
   }
 
+  /// 수강 추천의 '추가'도 강의 추가와 같은 겹침 확인 창을 거친다.
+  /// 다시 선택하기를 고르면 아무것도 넣지 않고 추천 목록에 그대로 둔다.
+  Future<({bool added, String? message})> _addFromRecommendation(
+    BuildContext routeContext,
+    Lecture lecture,
+  ) async {
+    final overlapping = [
+      for (final item in controller.entries)
+        if (lecturesOverlap(item.lecture, lecture)) item,
+    ];
+    final bool added;
+    if (overlapping.isEmpty) {
+      added = await controller.save(lecture);
+    } else {
+      final replace = await showTimetableConflictDialog(routeContext, [
+        for (final existing in overlapping) (existing: existing, next: lecture),
+      ]);
+      if (replace != true) return (added: false, message: null);
+      added = await controller.replace(lecture, overlapping);
+    }
+    return (
+      added: added,
+      message: added || controller.unauthorized
+          ? null
+          : controller.actionError ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.',
+    );
+  }
+
   Future<void> _openRecommendation(
     CourseRecommendationController recommendationController,
   ) async {
@@ -133,9 +184,8 @@ class _TimetablePageState extends State<TimetablePage> {
           addedLectureIds: {
             for (final entry in controller.entries) entry.lecture.entityId,
           },
-          onAddLecture: (lecture) async => await controller.save(lecture)
-              ? null
-              : controller.actionError ?? '시간표에 추가하지 못했어요. 다시 시도해 주세요.',
+          onAddLecture: (lecture) =>
+              _addFromRecommendation(routeContext, lecture),
           onAuthenticationRequired: () {
             if (routeContext.mounted) Navigator.of(routeContext).pop();
             widget.onAuthenticationRequired();

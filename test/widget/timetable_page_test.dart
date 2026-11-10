@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/onboarding_fakes.dart';
 import '../support/timetable_fakes.dart';
+import '../support/whitespace_wrapped_text_finder.dart';
 
 void main() {
   testWidgets('weekly view and controls fit a narrow phone with large text', (
@@ -211,5 +212,81 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     controller.dispose();
     await auth.dispose();
+  });
+
+  // 시간표의 testLecture(월 09:30–11:00)와 겹치는 강의.
+  const overlapping = Lecture(
+    entityId: 'lecture-sec',
+    courseCode: 'ITC4609',
+    courseName: '컴퓨터보안',
+    credit: 3,
+    professorName: '교수다',
+    section: '001',
+    schedules: [
+      LectureSchedule(
+        entityId: 'schedule-sec',
+        dayOfWeek: 1,
+        startTime: '10:00:00',
+        endTime: '11:30:00',
+        classroom: null,
+      ),
+    ],
+  );
+
+  Future<(FakeTimetableApi, TimetableController)> openWithOverlap(
+    WidgetTester tester,
+  ) async {
+    final auth = FakeAuthGateway(currentSession: testSession);
+    addTearDown(auth.dispose);
+    final api = FakeTimetableApi()
+      ..current = [
+        const TimetableEntry(entityId: 'entry-old', lecture: testLecture),
+      ]
+      ..offered = [testLecture, overlapping];
+    final controller = TimetableController(auth: auth, api: api);
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TimetablePage(
+          controller: controller,
+          onAuthenticationRequired: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('강의 추가'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('컴퓨터보안'));
+    await tester.pumpAndSettle();
+    return (api, controller);
+  }
+
+  testWidgets('asks with the shared dialog before replacing an overlap', (
+    tester,
+  ) async {
+    final (api, _) = await openWithOverlap(tester);
+
+    // 수강신청 내역 가져오기와 같은 확인 창이다.
+    expect(find.byKey(const Key('timetable-conflict-dialog')), findsOneWidget);
+    expect(findWhitespaceWrappedText('자료구조 → 컴퓨터보안'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('timetable-conflict-replace')));
+    await tester.pumpAndSettle();
+
+    expect(api.deletedEntryIds, ['entry-old']);
+    expect(api.savedLectureIds, ['lecture-sec']);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('choosing again reopens the lecture picker', (tester) async {
+    final (api, _) = await openWithOverlap(tester);
+
+    await tester.tap(find.byKey(const Key('timetable-conflict-retry')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('timetable-conflict-dialog')), findsNothing);
+    expect(find.text('강의 선택'), findsOneWidget);
+    expect(api.deletedEntryIds, isEmpty);
+    expect(api.savedLectureIds, isEmpty);
+    await tester.pumpWidget(const SizedBox());
   });
 }

@@ -2,6 +2,7 @@ import 'package:ahni_mobile/features/recommendation/data/course_recommendation_a
 import 'package:ahni_mobile/features/recommendation/domain/course_recommendation.dart';
 import 'package:ahni_mobile/features/recommendation/presentation/course_recommendation_page.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
+import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -151,6 +152,79 @@ void main() {
     );
   });
 
+  testWidgets('asks with the shared overlap dialog before adding', (
+    tester,
+  ) async {
+    final auth = FakeAuthGateway(currentSession: testSession);
+    // 추천 분반(화 09:00–10:30)과 겹치는 기존 강의.
+    const existing = TimetableEntry(
+      entityId: 'entry-old',
+      lecture: Lecture(
+        entityId: 'lecture-old',
+        courseCode: 'GEB1101',
+        courseName: '글쓰기와 소통',
+        credit: 2,
+        professorName: '교수가',
+        section: '001',
+        schedules: [
+          LectureSchedule(
+            entityId: 'schedule-old',
+            dayOfWeek: 2,
+            startTime: '09:30:00',
+            endTime: '11:00:00',
+            classroom: null,
+          ),
+        ],
+      ),
+    );
+    final timetableApi = FakeTimetableApi()..current = [existing];
+    final timetable = TimetableController(auth: auth, api: timetableApi)
+      ..year = 2026
+      ..term = 'SECOND';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TimetablePage(
+          controller: timetable,
+          recommendationController: buildTestRecommendationController(),
+          onAuthenticationRequired: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('open-course-recommendation')));
+    await tester.pumpAndSettle();
+
+    const key = Key('add-lecture-00000000-0000-0000-0000-000000000901');
+    // 확인 창이 떠 있는 동안 버튼의 진행 표시가 돌아 화면이 멈추지 않으므로 시간만 흘려 보낸다.
+    Future<void> settle() async {
+      for (var i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    await tester.ensureVisible(find.byKey(key));
+    await tester.tap(find.byKey(key));
+    await settle();
+
+    // 시간표의 강의 추가·가져오기와 같은 확인 창이다.
+    expect(find.byKey(const Key('timetable-conflict-dialog')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('timetable-conflict-retry')));
+    await settle();
+    expect(timetableApi.savedLectureIds, isEmpty);
+    expect(tester.widget<TextButton>(find.byKey(key)).onPressed, isNotNull);
+
+    await tester.tap(find.byKey(key));
+    await settle();
+    await tester.tap(find.byKey(const Key('timetable-conflict-replace')));
+    await tester.pumpAndSettle();
+
+    expect(timetableApi.deletedEntryIds, ['entry-old']);
+    expect(timetableApi.savedLectureIds, [
+      '00000000-0000-0000-0000-000000000901',
+    ]);
+    expect(tester.widget<TextButton>(find.byKey(key)).onPressed, isNull);
+  });
+
   testWidgets('keeps the add button and explains when adding fails', (
     tester,
   ) async {
@@ -161,7 +235,8 @@ void main() {
           academicYear: 2026,
           term: 'SECOND',
           onAuthenticationRequired: () {},
-          onAddLecture: (_) async => '같은 시간에 이미 다른 강의가 있어요.',
+          onAddLecture: (_) async =>
+              (added: false, message: '같은 시간에 이미 다른 강의가 있어요.'),
         ),
       ),
     );
@@ -186,7 +261,7 @@ void main() {
           academicYear: 2026,
           term: 'SECOND',
           onAuthenticationRequired: () {},
-          onAddLecture: (_) async => null,
+          onAddLecture: (_) async => (added: true, message: null),
           addedLectureIds: const {'00000000-0000-0000-0000-000000000901'},
         ),
       ),
