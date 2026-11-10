@@ -67,22 +67,28 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
     }
   }
 
-  /// 겹치는 기존 강의를 새 강의로 바꿔서 모두 넣는다.
-  void _addReplacing(TimetableImportPreview preview) => Navigator.pop(
-    context,
-    TimetableImportPlan(add: preview.toAdd, replacing: preview.conflicts),
-  );
-
-  /// 시간표는 그대로 두고 겹치지 않는 강의만 넣는다.
-  void _addSkipping(TimetableImportPreview preview) => Navigator.pop(
-    context,
-    TimetableImportPlan(
-      add: [
-        for (final lecture in preview.toAdd)
-          if (!preview.conflicts.containsKey(lecture.entityId)) lecture,
-      ],
-    ),
-  );
+  /// 겹치는 강의가 없으면 바로 넣고, 있으면 확인 창에서 바꿔서 넣을지 다시 고를지 묻는다.
+  Future<void> _confirm(TimetableImportPreview preview) async {
+    final conflicts = preview.conflicts;
+    if (conflicts.isEmpty) {
+      Navigator.pop(context, TimetableImportPlan(add: preview.toAdd));
+      return;
+    }
+    final replace = await showDialog<bool>(
+      context: context,
+      builder: (context) => _ConflictDialog(preview: preview),
+    );
+    if (!mounted || replace == null) return;
+    if (replace) {
+      Navigator.pop(
+        context,
+        TimetableImportPlan(add: preview.toAdd, replacing: conflicts),
+      );
+    } else {
+      // 다시 선택하기: 붙여 넣은 글은 남겨 두고 입력 단계로 돌아간다.
+      setState(() => _preview = null);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,22 +197,15 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
                 const SizedBox(height: 16),
               ],
               const SizedBox(height: 8),
-              if (preview.conflicts.isEmpty)
-                FilledButton(
-                  key: const Key('import-registration-confirm'),
-                  onPressed: preview.toAdd.isEmpty
-                      ? null
-                      : () => _addSkipping(preview),
-                  child: Text('${preview.toAdd.length}개 시간표에 추가'),
-                )
-              else
-                _ConflictDecision(
-                  preview: preview,
-                  onReplace: () => _addReplacing(preview),
-                  onSkip: () => _addSkipping(preview),
-                ),
+              FilledButton(
+                key: const Key('import-registration-confirm'),
+                onPressed: preview.toAdd.isEmpty
+                    ? null
+                    : () => _confirm(preview),
+                child: Text('${preview.toAdd.length}개 시간표에 추가'),
+              ),
               const SizedBox(height: 8),
-              // 추가 버튼들보다 한 단계 낮은 동작이라 글자 버튼으로 둔다.
+              // 추가 버튼보다 한 단계 낮은 동작이라 글자 버튼으로 둔다.
               TextButton.icon(
                 key: const Key('import-registration-retry'),
                 // 붙여 넣은 글은 남겨 둬 고쳐서 다시 찾을 수 있게 한다.
@@ -222,128 +221,67 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
   }
 }
 
-/// 시간이 겹치는 강의가 있을 때 결과 화면 안에서 바로 고르게 한다.
-/// 빠지는 기존 강의와 들어오는 새 강의를 나란히 보여 주고, 버튼에 결과 개수를 적는다.
-class _ConflictDecision extends StatelessWidget {
-  const _ConflictDecision({
-    required this.preview,
-    required this.onReplace,
-    required this.onSkip,
-  });
+/// 시간이 겹치는 강의를 알리고 바꿔서 넣을지 묻는다. 두 버튼을 같은 폭으로 나란히 둔다.
+/// true면 바꾸기, false면 다시 선택하기.
+class _ConflictDialog extends StatelessWidget {
+  const _ConflictDialog({required this.preview});
 
   final TimetableImportPreview preview;
-  final VoidCallback onReplace;
-  final VoidCallback onSkip;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    final amber = AhniPalette.of(context).amber;
-    final newLectures = {for (final l in preview.toAdd) l.entityId: l};
-    final skipCount = preview.toAdd.length - preview.conflicts.length;
-    Widget row(
-      String tag,
-      Color tagColor,
-      Lecture lecture, {
-      bool muted = false,
-    }) => Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 36,
-          child: Text(
-            tag,
-            style: textTheme.labelMedium?.copyWith(
-              color: tagColor,
-              fontWeight: FontWeight.w700,
-            ),
+    final names = {for (final l in preview.toAdd) l.entityId: l.courseName};
+    return AlertDialog(
+      key: const Key('import-conflict-dialog'),
+      title: const Text('시간이 겹치는 강의가 있어요'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          WhitespaceWrappedText(
+            '바꾸면 겹치는 기존 강의는 시간표에서 빠지고 새 강의가 들어가요.',
+            style: textTheme.bodyMedium,
           ),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              WhitespaceWrappedText(
-                lecture.courseName,
-                style: textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: muted ? colorScheme.onSurfaceVariant : null,
-                  decoration: muted ? TextDecoration.lineThrough : null,
+          const SizedBox(height: 12),
+          for (final MapEntry(key: id, value: olds)
+              in preview.conflicts.entries)
+            for (final old in olds)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: WhitespaceWrappedText(
+                  '${old.lecture.courseName} → ${names[id]}',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              WhitespaceWrappedText(
-                _schedule(lecture),
-                style: textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-    return Column(
-      key: const Key('import-conflict-decision'),
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: amber.soft,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
+        ],
+      ),
+      actions: [
+        // 큰 글자에서 한쪽만 줄이 바뀌어도 두 버튼 높이를 맞춘다.
+        IntrinsicHeight(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, size: 20, color: amber.ink),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: WhitespaceWrappedText(
-                      '시간표의 강의와 ${preview.conflicts.length}개가 겹쳐요',
-                      style: textTheme.titleSmall?.copyWith(color: amber.ink),
-                    ),
-                  ),
-                ],
-              ),
-              for (final MapEntry(key: id, value: olds)
-                  in preview.conflicts.entries) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (final old in olds) ...[
-                        row('빠짐', colorScheme.error, old.lecture, muted: true),
-                        const SizedBox(height: 8),
-                      ],
-                      row('추가', colorScheme.primary, newLectures[id]!),
-                    ],
-                  ),
+              Expanded(
+                child: OutlinedButton(
+                  key: const Key('import-conflict-retry'),
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('다시 선택하기'),
                 ),
-              ],
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton(
+                  key: const Key('import-conflict-replace'),
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('바꾸기'),
+                ),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        FilledButton(
-          key: const Key('import-conflict-replace'),
-          onPressed: onReplace,
-          child: Text('바꿔서 ${preview.toAdd.length}개 추가'),
-        ),
-        if (skipCount > 0) ...[
-          const SizedBox(height: 8),
-          OutlinedButton(
-            key: const Key('import-conflict-skip'),
-            onPressed: onSkip,
-            child: Text('겹치는 강의 빼고 $skipCount개 추가'),
-          ),
-        ],
       ],
     );
   }
