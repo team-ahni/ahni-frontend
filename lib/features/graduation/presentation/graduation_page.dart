@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/graduation/application/graduation_controller.dart';
@@ -210,19 +211,28 @@ class _RequiredCoursesState extends State<_RequiredCourses> {
         if (widget.courses.isEmpty)
           const WhitespaceWrappedText('이 기준에는 필수과목이 등록되어 있지 않아요.'),
         if (widget.courses.isNotEmpty) ...[
-          DropdownButtonFormField<String>(
-            initialValue: _category,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: '필수과목 분류'),
-            items: const [
-              DropdownMenuItem(value: 'ALL', child: Text('분류 전체')),
-              DropdownMenuItem(value: 'MAJOR_FOUNDATION', child: Text('전공 기초')),
-              DropdownMenuItem(value: 'MAJOR_REQUIRED', child: Text('전공 필수')),
-              DropdownMenuItem(value: 'GENERAL_REQUIRED', child: Text('교양 필수')),
-            ],
-            onChanged: (value) {
-              if (value != null) setState(() => _category = value);
-            },
+          LabeledField(
+            label: '필수과목 분류',
+            child: DropdownButtonFormField<String>(
+              initialValue: _category,
+              isExpanded: true,
+              decoration: const InputDecoration(),
+              items: const [
+                DropdownMenuItem(value: 'ALL', child: Text('분류 전체')),
+                DropdownMenuItem(
+                  value: 'MAJOR_FOUNDATION',
+                  child: Text('전공 기초'),
+                ),
+                DropdownMenuItem(value: 'MAJOR_REQUIRED', child: Text('전공 필수')),
+                DropdownMenuItem(
+                  value: 'GENERAL_REQUIRED',
+                  child: Text('교양 필수'),
+                ),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _category = value);
+              },
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(

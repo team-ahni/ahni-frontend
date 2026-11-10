@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
@@ -255,34 +256,40 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                 children: [
                   const WhitespaceWrappedText('학사 정보 이용 중 확인이 필요한 내용을 남겨 주세요.'),
                   const SizedBox(height: 24),
-                  TextFormField(
-                    key: const Key('inquiry-title-field'),
-                    controller: _titleController,
-                    enabled: !isSubmitting,
-                    maxLength: 200,
-                    decoration: const InputDecoration(labelText: '제목'),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return '제목을 입력해 주세요.';
-                      }
-                      return null;
-                    },
+                  LabeledField(
+                    label: '제목',
+                    child: TextFormField(
+                      key: const Key('inquiry-title-field'),
+                      controller: _titleController,
+                      enabled: !isSubmitting,
+                      maxLength: 200,
+                      decoration: const InputDecoration(),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return '제목을 입력해 주세요.';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   const SizedBox(height: 12),
-                  TextFormField(
-                    key: const Key('inquiry-content-field'),
-                    controller: _contentController,
-                    enabled: !isSubmitting,
-                    minLines: 8,
-                    maxLines: 12,
-                    maxLength: 4000,
-                    decoration: const InputDecoration(labelText: '내용'),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return '내용을 입력해 주세요.';
-                      }
-                      return null;
-                    },
+                  LabeledField(
+                    label: '내용',
+                    child: TextFormField(
+                      key: const Key('inquiry-content-field'),
+                      controller: _contentController,
+                      enabled: !isSubmitting,
+                      minLines: 8,
+                      maxLines: 12,
+                      maxLength: 4000,
+                      decoration: const InputDecoration(),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return '내용을 입력해 주세요.';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                   if (widget.controller.formMessage case final message?) ...[
                     const SizedBox(height: 12),

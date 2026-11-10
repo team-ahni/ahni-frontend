@@ -25,7 +25,7 @@ Tokens live in `lib/app/app_theme.dart` (`AppColors`). Screens read them through
 | --- | --- | --- |
 | Canvas | `canvas` | `#F7F8FA` |
 | Surface | white | `#FFFFFF` |
-| Field, chip, disabled fill | `subtle` | `#EEF1F4` |
+| Chip, disabled fill | `subtle` | `#EEF1F4` |
 | Divider, field border | `line` | `#DDE2E8` |
 | Placeholder, disabled text | `muted` | `#9AA3AE` |
 | Supporting text, inactive tab | `supportingText` | `#646E7A` |
@@ -139,10 +139,11 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 ### Form field
 
-- Soft filled field: `subtle` fill, 14 radius, no resting border, so there is no Material outline notch.
-- The label always sits small inside the top of the field (13/600, `supportingText`; accent on focus, error ink on error). Units such as `년` and `학점` are suffix text in secondary color.
-- Focus draws a 1.5 accent border; errors draw a danger border.
-- Focus state uses the accent outline. Error text remains inline and is never communicated by color alone.
+- Label above, outlined box (2026-11; replaces the soft filled field with an inside label). Researched on Dribbble/Pinterest login and form shots and Baymard's mobile form studies: a label that always stays visible above the box is the common, most readable pattern.
+- Wrap every field in `LabeledField` (`lib/core/presentation/labeled_field.dart`). Never put `labelText` in `InputDecoration`; the name is `FieldLabel` above the box (13/600, primary text, 8 gap) and is merged with the field for screen readers. Chip groups that act as one input use `FieldLabel` alone.
+- Box: white fill, 1px `line` border, 12 radius, 16×12 padding (48 high for one line). Disabled uses a `subtle` border.
+- Focus draws a 1.5 accent border; errors draw a danger border with inline error text below, never color alone.
+- Placeholders use `muted` and show an example (`student@inha.edu`), not the label again. Units such as `년` and `학점` are suffix text in secondary color.
 
 ### Department selector
 

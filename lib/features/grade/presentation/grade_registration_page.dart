@@ -1,4 +1,5 @@
 import 'package:ahni_mobile/features/grade/domain/ocr_course_matching.dart';
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
@@ -344,22 +345,24 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                 ),
                               const SizedBox(height: 20),
                             ],
-                            TextFormField(
-                              key: const Key('academic-year'),
-                              controller: _academicYearController,
-                              enabled: !isSubmitting,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              textInputAction: TextInputAction.next,
-                              onChanged: _changeYear,
-                              validator: _validateYear,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              decoration: const InputDecoration(
-                                labelText: '수강연도',
-                                suffixText: '년',
+                            LabeledField(
+                              label: '수강연도',
+                              child: TextFormField(
+                                key: const Key('academic-year'),
+                                controller: _academicYearController,
+                                enabled: !isSubmitting,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                textInputAction: TextInputAction.next,
+                                onChanged: _changeYear,
+                                validator: _validateYear,
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
+                                decoration: const InputDecoration(
+                                  suffixText: '년',
+                                ),
                               ),
                             ),
                             const SizedBox(height: 20),
@@ -369,13 +372,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                               builder: (field) => Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    '수강학기',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
-                                  ),
-                                  const SizedBox(height: 8),
+                                  const FieldLabel('수강학기'),
                                   Wrap(
                                     spacing: 8,
                                     runSpacing: 8,
@@ -426,28 +423,33 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            FormField<CourseCatalogItem>(
-                              validator: (_) =>
-                                  _course == null ? '과목을 선택해 주세요.' : null,
-                              builder: (field) => InkWell(
-                                key: const Key('course-picker'),
-                                onTap: isSubmitting || !catalogReady
-                                    ? null
-                                    : _selectCourse,
-                                borderRadius: BorderRadius.circular(12),
-                                child: InputDecorator(
-                                  decoration: InputDecoration(
-                                    labelText: '과목',
-                                    errorText: field.errorText,
-                                    suffixIcon: const Icon(
-                                      Icons.search_rounded,
+                            LabeledField(
+                              label: '과목',
+                              child: FormField<CourseCatalogItem>(
+                                validator: (_) =>
+                                    _course == null ? '과목을 선택해 주세요.' : null,
+                                builder: (field) => InkWell(
+                                  key: const Key('course-picker'),
+                                  onTap: isSubmitting || !catalogReady
+                                      ? null
+                                      : _selectCourse,
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: InputDecorator(
+                                    decoration: InputDecoration(
+                                      errorText: field.errorText,
+                                      suffixIcon: const Icon(
+                                        Icons.search_rounded,
+                                      ),
                                     ),
+                                    child: _course == null
+                                        ? WhitespaceWrappedText(
+                                            '선택한 연도의 과목을 찾아보세요',
+                                            style: Theme.of(context)
+                                                .inputDecorationTheme
+                                                .hintStyle,
+                                          )
+                                        : _SelectedCourse(course: _course!),
                                   ),
-                                  child: _course == null
-                                      ? const WhitespaceWrappedText(
-                                          '선택한 연도의 과목을 찾아보세요',
-                                        )
-                                      : _SelectedCourse(course: _course!),
                                 ),
                               ),
                             ),
@@ -496,48 +498,51 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                             const SizedBox(height: 20),
                             KeyedSubtree(
                               key: const Key('grade-code'),
-                              child: DropdownButtonFormField<GradeCode>(
-                                isExpanded: true,
-                                key: _gradeFieldKey,
-                                initialValue: _gradeCode,
-                                decoration: const InputDecoration(
-                                  labelText: '성적 등급',
+                              child: LabeledField(
+                                label: '성적 등급',
+                                child: DropdownButtonFormField<GradeCode>(
+                                  isExpanded: true,
+                                  key: _gradeFieldKey,
+                                  initialValue: _gradeCode,
+                                  decoration: const InputDecoration(),
+                                  items: [
+                                    for (final code in GradeCode.values)
+                                      DropdownMenuItem(
+                                        value: code,
+                                        child: Text(code.label),
+                                      ),
+                                  ],
+                                  onChanged: isSubmitting || _rpl
+                                      ? null
+                                      : (value) =>
+                                            setState(() => _gradeCode = value),
+                                  validator: (value) => !_rpl && value == null
+                                      ? '성적 등급을 선택해 주세요.'
+                                      : null,
                                 ),
-                                items: [
-                                  for (final code in GradeCode.values)
-                                    DropdownMenuItem(
-                                      value: code,
-                                      child: Text(code.label),
-                                    ),
-                                ],
-                                onChanged: isSubmitting || _rpl
-                                    ? null
-                                    : (value) =>
-                                          setState(() => _gradeCode = value),
-                                validator: (value) => !_rpl && value == null
-                                    ? '성적 등급을 선택해 주세요.'
-                                    : null,
                               ),
                             ),
                             const SizedBox(height: 20),
-                            TextFormField(
-                              key: const Key('credit'),
-                              controller: _creditController,
-                              enabled: !isSubmitting,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                            LabeledField(
+                              label: '이수학점',
+                              child: TextFormField(
+                                key: const Key('credit'),
+                                controller: _creditController,
+                                enabled: !isSubmitting,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d{0,2}(\.\d?)?$'),
                                   ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d{0,2}(\.\d?)?$'),
+                                ],
+                                textInputAction: TextInputAction.done,
+                                validator: _validateCredit,
+                                decoration: const InputDecoration(
+                                  suffixText: '학점',
                                 ),
-                              ],
-                              textInputAction: TextInputAction.done,
-                              validator: _validateCredit,
-                              decoration: const InputDecoration(
-                                labelText: '이수학점',
-                                suffixText: '학점',
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -707,14 +712,16 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 16),
-            TextField(
-              key: const Key('course-search'),
-              autofocus: false,
-              onChanged: widget.controller.search,
-              decoration: const InputDecoration(
-                labelText: '과목 검색',
-                hintText: '과목명 또는 과목 코드',
-                prefixIcon: Icon(Icons.search_rounded),
+            LabeledField(
+              label: '과목 검색',
+              child: TextField(
+                key: const Key('course-search'),
+                autofocus: false,
+                onChanged: widget.controller.search,
+                decoration: const InputDecoration(
+                  hintText: '과목명 또는 과목 코드',
+                  prefixIcon: Icon(Icons.search_rounded),
+                ),
               ),
             ),
             const SizedBox(height: 16),

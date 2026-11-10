@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_edit_controller.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
@@ -232,27 +233,25 @@ class _GradeEditPageState extends State<GradeEditPage> {
                               ),
                             ),
                             const SizedBox(height: 20),
-                            TextFormField(
-                              key: const Key('edit-academic-year'),
-                              controller: _academicYearController,
-                              enabled: !isBusy,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              onChanged: (_) => setState(_syncReplacement),
-                              validator: _validateYear,
-                              decoration: const InputDecoration(
-                                labelText: '수강연도',
-                                suffixText: '년',
+                            LabeledField(
+                              label: '수강연도',
+                              child: TextFormField(
+                                key: const Key('edit-academic-year'),
+                                controller: _academicYearController,
+                                enabled: !isBusy,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                onChanged: (_) => setState(_syncReplacement),
+                                validator: _validateYear,
+                                decoration: const InputDecoration(
+                                  suffixText: '년',
+                                ),
                               ),
                             ),
                             const SizedBox(height: 20),
-                            Text(
-                              '수강학기',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(height: 8),
+                            const FieldLabel('수강학기'),
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
@@ -274,47 +273,50 @@ class _GradeEditPageState extends State<GradeEditPage> {
                             const SizedBox(height: 20),
                             KeyedSubtree(
                               key: const Key('edit-grade-code'),
-                              child: DropdownButtonFormField<GradeCode>(
-                                isExpanded: true,
-                                key: _gradeFieldKey,
-                                initialValue: _gradeCode,
-                                decoration: const InputDecoration(
-                                  labelText: '성적 등급',
+                              child: LabeledField(
+                                label: '성적 등급',
+                                child: DropdownButtonFormField<GradeCode>(
+                                  isExpanded: true,
+                                  key: _gradeFieldKey,
+                                  initialValue: _gradeCode,
+                                  decoration: const InputDecoration(),
+                                  items: [
+                                    for (final code in GradeCode.values)
+                                      DropdownMenuItem(
+                                        value: code,
+                                        child: Text(code.label),
+                                      ),
+                                  ],
+                                  onChanged: isBusy || _rpl
+                                      ? null
+                                      : (value) =>
+                                            setState(() => _gradeCode = value),
+                                  validator: (value) => !_rpl && value == null
+                                      ? '성적 등급을 선택해 주세요.'
+                                      : null,
                                 ),
-                                items: [
-                                  for (final code in GradeCode.values)
-                                    DropdownMenuItem(
-                                      value: code,
-                                      child: Text(code.label),
-                                    ),
-                                ],
-                                onChanged: isBusy || _rpl
-                                    ? null
-                                    : (value) =>
-                                          setState(() => _gradeCode = value),
-                                validator: (value) => !_rpl && value == null
-                                    ? '성적 등급을 선택해 주세요.'
-                                    : null,
                               ),
                             ),
                             const SizedBox(height: 20),
-                            TextFormField(
-                              key: const Key('edit-credit'),
-                              controller: _creditController,
-                              enabled: !isBusy,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
+                            LabeledField(
+                              label: '이수학점',
+                              child: TextFormField(
+                                key: const Key('edit-credit'),
+                                controller: _creditController,
+                                enabled: !isBusy,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(
+                                    RegExp(r'^\d{0,2}(\.\d?)?$'),
                                   ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'^\d{0,2}(\.\d?)?$'),
+                                ],
+                                validator: _validateCredit,
+                                decoration: const InputDecoration(
+                                  suffixText: '학점',
                                 ),
-                              ],
-                              validator: _validateCredit,
-                              decoration: const InputDecoration(
-                                labelText: '이수학점',
-                                suffixText: '학점',
                               ),
                             ),
                             const SizedBox(height: 12),
