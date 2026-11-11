@@ -138,4 +138,34 @@ void main() {
       lessThan(rows.first.width * 0.35),
     );
   });
+
+  testWidgets('every word shares one line height so baselines line up', (
+    tester,
+  ) async {
+    // 영문·문장부호가 섞인 단어는 실제 기기에서 다른 글꼴로 그려져 줄 높이와 기준선이 1pt쯤
+    // 달라졌다. 모든 단어에 같은 줄 높이를 강제해야 한 줄 안에서 높낮이가 맞는다.
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: WhitespaceWrappedText(
+            'AHNI는 INHA를 뒤집은 이름이에요.',
+            style: TextStyle(fontSize: 16, height: 1.5),
+          ),
+        ),
+      ),
+    );
+
+    final texts = tester.widgetList<Text>(
+      find.descendant(
+        of: find.byType(WhitespaceWrappedText),
+        matching: find.byType(Text),
+      ),
+    );
+    expect(texts, hasLength(4));
+    for (final text in texts) {
+      expect(text.strutStyle?.forceStrutHeight, isTrue);
+      expect(text.strutStyle?.fontSize, 16);
+      expect(text.strutStyle?.height, 1.5);
+    }
+  });
 }

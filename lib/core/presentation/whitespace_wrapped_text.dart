@@ -9,6 +9,8 @@ import 'package:flutter/widgets.dart';
 /// 띄어쓰기는 단어 끝에 붙이지 않고 `Wrap.spacing`으로 둔다. 실제 기기 글꼴은 단어 끝 공백의
 /// 폭을 0으로 재서 줄 마지막 단어가 앞 단어에 붙고, 줄마다 남는 공백 때문에 가운데 정렬도 어긋났다.
 ///
+/// 단어마다 같은 줄 높이(strut)를 강제해, 글꼴이 다른 영문·문장부호 단어도 기준선이 맞는다.
+///
 /// 가운데 정렬 글은 줄 수는 그대로 두고 줄 길이를 고르게 나눈다(CSS `text-wrap: balance`).
 /// 한 단어가 한 줄보다 길면 그 단어만 글자 단위로 줄바꿈한다.
 class WhitespaceWrappedText extends StatelessWidget {
@@ -102,10 +104,15 @@ class _Line extends StatelessWidget {
   Widget build(BuildContext context) {
     // 빈 줄도 한 줄 높이를 차지하게 해 문단 간격을 유지한다.
     if (words.isEmpty) return Text(' ', style: style);
+    // 영문·문장부호가 섞인 단어는 다른 글꼴로 그려져 줄 높이와 기준선이 달라진다. 단어를
+    // 상자 위쪽에 맞춰 놓으면 높낮이가 어긋나므로, 모든 단어에 같은 줄 높이를 강제해 기준선을 맞춘다.
+    final strut = StrutStyle.fromTextStyle(resolved, forceStrutHeight: true);
     final wrap = Wrap(
       alignment: alignment,
       spacing: space,
-      children: [for (final word in words) Text(word, style: style)],
+      children: [
+        for (final word in words) Text(word, style: style, strutStyle: strut),
+      ],
     );
     if (!balance || words.length < 2) return wrap;
     return LayoutBuilder(
