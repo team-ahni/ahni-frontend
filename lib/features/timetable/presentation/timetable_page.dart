@@ -13,6 +13,8 @@ import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
 import 'package:ahni_mobile/features/timetable/presentation/lecture_card.dart';
 import 'package:ahni_mobile/features/timetable/presentation/registration_import_sheet.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_conflict_dialog.dart';
+import 'package:ahni_mobile/core/presentation/app_message.dart';
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:flutter/material.dart';
 
 class TimetablePage extends StatefulWidget {
@@ -81,18 +83,13 @@ class _TimetablePageState extends State<TimetablePage> {
     );
     if (!mounted) return;
     final added = lectures.length - failures.length;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            failures.isEmpty
-                ? '강의 $added개를 시간표에 넣었어요.'
-                : '$added개를 넣었고 ${failures.length}개는 넣지 못했어요. '
-                      '${failures.first.lecture.courseName}: ${failures.first.message}',
-          ),
-        ),
-      );
+    showAppMessage(
+      context,
+      failures.isEmpty
+          ? '강의 $added개를 시간표에 넣었어요.'
+          : '$added개를 넣었고 ${failures.length}개는 넣지 못했어요. '
+                '${failures.first.lecture.courseName}: ${failures.first.message}',
+    );
   }
 
   Future<void> _choose({TimetableEntry? entry}) async {
@@ -141,9 +138,7 @@ class _TimetablePageState extends State<TimetablePage> {
   void _showActionError() {
     final error = controller.actionError;
     if (!mounted || controller.unauthorized || error == null) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(error)));
+    showAppMessage(context, error);
   }
 
   /// 수강 추천의 '추가'도 강의 추가와 같은 겹침 확인 창을 거친다.
@@ -410,8 +405,17 @@ class _LecturePickerState extends State<_LecturePicker> {
             const SizedBox(height: 16),
             Expanded(
               child: results.isEmpty
-                  ? const Center(
-                      child: WhitespaceWrappedText('선택할 수 있는 강의가 없어요.'),
+                  ? SingleChildScrollView(
+                      child: widget.lectures.isEmpty
+                          ? const EmptyStateView(
+                              mood: AhniMood.curious,
+                              title: '이 학기에 개설된 강의가 없어요',
+                            )
+                          : const EmptyStateView(
+                              mood: AhniMood.curious,
+                              title: '검색한 강의를 찾지 못했어요',
+                              message: '과목명·코드·교수 이름을 다시 확인해 주세요.',
+                            ),
                     )
                   : ListView.builder(
                       itemCount: results.length,

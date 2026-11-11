@@ -12,6 +12,8 @@ import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_replacement_candidates.dart';
 import 'package:ahni_mobile/features/grade/presentation/replacement_grade_field.dart';
 import 'package:ahni_mobile/features/grade/presentation/grade_ocr_page.dart';
+import 'package:ahni_mobile/core/presentation/busy_button_label.dart';
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -589,15 +591,10 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                 onPressed: isSubmitting || !catalogReady
                                     ? null
                                     : _submit,
-                                child: isSubmitting
-                                    ? const SizedBox.square(
-                                        dimension: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text('성적 등록'),
+                                child: BusyButtonLabel(
+                                  isBusy: isSubmitting,
+                                  label: '성적 등록',
+                                ),
                               ),
                             ),
                           ],
@@ -724,22 +721,35 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
       CourseCatalogInitial() || CourseCatalogLoading() => const Center(
         child: CircularProgressIndicator(),
       ),
-      CourseCatalogEmpty() => const Center(
-        child: WhitespaceWrappedText('선택할 수 있는 과목이 아직 없어요.'),
-      ),
-      CourseCatalogFailure state => _CoursePickerMessage(
-        message: state.message,
-        action: TextButton(
-          onPressed: widget.controller.retry,
-          child: const Text('다시 시도'),
+      // 시트 안에서는 키보드가 올라와도 잘리지 않게 스크롤로 감싼다.
+      CourseCatalogEmpty() => const SingleChildScrollView(
+        child: EmptyStateView(
+          mood: AhniMood.curious,
+          title: '선택할 수 있는 과목이 아직 없어요',
         ),
       ),
-      CourseCatalogAuthenticationRequired() => const _CoursePickerMessage(
-        message: '로그인이 만료됐어요. 다시 로그인해 주세요.',
+      CourseCatalogFailure state => SingleChildScrollView(
+        child: LoadFailureView(
+          title: '과목을 불러오지 못했어요',
+          message: state.message,
+          onRetry: widget.controller.retry,
+        ),
       ),
-      CourseCatalogReady state when state.courses.isEmpty => const Center(
-        child: WhitespaceWrappedText('검색한 과목을 찾지 못했어요.'),
+      CourseCatalogAuthenticationRequired() => const SingleChildScrollView(
+        child: EmptyStateView(
+          mood: AhniMood.curious,
+          title: '다시 로그인이 필요해요',
+          message: '로그인이 만료됐어요. 다시 로그인해 주세요.',
+        ),
       ),
+      CourseCatalogReady state when state.courses.isEmpty =>
+        const SingleChildScrollView(
+          child: EmptyStateView(
+            mood: AhniMood.curious,
+            title: '검색한 과목을 찾지 못했어요',
+            message: '과목명이나 과목 코드를 다시 확인해 주세요.',
+          ),
+        ),
       CourseCatalogReady state => ListView.separated(
         itemCount: state.courses.length,
         separatorBuilder: (_, _) => const Divider(height: 1),
@@ -763,32 +773,6 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
         },
       ),
     };
-  }
-}
-
-class _CoursePickerMessage extends StatelessWidget {
-  const _CoursePickerMessage({required this.message, this.action});
-
-  final String message;
-  final Widget? action;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          WhitespaceWrappedText(
-            message,
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          if (action case final value?) ...[const SizedBox(height: 12), value],
-        ],
-      ),
-    );
   }
 }
 

@@ -184,8 +184,8 @@ class _PasswordRecoveryViewState extends State<_PasswordRecoveryView> {
                     child: FilledButton(
                       key: const Key('update-password'),
                       onPressed: isSubmitting ? null : _submit,
-                      child: _ButtonLabel(
-                        isLoading: isSubmitting,
+                      child: BusyButtonLabel(
+                        isBusy: isSubmitting,
                         label: '비밀번호 변경',
                       ),
                     ),
@@ -396,8 +396,8 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: isSubmitting ? null : _submit,
-                      child: _ButtonLabel(
-                        isLoading: isSubmitting,
+                      child: BusyButtonLabel(
+                        isBusy: isSubmitting,
                         label: _isSignUp ? '계정 만들기' : '로그인',
                       ),
                     ),
@@ -441,8 +441,8 @@ class _RelinkPanel extends StatelessWidget {
           child: OutlinedButton(
             key: const Key('request-relink'),
             onPressed: stage == RelinkStage.submitting ? null : onRequest,
-            child: _ButtonLabel(
-              isLoading: stage == RelinkStage.submitting,
+            child: BusyButtonLabel(
+              isBusy: stage == RelinkStage.submitting,
               label: '기존 정보 연결 요청',
             ),
           ),

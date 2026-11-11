@@ -7,6 +7,7 @@ import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_replacement_candidates.dart';
 import 'package:ahni_mobile/features/grade/presentation/replacement_grade_field.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_update.dart';
+import 'package:ahni_mobile/core/presentation/busy_button_label.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -352,15 +353,10 @@ class _GradeEditPageState extends State<GradeEditPage> {
                               child: FilledButton(
                                 key: const Key('save-grade'),
                                 onPressed: isBusy ? null : _save,
-                                child: state is GradeEditSaving
-                                    ? const SizedBox.square(
-                                        dimension: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Colors.white,
-                                        ),
-                                      )
-                                    : const Text('변경사항 저장'),
+                                child: BusyButtonLabel(
+                                  isBusy: state is GradeEditSaving,
+                                  label: '변경사항 저장',
+                                ),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -374,14 +370,10 @@ class _GradeEditPageState extends State<GradeEditPage> {
                                       .error,
                                 ),
                                 onPressed: isBusy ? null : _confirmDelete,
-                                child: state is GradeEditDeleting
-                                    ? const SizedBox.square(
-                                        dimension: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Text('성적 삭제'),
+                                child: BusyButtonLabel(
+                                  isBusy: state is GradeEditDeleting,
+                                  label: '성적 삭제',
+                                ),
                               ),
                             ),
                           ],
