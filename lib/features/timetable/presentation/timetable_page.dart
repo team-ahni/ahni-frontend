@@ -1,5 +1,6 @@
 import 'package:ahni_mobile/core/presentation/confirm_dialog.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
+import 'package:ahni_mobile/core/presentation/sheet_header.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
@@ -391,29 +392,10 @@ class _LecturePickerState extends State<_LecturePicker> {
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * .8,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          24,
-          24,
-          MediaQuery.viewInsetsOf(context).bottom,
-        ),
+        padding: EdgeInsets.fromLTRB(24, 24, 24, sheetBottomInset(context)),
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: WhitespaceWrappedText(
-                    '강의 선택',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                IconButton(
-                  tooltip: '닫기',
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
+            const SheetHeader('강의 선택'),
             const SizedBox(height: 16),
             LabeledField(
               label: '과목명·코드·교수 검색',
