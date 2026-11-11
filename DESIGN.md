@@ -127,6 +127,16 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - It is decorative and excluded from semantics; the title next to it carries the meaning.
 - Original art only. Never use or imitate Inha University's mascots (안뇽이, 인덕이): they are trademark-pending and need the university's prior permission.
 
+### App icon
+
+- '아니' peeking up from the bottom on a navy (`#0F2F5C`) square, candidate E of nine (2026-11). The 1024px master is `docs/branding/app-icon-1024.png`; iOS `AppIcon.appiconset` and Android `mipmap-*/ic_launcher.png` are resized from it with no transparency.
+
+### App intro
+
+- `IntroPage` (`lib/features/intro/presentation/intro_page.dart`): four slides shown once on first launch before sign-in, one '아니' mood each, content vertically centered, page dots, "건너뛰기" (hidden on the last slide) and a full-width "다음 / 시작하기".
+- Slides describe only what the app really does. `IntroGate` shows it when `IntroStore` says it was not seen; `SecureIntroStore` keeps the flag in the secure storage already used for sign-in.
+- Development builds show "개발자 도구 › 앱 소개 다시 보기" at the bottom of 내 정보. Staging and production never show developer tools.
+
 ### Same situation, same pattern
 
 - One situation gets one UI pattern across every flow. Before building or fixing a flow, find where the app already handles the same situation and reuse that component; the second use is the moment to extract it.
