@@ -80,7 +80,7 @@ class _GraduationPageState extends State<GraduationPage> {
                 if (controller.status == GraduationStatus.loading ||
                     controller.status == GraduationStatus.initial)
                   const Center(child: CircularProgressIndicator()),
-                // 기준이 아직 없는 건 실패가 아니라 빈 상태라 '아니'의 궁금한 표정으로 알린다.
+                // 기준이 아직 없는 건 실패가 아니라 빈 상태라 '아띠'의 궁금한 표정으로 알린다.
                 if (controller.status == GraduationStatus.missing)
                   EmptyStateView(
                     mood: AhniMood.curious,

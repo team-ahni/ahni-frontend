@@ -51,7 +51,7 @@ class NoticeCallout extends StatelessWidget {
   }
 }
 
-/// 빈 화면·오류 화면. 상황에 맞는 표정의 '아니', 짧은 제목, 설명, 다음 동작을 가운데에 둔다.
+/// 빈 화면·오류 화면. 상황에 맞는 표정의 '아띠', 짧은 제목, 설명, 다음 동작을 가운데에 둔다.
 class EmptyStateView extends StatelessWidget {
   const EmptyStateView({
     required this.mood,
@@ -100,7 +100,7 @@ class EmptyStateView extends StatelessWidget {
   }
 }
 
-/// 화면 데이터를 불러오지 못했을 때의 공용 화면. 당황한 '아니'와 다시 시도 버튼을 둔다.
+/// 화면 데이터를 불러오지 못했을 때의 공용 화면. 당황한 '아띠'와 다시 시도 버튼을 둔다.
 /// 모든 화면이 같은 모양으로 실패를 알려, 사용자가 어디서든 같은 방법으로 회복하게 한다.
 class LoadFailureView extends StatelessWidget {
   const LoadFailureView({

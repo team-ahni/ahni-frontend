@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// 아니의 표정. 화면 상황에 맞는 하나를 고른다.
+/// 아띠의 표정. 화면 상황에 맞는 하나를 고른다.
 enum AhniMood {
   /// 처음 만날 때, 아직 아무것도 없을 때.
   hello,
@@ -17,7 +17,7 @@ enum AhniMood {
   cheer,
 }
 
-/// AHNI 캐릭터 '아니'. INHA를 뒤집어 학생 쪽에서 학교를 보는 친구로,
+/// AHNI 캐릭터 '아띠'(순우리말로 '친구'). INHA를 뒤집은 AHNI처럼 학생 쪽에서 학교를 보는 친구로,
 /// 머리에 학기마다 자라는 새싹이 달려 있다.
 ///
 /// 외부 그림 파일 없이 그리므로 어떤 크기에서도 선명하고 패키지가 필요 없다.

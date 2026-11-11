@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 
 typedef _IntroSlide = ({AhniMood mood, String title, String body});
 
-// 앱이 실제로 하는 일만 소개한다. 장마다 '아니'의 표정이 바뀐다.
+// 앱이 실제로 하는 일만 소개한다. 장마다 '아띠'의 표정이 바뀐다.
 const _slides = <_IntroSlide>[
   (
     mood: AhniMood.hello,
-    title: '안녕하세요, 아니예요',
+    title: '안녕하세요, 아띠예요',
     body: 'AHNI는 INHA를 뒤집은 이름이에요. 학생 쪽에서 학사 생활을 함께 챙겨요.',
   ),
   (
