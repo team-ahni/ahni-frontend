@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/confirm_dialog.dart';
 import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
@@ -76,27 +77,12 @@ class _GradeListPageState extends State<GradeListPage> {
   Future<void> _confirmClearGrades() async {
     final controller = widget.controller;
     final state = controller.state;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('성적 초기화'),
-        content: const Text('등록한 성적을 모두 삭제할까요? 삭제한 성적은 복구할 수 없어요.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(
-              '모두 삭제',
-              style: TextStyle(
-                color: Theme.of(dialogContext).colorScheme.error,
-              ),
-            ),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '성적을 모두 삭제할까요?',
+      message: '삭제한 성적은 복구할 수 없어요.',
+      confirmLabel: '모두 삭제',
+      destructive: true,
     );
     if (!mounted ||
         confirmed != true ||

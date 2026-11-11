@@ -58,7 +58,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('강의 추가'));
     await tester.pumpAndSettle();
-    expect(find.text('강의 선택'), findsOneWidget);
+    expect(findWhitespaceWrappedText('강의 선택'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
     controller.dispose();
@@ -164,7 +164,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('강의 삭제'));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextButton, '삭제'));
+    await tester.tap(find.byKey(const Key('confirm-delete-lecture')));
     await tester.pumpAndSettle();
     expect(controller.entries, isEmpty);
     expect(tester.takeException(), isNull);
@@ -284,9 +284,52 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('timetable-conflict-dialog')), findsNothing);
-    expect(find.text('강의 선택'), findsOneWidget);
+    expect(findWhitespaceWrappedText('강의 선택'), findsOneWidget);
     expect(api.deletedEntryIds, isEmpty);
     expect(api.savedLectureIds, isEmpty);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('picker shows added lectures and overlaps before choosing', (
+    tester,
+  ) async {
+    final auth = FakeAuthGateway(currentSession: testSession);
+    addTearDown(auth.dispose);
+    final controller = TimetableController(
+      auth: auth,
+      api: FakeTimetableApi()
+        ..current = [
+          const TimetableEntry(entityId: 'entry-old', lecture: testLecture),
+        ]
+        ..offered = [testLecture, overlapping],
+    );
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TimetablePage(
+          controller: controller,
+          onAuthenticationRequired: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('강의 추가'));
+    await tester.pumpAndSettle();
+
+    // 수강신청 내역 가져오기와 같은 강의 카드로 보인다.
+    final added = find.byKey(const ValueKey('pick-lecture-lecture-1'));
+    expect(
+      find.descendant(of: added, matching: find.text('이미 있음')),
+      findsOneWidget,
+    );
+    final next = find.byKey(const ValueKey('pick-lecture-lecture-sec'));
+    expect(
+      find.descendant(
+        of: next,
+        matching: findWhitespaceWrappedText('시간이 겹쳐요: 자료구조(월 09:30–11:00)'),
+      ),
+      findsOneWidget,
+    );
     await tester.pumpWidget(const SizedBox());
   });
 }

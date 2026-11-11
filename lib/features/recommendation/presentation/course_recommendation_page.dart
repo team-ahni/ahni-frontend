@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/format/credit.dart';
 import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
@@ -120,14 +121,12 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
                 ),
                 const SizedBox(height: 20),
                 if (loading) const Center(child: CircularProgressIndicator()),
-                if (controller.status ==
-                    CourseRecommendationStatus.failure) ...[
-                  WhitespaceWrappedText(
-                    controller.message ?? '수강 추천을 불러오지 못했어요. 다시 시도해 주세요.',
+                if (controller.status == CourseRecommendationStatus.failure)
+                  LoadFailureView(
+                    title: '수강 추천을 불러오지 못했어요',
+                    message: controller.message,
+                    onRetry: _load,
                   ),
-                  const SizedBox(height: 16),
-                  OutlinedButton(onPressed: _load, child: const Text('다시 시도')),
-                ],
                 if (recommendation != null)
                   ..._recommendationSections(context, recommendation),
               ],
@@ -262,7 +261,7 @@ class _CourseCard extends StatelessWidget {
               [
                 course.code,
                 course.divisionLabel,
-                '${_credit(course.credit)}학점',
+                '${formatCredit(course.credit)}학점',
                 ?termLabel,
               ].join(' · '),
               style: textTheme.bodySmall,
@@ -283,7 +282,7 @@ class _CourseCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: WhitespaceWrappedText(
-                        '${lecture.section}분반 · ${lecture.professorName} · ${_schedule(lecture)}',
+                        '${lecture.section}분반 · ${lecture.professorName} · ${lecture.scheduleSummary}',
                         style: textTheme.bodySmall,
                       ),
                     ),
@@ -334,19 +333,6 @@ class _AddLectureButton extends StatelessWidget {
     );
   }
 }
-
-String _schedule(Lecture lecture) => lecture.schedules.isEmpty
-    ? '고정시간 없음'
-    : lecture.schedules
-          .map(
-            (schedule) =>
-                '${timetableDays[schedule.dayOfWeek - 1]} ${schedule.label}',
-          )
-          .join(', ');
-
-String _credit(double value) => value == value.truncateToDouble()
-    ? value.toInt().toString()
-    : value.toString();
 
 /// 추천 이유마다 색을 달리해 훑어보기 쉽게 한다. 뜻은 항상 글자로도 전한다.
 class _ReasonChip extends StatelessWidget {

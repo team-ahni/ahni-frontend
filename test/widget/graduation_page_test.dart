@@ -128,7 +128,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('탭 이동'), findsOneWidget);
-    await tester.tap(find.text('다시 시도'));
+    // 기준이 없는 건 실패가 아니라 빈 상태라 '다시 확인'으로 묻는다.
+    await tester.tap(find.text('다시 확인'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
   });

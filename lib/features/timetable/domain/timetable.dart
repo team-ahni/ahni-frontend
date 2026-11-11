@@ -39,6 +39,9 @@ class LectureSchedule {
   }
 
   String get label => '${startTime.substring(0, 5)}–${endTime.substring(0, 5)}';
+
+  /// `월 09:00–10:30`
+  String get dayLabel => '${timetableDays[dayOfWeek - 1]} $label';
 }
 
 class Lecture {
@@ -75,6 +78,11 @@ class Lecture {
   final String professorName;
   final String section;
   final List<LectureSchedule> schedules;
+
+  /// 수업 시간을 한 줄로. 시간이 정해지지 않은 강의는 `고정시간 없음`.
+  String get scheduleSummary => schedules.isEmpty
+      ? '고정시간 없음'
+      : schedules.map((s) => s.dayLabel).join(', ');
 }
 
 class TimetableEntry {

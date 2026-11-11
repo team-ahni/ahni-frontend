@@ -1,3 +1,5 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
+import 'package:ahni_mobile/core/presentation/confirm_dialog.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_edit_controller.dart';
@@ -93,29 +95,14 @@ class _GradeEditPageState extends State<GradeEditPage> {
   }
 
   Future<void> _confirmDelete() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const WhitespaceWrappedText('성적을 삭제할까요?'),
-        content: WhitespaceWrappedText(
-          '${widget.grade.course.name} 성적은 삭제 후 다시 등록해야 해요.',
-        ),
-        actions: [
-          TextButton(
-            key: const Key('cancel-delete-grade'),
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            key: const Key('confirm-delete-grade'),
-            style: TextButton.styleFrom(
-              foregroundColor: Theme.of(dialogContext).colorScheme.error,
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '성적을 삭제할까요?',
+      message: '${widget.grade.course.name} 성적은 삭제 후 다시 등록해야 해요.',
+      confirmLabel: '삭제',
+      destructive: true,
+      confirmKey: const Key('confirm-delete-grade'),
+      cancelKey: const Key('cancel-delete-grade'),
     );
     if (confirmed != true || !mounted) return;
 
@@ -196,7 +183,7 @@ class _GradeEditPageState extends State<GradeEditPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (message case final value?) ...[
-                              _EditErrorMessage(message: value),
+                              ErrorNotice(value),
                               const SizedBox(height: 20),
                             ],
                             Text(
@@ -429,45 +416,6 @@ class _GradeEditPageState extends State<GradeEditPage> {
     if (!_replacementCandidates.any((grade) => grade.entityId == selected)) {
       _replacedGradeEntityId = null;
     }
-  }
-}
-
-class _EditErrorMessage extends StatelessWidget {
-  const _EditErrorMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              color: Theme.of(context).colorScheme.onErrorContainer,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: WhitespaceWrappedText(
-                message,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

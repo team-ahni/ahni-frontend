@@ -132,6 +132,12 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - One situation gets one UI pattern across every flow. Before building or fixing a flow, find where the app already handles the same situation and reuse that component; the second use is the moment to extract it.
 - Timetable overlap: every flow that puts a lecture into the timetable (single add, change, recommendation add, registration import) checks overlaps on the client and asks with `showTimetableConflictDialog` (`lib/features/timetable/presentation/timetable_conflict_dialog.dart`): an `old → new` list and two equal buttons on one row, `다시 선택하기 | 바꾸기`. Never a three-button vertical dialog, never an inline decision panel.
 - Refusals that the client could not foresee (server errors) appear in a SnackBar, not in the page's load-error area.
+- Shared components for recurring situations (2026-11 audit):
+  - Every confirmation: `showConfirmDialog` (`lib/core/presentation/confirm_dialog.dart`). Title is a question ("강의를 삭제할까요?"), two equal buttons on one row, back-off on the left and the action on the right; deletions pass `destructive` for the danger color.
+  - Load failure of a screen's data: `LoadFailureView` (`friendly_states.dart`): '아니' oops, a "○○을 불러오지 못했어요" title, the server reason, and a filled "다시 시도". An empty-but-valid result (no graduation policy yet) is an `EmptyStateView`, not a failure.
+  - Form or save errors inside a form: `ErrorNotice` (error container, icon, live region). Never plain red text.
+  - A lecture shown for adding to the timetable: `LectureCard` (`lib/features/timetable/presentation/lecture_card.dart`) with code-section, credit, professor, time, classroom, "이미 있음" and overlap warnings. The picker and the registration import share it.
+- Every `LabeledField` input must be announced by name: dropdowns merge the label into their semantics. `test/widget/accessibility_guidelines_test.dart` opens the main screens and checks tap targets (Android 48, iOS 44), labeled tap targets and text contrast.
 
 ### Empty state
 

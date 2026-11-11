@@ -257,7 +257,6 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
           key: Key('expected-credit-${row.id}'),
           controller: row.credit,
           enabled: !busy,
-          style: const TextStyle(fontSize: 16),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(hintText: '예: 3 또는 1.5'),
           validator: (value) => ExpectedGrade.parseCredit(value ?? '') == null

@@ -80,10 +80,7 @@ void main() {
     await tester.pumpWidget(page(api));
     await tester.pumpAndSettle();
 
-    expect(
-      findWhitespaceWrappedText('수강 추천을 불러오지 못했어요. 다시 시도해 주세요.'),
-      findsOneWidget,
-    );
+    expect(findWhitespaceWrappedText('수강 추천을 불러오지 못했어요'), findsOneWidget);
     await tester.tap(find.text('다시 시도'));
     await tester.pumpAndSettle();
     expect(findWhitespaceWrappedText('컴퓨터네트워크'), findsOneWidget);

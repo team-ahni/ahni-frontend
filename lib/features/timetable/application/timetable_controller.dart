@@ -16,7 +16,7 @@ class TimetableController extends ChangeNotifier {
   bool unauthorized = false;
   bool loaded = false;
 
-  /// 시간표를 불러오지 못한 이유. 화면 위쪽에 '다시 시도'와 함께 보인다.
+  /// 시간표를 불러오지 못한 이유. 공용 불러오기 실패 화면에 '다시 시도'와 함께 보인다.
   String? message;
 
   /// 추가·변경·삭제가 거절된 이유(시간 겹침 등). 시간표는 그대로라 알림으로만 보인다.

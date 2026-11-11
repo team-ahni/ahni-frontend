@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/confirm_dialog.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
@@ -8,6 +9,7 @@ import 'package:ahni_mobile/features/timetable/application/timetable_controller.
 import 'package:ahni_mobile/features/timetable/data/registration_screenshot_reader.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
+import 'package:ahni_mobile/features/timetable/presentation/lecture_card.dart';
 import 'package:ahni_mobile/features/timetable/presentation/registration_import_sheet.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_conflict_dialog.dart';
 import 'package:flutter/material.dart';
@@ -99,10 +101,10 @@ class _TimetablePageState extends State<TimetablePage> {
       useSafeArea: true,
       builder: (_) => _LecturePicker(
         lectures: controller.lectures,
-        selectedIds: controller.entries
-            .where((item) => item.entityId != entry?.entityId)
-            .map((item) => item.lecture.entityId)
-            .toSet(),
+        entries: [
+          for (final item in controller.entries)
+            if (item.entityId != entry?.entityId) item,
+        ],
       ),
     );
     if (lecture == null || !mounted) return;
@@ -196,24 +198,13 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 
   Future<void> _delete(TimetableEntry entry) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('강의 삭제'),
-        content: WhitespaceWrappedText(
-          '${entry.lecture.courseName} 강의를 시간표에서 삭제할까요?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '강의를 삭제할까요?',
+      message: '${entry.lecture.courseName} 강의가 시간표에서 빠져요.',
+      confirmLabel: '삭제',
+      destructive: true,
+      confirmKey: const Key('confirm-delete-lecture'),
     );
     if (confirmed == true &&
         mounted &&
@@ -319,17 +310,12 @@ class _TimetablePageState extends State<TimetablePage> {
                 padding: EdgeInsets.only(bottom: 16),
                 child: Center(child: CircularProgressIndicator()),
               ),
-            if (controller.message case final message?) ...[
-              WhitespaceWrappedText(
-                message,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+            if (controller.message case final message?)
+              LoadFailureView(
+                title: '시간표를 불러오지 못했어요',
+                message: message,
+                onRetry: disabled ? null : controller.load,
               ),
-              TextButton.icon(
-                onPressed: disabled ? null : controller.load,
-                icon: const Icon(Icons.refresh),
-                label: const Text('다시 시도'),
-              ),
-            ],
             if (controller.loaded) ...[
               _WeekGrid(entries: controller.entries),
               const SizedBox(height: 24),
@@ -377,10 +363,13 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 }
 
+/// 강의 하나를 고르는 시트. 수강신청 내역 가져오기와 같은 강의 카드와 시트 머리를 쓴다.
 class _LecturePicker extends StatefulWidget {
-  const _LecturePicker({required this.lectures, required this.selectedIds});
+  const _LecturePicker({required this.lectures, required this.entries});
   final List<Lecture> lectures;
-  final Set<String> selectedIds;
+
+  /// 지금 시간표 항목(바꾸는 중인 항목은 뺀다). 이미 있는 강의와 겹치는 강의를 미리 보여 준다.
+  final List<TimetableEntry> entries;
   @override
   State<_LecturePicker> createState() => _LecturePickerState();
 }
@@ -389,12 +378,14 @@ class _LecturePickerState extends State<_LecturePicker> {
   String query = '';
   @override
   Widget build(BuildContext context) {
+    final added = {for (final e in widget.entries) e.lecture.entityId};
+    final normalized = query.trim().toLowerCase();
     final results = widget.lectures
         .where(
           (lecture) =>
               '${lecture.courseName} ${lecture.courseCode} ${lecture.professorName}'
                   .toLowerCase()
-                  .contains(query.trim().toLowerCase()),
+                  .contains(normalized),
         )
         .toList();
     return SizedBox(
@@ -410,10 +401,10 @@ class _LecturePickerState extends State<_LecturePicker> {
           children: [
             Row(
               children: [
-                const Expanded(
-                  child: Text(
+                Expanded(
+                  child: WhitespaceWrappedText(
                     '강의 선택',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ),
                 IconButton(
@@ -428,6 +419,7 @@ class _LecturePickerState extends State<_LecturePicker> {
               label: '과목명·코드·교수 검색',
               child: TextField(
                 decoration: const InputDecoration(
+                  hintText: '예: 컴퓨터네트워크, ITC3410, 김교수',
                   prefixIcon: Icon(Icons.search),
                 ),
                 onChanged: (value) => setState(() => query = value),
@@ -439,26 +431,25 @@ class _LecturePickerState extends State<_LecturePicker> {
                   ? const Center(
                       child: WhitespaceWrappedText('선택할 수 있는 강의가 없어요.'),
                     )
-                  : ListView.separated(
+                  : ListView.builder(
                       itemCount: results.length,
-                      separatorBuilder: (_, _) => const Divider(),
                       itemBuilder: (context, index) {
                         final lecture = results[index];
-                        final selected = widget.selectedIds.contains(
-                          lecture.entityId,
-                        );
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(lecture.courseName),
-                          subtitle: Text(
-                            '${lecture.courseCode} · ${lecture.section}분반 · ${lecture.professorName}\n'
-                            '${lecture.schedules.map((s) => '${timetableDays[s.dayOfWeek - 1]} ${s.label} ${s.classroom ?? ''}').join('\n')}',
-                          ),
-                          trailing: selected
-                              ? const Icon(Icons.check)
-                              : const Icon(Icons.add),
-                          enabled: !selected,
-                          onTap: () => Navigator.pop(context, lecture),
+                        final isAdded = added.contains(lecture.entityId);
+                        return LectureCard(
+                          key: ValueKey('pick-lecture-${lecture.entityId}'),
+                          lecture: lecture,
+                          alreadyAdded: isAdded,
+                          conflicts: isAdded
+                              ? const []
+                              : [
+                                  for (final entry in widget.entries)
+                                    if (lecturesOverlap(entry.lecture, lecture))
+                                      entry,
+                                ],
+                          onTap: isAdded
+                              ? null
+                              : () => Navigator.pop(context, lecture),
                         );
                       },
                     ),

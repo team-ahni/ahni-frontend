@@ -1,3 +1,5 @@
+import 'package:ahni_mobile/core/format/credit.dart';
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/scholarship/application/scholarship_controller.dart';
 import 'package:ahni_mobile/features/scholarship/domain/scholarship_eligibility.dart';
@@ -73,16 +75,12 @@ class _ScholarshipPageState extends State<ScholarshipPage> {
                 if (controller.status == ScholarshipStatus.loading ||
                     controller.status == ScholarshipStatus.initial)
                   const Center(child: CircularProgressIndicator()),
-                if (controller.status == ScholarshipStatus.failure) ...[
-                  WhitespaceWrappedText(
-                    controller.message ?? '장학 정보를 불러오지 못했어요. 다시 시도해 주세요.',
+                if (controller.status == ScholarshipStatus.failure)
+                  LoadFailureView(
+                    title: '장학 정보를 불러오지 못했어요',
+                    message: controller.message,
+                    onRetry: controller.load,
                   ),
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: controller.load,
-                    child: const Text('다시 시도'),
-                  ),
-                ],
                 if (eligibility != null) ...[
                   _SummaryCard(eligibility: eligibility),
                   const SizedBox(height: 20),
@@ -127,7 +125,7 @@ class _SummaryCard extends StatelessWidget {
           runSpacing: 4,
           children: [
             Text('누적 평점 ${eligibility.gpa.toStringAsFixed(2)}'),
-            Text('이수 ${_credit(eligibility.completedCredits)}학점'),
+            Text('이수 ${formatCredit(eligibility.completedCredits)}학점'),
             Text('학사경고 ${eligibility.warningCount}회'),
           ],
         ),
@@ -181,7 +179,7 @@ class _ResultCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             WhitespaceWrappedText(
-              '평점 ${result.minGpa.toStringAsFixed(2)} 이상 · ${_credit(result.minCredits)}학점 이상 · 학사경고 ${result.maxWarnings}회 이하',
+              '평점 ${result.minGpa.toStringAsFixed(2)} 이상 · ${formatCredit(result.minCredits)}학점 이상 · 학사경고 ${result.maxWarnings}회 이하',
               style: textTheme.bodySmall,
             ),
             if (!result.met) ...[
@@ -198,7 +196,3 @@ class _ResultCard extends StatelessWidget {
     );
   }
 }
-
-String _credit(double value) => value == value.truncateToDouble()
-    ? value.toInt().toString()
-    : value.toString();

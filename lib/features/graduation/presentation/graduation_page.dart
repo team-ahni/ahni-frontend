@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
@@ -79,18 +80,23 @@ class _GraduationPageState extends State<GraduationPage> {
                 if (controller.status == GraduationStatus.loading ||
                     controller.status == GraduationStatus.initial)
                   const Center(child: CircularProgressIndicator()),
-                if (controller.status == GraduationStatus.missing ||
-                    controller.status == GraduationStatus.failure) ...[
-                  WhitespaceWrappedText(
-                    controller.message ??
-                        '아직 등록된 졸업 기준이 없어요. 학과와 입학연도를 확인해 주세요.',
+                // 기준이 아직 없는 건 실패가 아니라 빈 상태라 '아니'의 궁금한 표정으로 알린다.
+                if (controller.status == GraduationStatus.missing)
+                  EmptyStateView(
+                    mood: AhniMood.curious,
+                    title: '아직 등록된 졸업 기준이 없어요',
+                    message: controller.message ?? '학과와 입학연도를 확인해 주세요.',
+                    action: OutlinedButton(
+                      onPressed: controller.load,
+                      child: const Text('다시 확인'),
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: controller.load,
-                    child: const Text('다시 시도'),
+                if (controller.status == GraduationStatus.failure)
+                  LoadFailureView(
+                    title: '졸업 정보를 불러오지 못했어요',
+                    message: controller.message,
+                    onRetry: controller.load,
                   ),
-                ],
                 if (controller.overview.length > 1) ...[
                   Wrap(
                     spacing: 8,

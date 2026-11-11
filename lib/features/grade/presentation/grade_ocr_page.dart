@@ -78,10 +78,7 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
                       : lecture.schedules.isEmpty
                       ? '등록된 수업시간 없음'
                       : lecture.schedules
-                            .map(
-                              (s) =>
-                                  '${timetableDays[s.dayOfWeek - 1]} ${s.label} ${s.classroom ?? ''}',
-                            )
+                            .map((s) => '${s.dayLabel} ${s.classroom ?? ''}')
                             .join('\n'),
                 ),
                 enabled: !options.added.contains(lecture.entityId),

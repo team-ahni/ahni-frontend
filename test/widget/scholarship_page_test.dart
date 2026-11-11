@@ -69,11 +69,9 @@ void main() {
     await tester.pumpWidget(page(api));
     await tester.pumpAndSettle();
 
-    expect(
-      findWhitespaceWrappedText('장학 정보를 불러오지 못했어요. 다시 시도해 주세요.'),
-      findsOneWidget,
-    );
-    await tester.tap(find.widgetWithText(OutlinedButton, '다시 시도'));
+    expect(findWhitespaceWrappedText('장학 정보를 불러오지 못했어요'), findsOneWidget);
+    // 앱 공용 불러오기 실패 화면의 다시 시도 버튼.
+    await tester.tap(find.widgetWithText(FilledButton, '다시 시도'));
     await tester.pumpAndSettle();
 
     expect(findWhitespaceWrappedText('성적우수장학금'), findsOneWidget);
