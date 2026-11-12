@@ -232,6 +232,7 @@ class _GradeEditPageState extends State<GradeEditPage> {
                                   FilteringTextInputFormatter.digitsOnly,
                                 ],
                                 onChanged: (_) => setState(_syncReplacement),
+                                errorBuilder: fieldErrorBuilder,
                                 validator: _validateYear,
                                 decoration: const InputDecoration(
                                   suffixText: '년',
@@ -279,6 +280,7 @@ class _GradeEditPageState extends State<GradeEditPage> {
                                       ? null
                                       : (value) =>
                                             setState(() => _gradeCode = value),
+                                  errorBuilder: fieldErrorBuilder,
                                   validator: (value) => !_rpl && value == null
                                       ? '성적 등급을 선택해 주세요.'
                                       : null,
@@ -301,6 +303,7 @@ class _GradeEditPageState extends State<GradeEditPage> {
                                     RegExp(r'^\d{0,2}(\.\d?)?$'),
                                   ),
                                 ],
+                                errorBuilder: fieldErrorBuilder,
                                 validator: _validateCredit,
                                 decoration: const InputDecoration(
                                   suffixText: '학점',

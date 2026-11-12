@@ -165,6 +165,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 - Label above, outlined box (2026-11; replaces the soft filled field with an inside label). Researched on Dribbble/Pinterest login and form shots and Baymard's mobile form studies: a label that always stays visible above the box is the common, most readable pattern.
 - Wrap every field in `LabeledField` (`lib/core/presentation/labeled_field.dart`). Never put `labelText` in `InputDecoration`; the name is `FieldLabel` above the box (13/600, primary text, 8 gap) and is merged with the field for screen readers. Chip groups that act as one input use `FieldLabel` alone.
+- Errors start on the same left line as the label and the box border, not indented to the text inside the box. Every `TextFormField`/`DropdownButtonFormField` that can fail sets `errorBuilder: fieldErrorBuilder`; custom `FormField`s use `fieldErrorBuilder` for `InputDecoration.error`, or `FieldErrorText` under a chip group.
 - Box: white fill, 1px `line` border, 12 radius, 16×12 padding (48 high for one line). Disabled uses a `subtle` border.
 - Focus draws a 1.5 accent border; errors draw a danger border with inline error text below, never color alone.
 - Placeholders use `muted` and show an example (`student@inha.edu`), not the label again. Units such as `년` and `학점` are suffix text in secondary color.

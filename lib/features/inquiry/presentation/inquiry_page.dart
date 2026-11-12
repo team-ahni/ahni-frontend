@@ -266,6 +266,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                       enabled: !isSubmitting,
                       maxLength: 200,
                       decoration: const InputDecoration(),
+                      errorBuilder: fieldErrorBuilder,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return '제목을 입력해 주세요.';
@@ -285,6 +286,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                       maxLines: 12,
                       maxLength: 4000,
                       decoration: const InputDecoration(),
+                      errorBuilder: fieldErrorBuilder,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return '내용을 입력해 주세요.';

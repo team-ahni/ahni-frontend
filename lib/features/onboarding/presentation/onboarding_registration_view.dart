@@ -153,6 +153,7 @@ class _RegistrationViewState extends State<_RegistrationView> {
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      errorBuilder: fieldErrorBuilder,
                       validator: _validateAdmissionYear,
                       decoration: const InputDecoration(hintText: '2024'),
                     ),

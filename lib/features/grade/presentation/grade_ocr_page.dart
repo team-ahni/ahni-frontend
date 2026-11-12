@@ -502,6 +502,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
                       _credit.text = value.credit.toString();
                     }
                   }),
+                  errorBuilder: fieldErrorBuilder,
                   validator: (value) => value == null ? '과목을 선택해 주세요.' : null,
                 ),
               ),
@@ -515,6 +516,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
                     decimal: true,
                   ),
                   decoration: const InputDecoration(),
+                  errorBuilder: fieldErrorBuilder,
                   validator: (value) {
                     final credit = double.tryParse(value?.trim() ?? '');
                     return credit == null ||
@@ -543,6 +545,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
                       )
                       .toList(),
                   onChanged: (value) => _grade = value,
+                  errorBuilder: fieldErrorBuilder,
                   validator: (value) => value == null ? '성적을 선택해 주세요.' : null,
                 ),
               ),

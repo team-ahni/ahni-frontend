@@ -252,10 +252,10 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
           enabled: !busy,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(hintText: '예: 3 또는 1.5'),
+          errorBuilder: fieldErrorBuilder,
           validator: (value) => ExpectedGrade.parseCredit(value ?? '') == null
               ? '학점은 0 초과 30 이하, 소수점 한 자리까지 입력해 주세요.'
               : null,
-          errorBuilder: (_, message) => WhitespaceWrappedText(message),
           onChanged: (_) => widget.controller.reset(),
           onFieldSubmitted: (_) => _calculate(),
         ),
@@ -277,8 +277,8 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
           onChanged: busy
               ? null
               : (grade) => _change(() => row.gradeCode = grade),
+          errorBuilder: fieldErrorBuilder,
           validator: (grade) => grade == null ? '예상 등급을 선택해 주세요.' : null,
-          errorBuilder: (_, message) => WhitespaceWrappedText(message),
         ),
       ),
     ],

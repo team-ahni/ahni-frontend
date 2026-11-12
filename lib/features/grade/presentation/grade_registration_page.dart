@@ -357,6 +357,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                 ],
                                 textInputAction: TextInputAction.next,
                                 onChanged: _changeYear,
+                                errorBuilder: fieldErrorBuilder,
                                 validator: _validateYear,
                                 autovalidateMode:
                                     AutovalidateMode.onUserInteraction,
@@ -407,17 +408,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                   ),
                                   if (field.errorText case final error?) ...[
                                     const SizedBox(height: 8),
-                                    Text(
-                                      error,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .error,
-                                          ),
-                                    ),
+                                    FieldErrorText(error),
                                   ],
                                 ],
                               ),
@@ -436,7 +427,13 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                   borderRadius: BorderRadius.circular(12),
                                   child: InputDecorator(
                                     decoration: InputDecoration(
-                                      errorText: field.errorText,
+                                      error: switch (field.errorText) {
+                                        final error? => fieldErrorBuilder(
+                                          context,
+                                          error,
+                                        ),
+                                        null => null,
+                                      },
                                       suffixIcon: const Icon(
                                         Icons.search_rounded,
                                       ),
@@ -514,6 +511,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                       ? null
                                       : (value) =>
                                             setState(() => _gradeCode = value),
+                                  errorBuilder: fieldErrorBuilder,
                                   validator: (value) => !_rpl && value == null
                                       ? '성적 등급을 선택해 주세요.'
                                       : null,
@@ -537,6 +535,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                   ),
                                 ],
                                 textInputAction: TextInputAction.done,
+                                errorBuilder: fieldErrorBuilder,
                                 validator: _validateCredit,
                                 decoration: const InputDecoration(
                                   suffixText: '학점',
