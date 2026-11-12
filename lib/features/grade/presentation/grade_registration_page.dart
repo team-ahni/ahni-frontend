@@ -1,6 +1,7 @@
 import 'package:ahni_mobile/features/grade/domain/ocr_course_matching.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
+import 'package:ahni_mobile/core/presentation/sheet_header.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
@@ -89,10 +90,6 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       builder: (_) => _CoursePickerSheet(controller: widget.courseController),
     );
     if (selected == null ||
@@ -691,25 +688,16 @@ class _CoursePickerSheetState extends State<_CoursePickerSheet> {
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * 0.82,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+        padding: EdgeInsets.fromLTRB(
+          24,
+          24,
+          24,
+          sheetBottomInset(context) + 24,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.outline,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            WhitespaceWrappedText(
-              '과목을 골라 주세요',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+            const SheetHeader('과목을 골라 주세요'),
             const SizedBox(height: 16),
             LabeledField(
               label: '과목 검색',

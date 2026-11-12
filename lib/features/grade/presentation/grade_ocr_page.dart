@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
+import 'package:ahni_mobile/core/presentation/sheet_header.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_ocr_import_controller.dart';
@@ -462,12 +463,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
         course.entityId: course,
     }.values.toList();
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        24,
-        24,
-        24,
-        MediaQuery.viewInsetsOf(context).bottom + 24,
-      ),
+      padding: EdgeInsets.fromLTRB(24, 24, 24, sheetBottomInset(context) + 24),
       child: SingleChildScrollView(
         child: Form(
           key: _form,
@@ -475,10 +471,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              WhitespaceWrappedText(
-                '과목과 성적 확인',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              const SheetHeader('과목과 성적 확인'),
               const SizedBox(height: 16),
               LabeledField(
                 label: '과목',
