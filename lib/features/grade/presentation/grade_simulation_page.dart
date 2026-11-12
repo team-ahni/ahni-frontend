@@ -4,6 +4,7 @@ import 'package:ahni_mobile/features/grade/application/grade_simulation_controll
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_simulation.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_summary.dart';
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:flutter/material.dart';
 
 class GradeSimulationPage extends StatefulWidget {
@@ -139,15 +140,7 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
                       ),
                       const SizedBox(height: 24),
                       if (state is GradeSimulationFailure) ...[
-                        Semantics(
-                          liveRegion: true,
-                          child: WhitespaceWrappedText(
-                            state.message,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
+                        ErrorNotice(state.message),
                         const SizedBox(height: 16),
                       ],
                       if (state is GradeSimulationAuthenticationRequired)
@@ -259,10 +252,10 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
           enabled: !busy,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(hintText: '예: 3 또는 1.5'),
+          errorBuilder: fieldErrorBuilder,
           validator: (value) => ExpectedGrade.parseCredit(value ?? '') == null
               ? '학점은 0 초과 30 이하, 소수점 한 자리까지 입력해 주세요.'
               : null,
-          errorBuilder: (_, message) => WhitespaceWrappedText(message),
           onChanged: (_) => widget.controller.reset(),
           onFieldSubmitted: (_) => _calculate(),
         ),
@@ -284,8 +277,8 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
           onChanged: busy
               ? null
               : (grade) => _change(() => row.gradeCode = grade),
+          errorBuilder: fieldErrorBuilder,
           validator: (grade) => grade == null ? '예상 등급을 선택해 주세요.' : null,
-          errorBuilder: (_, message) => WhitespaceWrappedText(message),
         ),
       ),
     ],

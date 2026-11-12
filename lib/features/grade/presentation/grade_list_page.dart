@@ -15,6 +15,7 @@ import 'package:ahni_mobile/features/grade/presentation/grade_registration_page.
 import 'package:ahni_mobile/features/grade/presentation/grade_simulation_page.dart';
 import 'package:ahni_mobile/features/scholarship/application/scholarship_controller.dart';
 import 'package:ahni_mobile/features/scholarship/presentation/scholarship_page.dart';
+import 'package:ahni_mobile/core/presentation/app_message.dart';
 import 'package:flutter/material.dart';
 
 class GradeListPage extends StatefulWidget {
@@ -92,7 +93,7 @@ class _GradeListPageState extends State<GradeListPage> {
     }
     final error = await controller.clearGrades();
     if (!mounted || error == null) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+    showAppMessage(context, error);
   }
 
   Future<void> _openSimulation() async {

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
+import 'package:ahni_mobile/core/presentation/sheet_header.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_ocr_import_controller.dart';
@@ -10,7 +11,9 @@ import 'package:ahni_mobile/features/grade/data/grade_ocr_api.dart';
 import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
 import 'package:ahni_mobile/features/timetable/data/timetable_api.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
+import 'package:ahni_mobile/features/timetable/presentation/lecture_card.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:ahni_mobile/core/presentation/app_message.dart';
 import 'package:flutter/material.dart';
 
 typedef PdfPicker = Future<({String name, Uint8List bytes})?> Function();
@@ -62,33 +65,36 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
         return;
       }
       setState(() => _choosingTimetable = true);
-      final lecture = await showDialog<Lecture>(
+      // 분반 고르기는 시간표의 강의 추가와 같은 시트·강의 카드로 보여 준다.
+      final lecture = await showModalBottomSheet<Lecture>(
         context: context,
-        builder: (dialogContext) => SimpleDialog(
-          title: Text(
-            '${entry.candidate.academicYear}년 ${entry.candidate.term!.label} 분반 선택',
+        isScrollControlled: true,
+        useSafeArea: true,
+        builder: (sheetContext) => SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            sheetBottomInset(sheetContext) + 24,
           ),
-          children: [
-            for (final lecture in options.lectures)
-              ListTile(
-                title: Text('${lecture.section}분반 · ${lecture.professorName}'),
-                subtitle: Text(
-                  options.added.contains(lecture.entityId)
-                      ? '이미 시간표에 등록했어요.'
-                      : lecture.schedules.isEmpty
-                      ? '등록된 수업시간 없음'
-                      : lecture.schedules
-                            .map((s) => '${s.dayLabel} ${s.classroom ?? ''}')
-                            .join('\n'),
-                ),
-                enabled: !options.added.contains(lecture.entityId),
-                onTap: () => Navigator.of(dialogContext).pop(lecture),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SheetHeader(
+                '${entry.candidate.academicYear}년 ${entry.candidate.term!.label} 분반 선택',
               ),
-            SimpleDialogOption(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('취소'),
-            ),
-          ],
+              const SizedBox(height: 16),
+              for (final lecture in options.lectures)
+                LectureCard(
+                  key: ValueKey('ocr-lecture-${lecture.entityId}'),
+                  lecture: lecture,
+                  alreadyAdded: options.added.contains(lecture.entityId),
+                  onTap: options.added.contains(lecture.entityId)
+                      ? null
+                      : () => Navigator.of(sheetContext).pop(lecture),
+                ),
+            ],
+          ),
         ),
       );
       if (lecture == null || !mounted) return;
@@ -109,8 +115,7 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
 
   void _timetableMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    showAppMessage(context, message);
   }
 
   Future<void> _edit(int index) async {
@@ -462,12 +467,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
         course.entityId: course,
     }.values.toList();
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        24,
-        24,
-        24,
-        MediaQuery.viewInsetsOf(context).bottom + 24,
-      ),
+      padding: EdgeInsets.fromLTRB(24, 24, 24, sheetBottomInset(context) + 24),
       child: SingleChildScrollView(
         child: Form(
           key: _form,
@@ -475,10 +475,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              WhitespaceWrappedText(
-                '과목과 성적 확인',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              const SheetHeader('과목과 성적 확인'),
               const SizedBox(height: 16),
               LabeledField(
                 label: '과목',
@@ -505,6 +502,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
                       _credit.text = value.credit.toString();
                     }
                   }),
+                  errorBuilder: fieldErrorBuilder,
                   validator: (value) => value == null ? '과목을 선택해 주세요.' : null,
                 ),
               ),
@@ -518,6 +516,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
                     decimal: true,
                   ),
                   decoration: const InputDecoration(),
+                  errorBuilder: fieldErrorBuilder,
                   validator: (value) {
                     final credit = double.tryParse(value?.trim() ?? '');
                     return credit == null ||
@@ -546,6 +545,7 @@ class _OcrEntryEditorState extends State<_OcrEntryEditor> {
                       )
                       .toList(),
                   onChanged: (value) => _grade = value,
+                  errorBuilder: fieldErrorBuilder,
                   validator: (value) => value == null ? '성적을 선택해 주세요.' : null,
                 ),
               ),

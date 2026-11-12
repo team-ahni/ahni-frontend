@@ -13,7 +13,7 @@
 
 AHNI is a calm, trustworthy academic tool. The surface is light and restrained, with one blue accent that connects the product to its Inha University origin without hard-coding university-specific behavior. Information is grouped like a student portal dashboard: clear screen title, one dominant task or summary, then quiet supporting cards.
 
-The signature detail is an accent-soft summary surface that gives the current task or student identity visual priority without fake product data. The only illustration is the AHNI character '아니' (see Components).
+The signature detail is an accent-soft summary surface that gives the current task or student identity visual priority without fake product data. The only illustration is the AHNI character '아띠' (see Components).
 
 ## 2. Tokens
 
@@ -118,14 +118,26 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 - `NoticeCallout` (`lib/core/presentation/friendly_states.dart`): a 14-radius soft box with an 18-point icon and 13-point copy. Use it for screen intros and caveats instead of dense paragraphs. Default tone is accent soft; caveats may use an `AhniPalette` tone (for example amber for missing data, violet for retake rules).
 
-### Character '아니'
+### Character '아띠'
 
-- AHNI is INHA spelled backwards; '아니' is the friend who looks at school from the student's side. A round AHNI-blue body, a light belly, and a two-leaf sprout that grows each semester.
+- Renamed from '아니' (2026-11): '아니' reads as "no".
+
+- AHNI is INHA spelled backwards; '아띠' (Korean for "friend") is the friend who looks at school from the student's side. A round AHNI-blue body, a light belly, and a two-leaf sprout that grows each semester.
 - `AhniMascot` (`lib/core/presentation/ahni_mascot.dart`) is drawn in code: no image files or packages, sharp at any size. Its colors are fixed art colors inside that file, not theme tokens.
 - Moods: `hello` (first visit, nothing yet), `curious` (something is needed), `oops` (load failure, expired login), `cheer` (a task is done).
 - Places: the login header (88) and every `EmptyStateView` (104). Do not put it on data screens, cards, or buttons; one character per screen at most.
 - It is decorative and excluded from semantics; the title next to it carries the meaning.
 - Original art only. Never use or imitate Inha University's mascots (안뇽이, 인덕이): they are trademark-pending and need the university's prior permission.
+
+### App icon
+
+- '아띠' peeking up from the bottom on a navy (`#0F2F5C`) square, candidate E of nine (2026-11). The 1024px master is `docs/branding/app-icon-1024.png`; iOS `AppIcon.appiconset` and Android `mipmap-*/ic_launcher.png` are resized from it with no transparency.
+
+### App intro
+
+- `IntroPage` (`lib/features/intro/presentation/intro_page.dart`): four slides shown once on first launch before sign-in, one '아띠' mood each, content vertically centered, page dots, "건너뛰기" (hidden on the last slide) and a full-width "다음 / 시작하기".
+- Slides describe only what the app really does. `IntroGate` shows it when `IntroStore` says it was not seen; `SecureIntroStore` keeps the flag in the secure storage already used for sign-in.
+- Development builds show "개발자 도구 › 앱 소개 다시 보기" at the bottom of 내 정보. Staging and production never show developer tools.
 
 ### Same situation, same pattern
 
@@ -134,14 +146,14 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 - Refusals that the client could not foresee (server errors) appear in a SnackBar, not in the page's load-error area.
 - Shared components for recurring situations (2026-11 audit):
   - Every confirmation: `showConfirmDialog` (`lib/core/presentation/confirm_dialog.dart`). Title is a question ("강의를 삭제할까요?"), two equal buttons on one row, back-off on the left and the action on the right; deletions pass `destructive` for the danger color.
-  - Load failure of a screen's data: `LoadFailureView` (`friendly_states.dart`): '아니' oops, a "○○을 불러오지 못했어요" title, the server reason, and a filled "다시 시도". An empty-but-valid result (no graduation policy yet) is an `EmptyStateView`, not a failure.
+  - Load failure of a screen's data: `LoadFailureView` (`friendly_states.dart`): '아띠' oops, a "○○을 불러오지 못했어요" title, the server reason, and a filled "다시 시도". An empty-but-valid result (no graduation policy yet) is an `EmptyStateView`, not a failure.
   - Form or save errors inside a form: `ErrorNotice` (error container, icon, live region). Never plain red text.
   - A lecture shown for adding to the timetable: `LectureCard` (`lib/features/timetable/presentation/lecture_card.dart`) with code-section, credit, professor, time, classroom, "이미 있음" and overlap warnings. The picker and the registration import share it.
 - Every `LabeledField` input must be announced by name: dropdowns merge the label into their semantics. `test/widget/accessibility_guidelines_test.dart` opens the main screens and checks tap targets (Android 48, iOS 44), labeled tap targets and text contrast.
 
 ### Empty state
 
-- `EmptyStateView`: '아니' in the matching mood, a short title, an optional one-line explanation, and the next action. Use it for empty lists, failures, and re-login prompts.
+- `EmptyStateView`: '아띠' in the matching mood, a short title, an optional one-line explanation, and the next action. Use it for empty lists, failures, and re-login prompts.
 
 ### Section card
 
@@ -153,6 +165,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 
 - Label above, outlined box (2026-11; replaces the soft filled field with an inside label). Researched on Dribbble/Pinterest login and form shots and Baymard's mobile form studies: a label that always stays visible above the box is the common, most readable pattern.
 - Wrap every field in `LabeledField` (`lib/core/presentation/labeled_field.dart`). Never put `labelText` in `InputDecoration`; the name is `FieldLabel` above the box (13/600, primary text, 8 gap) and is merged with the field for screen readers. Chip groups that act as one input use `FieldLabel` alone.
+- Errors start on the same left line as the label and the box border, not indented to the text inside the box. Every `TextFormField`/`DropdownButtonFormField` that can fail sets `errorBuilder: fieldErrorBuilder`; custom `FormField`s use `fieldErrorBuilder` for `InputDecoration.error`, or `FieldErrorText` under a chip group.
 - Box: white fill, 1px `line` border, 12 radius, 16×12 padding (48 high for one line). Disabled uses a `subtle` border.
 - Focus draws a 1.5 accent border; errors draw a danger border with inline error text below, never color alone.
 - Placeholders use `muted` and show an example (`student@inha.edu`), not the label again. Units such as `년` and `학점` are suffix text in secondary color.

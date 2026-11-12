@@ -99,7 +99,7 @@ void main() {
     await _tapVisible(tester, 'save-grade');
     await tester.pumpAndSettle();
     // 안내는 폼 위쪽에 있어 저장 버튼까지 내려간 화면에서는 다시 올려 봐야 한다.
-    await tester.ensureVisible(find.text('이미 ').first);
+    await tester.ensureVisible(find.text('이미').first);
     await tester.pumpAndSettle();
 
     expect(

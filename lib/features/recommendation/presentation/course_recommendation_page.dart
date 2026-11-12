@@ -6,6 +6,7 @@ import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/recommendation/domain/course_recommendation.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
+import 'package:ahni_mobile/core/presentation/app_message.dart';
 import 'package:flutter/material.dart';
 
 class CourseRecommendationPage extends StatefulWidget {
@@ -55,9 +56,7 @@ class _CourseRecommendationPageState extends State<CourseRecommendationPage> {
         ? '${lecture.courseName} ${lecture.section}분반을 시간표에 추가했어요.'
         : message;
     if (text == null) return;
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text)));
+    showAppMessage(context, text);
   }
 
   @override

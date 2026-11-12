@@ -1,6 +1,7 @@
 import 'package:ahni_mobile/core/presentation/ahni_palette.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
+import 'package:ahni_mobile/core/presentation/sheet_header.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/timetable/data/registration_screenshot_reader.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
@@ -98,28 +99,14 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
     final textTheme = Theme.of(context).textTheme;
     final preview = _preview;
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      padding: EdgeInsets.only(bottom: sheetBottomInset(context)),
       child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: WhitespaceWrappedText(
-                    preview == null ? '수강신청 내역 가져오기' : '찾은 강의',
-                    style: textTheme.titleLarge,
-                  ),
-                ),
-                IconButton(
-                  tooltip: '닫기',
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close),
-                ),
-              ],
-            ),
+            SheetHeader(preview == null ? '수강신청 내역 가져오기' : '찾은 강의'),
             if (preview == null) ...[
               const SizedBox(height: 8),
               WhitespaceWrappedText(
@@ -164,12 +151,7 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
               ),
               if (_error case final error?) ...[
                 const SizedBox(height: 12),
-                WhitespaceWrappedText(
-                  error,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
+                ErrorNotice(error),
               ],
             ] else ...[
               const SizedBox(height: 16),

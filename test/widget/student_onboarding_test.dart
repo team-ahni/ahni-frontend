@@ -234,7 +234,10 @@ void main() {
     await tester.ensureVisible(signInButton);
     await tester.tap(signInButton);
     await tester.pump();
-    expect(find.text('인하대학교 이메일(@inha.edu)을 입력해 주세요.'), findsOneWidget);
+    expect(
+      findWhitespaceWrappedText('인하대학교 이메일(@inha.edu)을 입력해 주세요.'),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byKey(const Key('auth-sign-up-segment')));
     await tester.pump();
@@ -262,7 +265,10 @@ void main() {
     await tester.ensureVisible(signUpButton);
     await tester.tap(signUpButton);
     await tester.pumpAndSettle();
-    expect(find.text('인하대학교 이메일(@inha.edu)을 입력해 주세요.'), findsNothing);
+    expect(
+      findWhitespaceWrappedText('인하대학교 이메일(@inha.edu)을 입력해 주세요.'),
+      findsNothing,
+    );
     expect(find.text('비밀번호를 6자 이상 입력해 주세요.'), findsNothing);
     expect(controller.state, isA<EmailVerificationPending>());
     expect(findWhitespaceWrappedText('이메일을 확인해 주세요'), findsOneWidget);
@@ -395,7 +401,9 @@ void main() {
 
     expect(auth.lastPasswordResetEmail, 'student@inha.edu');
     expect(
-      findWhitespaceWrappedText('비밀번호 재설정 메일을 보냈어요. 메일함을 확인해 주세요.'),
+      findWhitespaceWrappedText(
+        '가입된 학교 이메일이면 재설정 메일이 가요. 몇 분 안에 오지 않으면 스팸함도 확인해 주세요.',
+      ),
       findsOneWidget,
     );
 
@@ -613,7 +621,10 @@ void main() {
     await tester.tap(submitButton);
     await tester.pump();
 
-    expect(find.text('같은 학과를 여러 전공으로 선택할 수 없어요.'), findsWidgets);
+    expect(
+      findWhitespaceWrappedText('같은 학과를 여러 전공으로 선택할 수 없어요.'),
+      findsWidgets,
+    );
     expect(api.lastRegistration, isNull);
   });
 

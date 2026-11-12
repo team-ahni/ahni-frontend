@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_page.dart';
@@ -167,6 +168,33 @@ void main() {
     await tester.tap(find.byKey(const Key('confirm-delete-lecture')));
     await tester.pumpAndSettle();
     expect(controller.entries, isEmpty);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox());
+    controller.dispose();
+    await auth.dispose();
+  });
+
+  testWidgets('shows the shared empty state when a search finds nothing', (
+    tester,
+  ) async {
+    final auth = FakeAuthGateway(currentSession: testSession);
+    final controller = TimetableController(auth: auth, api: FakeTimetableApi());
+    await tester.pumpWidget(
+      MaterialApp(
+        home: TimetablePage(
+          controller: controller,
+          onAuthenticationRequired: () {},
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('강의 추가'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField), '없는과목');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EmptyStateView), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
     controller.dispose();

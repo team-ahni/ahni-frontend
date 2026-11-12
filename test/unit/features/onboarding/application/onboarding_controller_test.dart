@@ -174,7 +174,10 @@ void main() {
 
       final state = controller.state as AuthenticationRequired;
       expect(auth.lastPasswordResetEmail, 'student@inha.edu');
-      expect(state.message, '비밀번호 재설정 메일을 보냈어요. 메일함을 확인해 주세요.');
+      expect(
+        state.message,
+        '가입된 학교 이메일이면 재설정 메일이 가요. 몇 분 안에 오지 않으면 스팸함도 확인해 주세요.',
+      );
       expect(state.isError, isFalse);
     },
   );

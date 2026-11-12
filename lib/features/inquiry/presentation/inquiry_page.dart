@@ -6,6 +6,7 @@ import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_attachment_controller.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/domain/inquiry.dart';
+import 'package:ahni_mobile/core/presentation/busy_button_label.dart';
 import 'package:flutter/material.dart';
 
 class InquiryPage extends StatefulWidget {
@@ -265,6 +266,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                       enabled: !isSubmitting,
                       maxLength: 200,
                       decoration: const InputDecoration(),
+                      errorBuilder: fieldErrorBuilder,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return '제목을 입력해 주세요.';
@@ -284,6 +286,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                       maxLines: 12,
                       maxLength: 4000,
                       decoration: const InputDecoration(),
+                      errorBuilder: fieldErrorBuilder,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return '내용을 입력해 주세요.';
@@ -300,12 +303,10 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                   FilledButton(
                     key: const Key('submit-inquiry'),
                     onPressed: isSubmitting ? null : _submit,
-                    child: isSubmitting
-                        ? const SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(isEditing ? '수정' : '등록'),
+                    child: BusyButtonLabel(
+                      isBusy: isSubmitting,
+                      label: isEditing ? '수정' : '등록',
+                    ),
                   ),
                 ],
               ),
