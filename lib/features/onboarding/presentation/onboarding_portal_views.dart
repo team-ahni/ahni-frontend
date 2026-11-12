@@ -15,6 +15,7 @@ class _StudentPortalView extends StatefulWidget {
     required this.timetableController,
     required this.recommendationController,
     required this.profileState,
+    required this.showDeveloperTools,
   });
 
   final OnboardingController onboardingController;
@@ -29,6 +30,7 @@ class _StudentPortalView extends StatefulWidget {
   final TimetableController? timetableController;
   final CourseRecommendationController? recommendationController;
   final ProfileReady profileState;
+  final bool showDeveloperTools;
 
   @override
   State<_StudentPortalView> createState() => _StudentPortalViewState();
@@ -103,6 +105,7 @@ class _StudentPortalViewState extends State<_StudentPortalView> {
       inquiryController: widget.inquiryController,
       state: widget.profileState,
       bottomNavigationBar: navigationBar,
+      showDeveloperTools: widget.showDeveloperTools,
     );
   }
 }
@@ -113,12 +116,14 @@ class _ProfileView extends StatelessWidget {
     required this.inquiryController,
     required this.state,
     required this.bottomNavigationBar,
+    required this.showDeveloperTools,
   });
 
   final OnboardingController controller;
   final InquiryController inquiryController;
   final ProfileReady state;
   final Widget bottomNavigationBar;
+  final bool showDeveloperTools;
 
   @override
   Widget build(BuildContext context) {
@@ -263,6 +268,27 @@ class _ProfileView extends StatelessWidget {
               ),
             ],
           ),
+          if (showDeveloperTools) ...[
+            const SizedBox(height: 24),
+            const SectionHeader(title: '개발자 도구'),
+            InfoGroup(
+              key: const Key('developer-tools'),
+              children: [
+                NavigationRow(
+                  key: const Key('replay-intro'),
+                  icon: Icons.slideshow_rounded,
+                  title: '앱 소개 다시 보기',
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (routeContext) => IntroPage(
+                        onDone: () => Navigator.of(routeContext).pop(),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

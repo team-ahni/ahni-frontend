@@ -12,6 +12,7 @@ import 'package:ahni_mobile/features/grade/application/grade_simulation_controll
 import 'package:ahni_mobile/features/grade/presentation/grade_list_page.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/presentation/inquiry_page.dart';
+import 'package:ahni_mobile/features/intro/presentation/intro_page.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_page.dart';
@@ -40,6 +41,7 @@ class OnboardingPage extends StatefulWidget {
     required this.inquiryController,
     this.timetableController,
     this.recommendationController,
+    this.showDeveloperTools = false,
     super.key,
   });
 
@@ -54,6 +56,7 @@ class OnboardingPage extends StatefulWidget {
   final InquiryController inquiryController;
   final TimetableController? timetableController;
   final CourseRecommendationController? recommendationController;
+  final bool showDeveloperTools;
 
   @override
   State<OnboardingPage> createState() => _OnboardingPageState();
@@ -134,6 +137,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         timetableController: widget.timetableController,
         recommendationController: widget.recommendationController,
         profileState: state,
+        showDeveloperTools: widget.showDeveloperTools,
       ),
       MajorEditing state => _MajorEditingView(
         controller: widget.controller,

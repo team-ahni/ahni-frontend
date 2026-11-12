@@ -12,6 +12,7 @@ import 'package:ahni_mobile/features/grade/data/grade_api.dart';
 import 'package:ahni_mobile/features/grade/data/grade_ocr_api.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/data/inquiry_api.dart';
+import 'package:ahni_mobile/features/intro/data/intro_store.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
 import 'package:ahni_mobile/features/timetable/data/timetable_api.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
@@ -68,6 +69,7 @@ Future<void> main() async {
   runApp(
     AhniApp(
       environment: AppEnvironment.parse(configuredEnvironment),
+      introStore: SecureIntroStore(),
       controller: OnboardingController(
         auth: auth,
         api: HttpStudentApi(baseUri: apiBaseUri, client: httpClient),
