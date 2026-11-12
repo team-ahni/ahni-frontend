@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/info_group.dart';
@@ -195,7 +196,9 @@ class _EmailVerificationPendingView extends StatelessWidget {
                 ),
                 if (state.message case final message?) ...[
                   const SizedBox(height: 16),
-                  _StatusMessage(message: message, isError: state.isError),
+                  state.isError
+                      ? ErrorNotice(message)
+                      : NoticeCallout(message: message),
                 ],
                 const SizedBox(height: 24),
                 SizedBox(
@@ -283,10 +286,9 @@ class _PasswordRecoveryViewState extends State<_PasswordRecoveryView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (widget.state.message case final message?) ...[
-                    _StatusMessage(
-                      message: message,
-                      isError: widget.state.isError,
-                    ),
+                    widget.state.isError
+                        ? ErrorNotice(message)
+                        : NoticeCallout(message: message),
                     const SizedBox(height: 16),
                   ],
                   LabeledField(
@@ -461,10 +463,9 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
                   ),
                   const SizedBox(height: 24),
                   if (widget.state.message case final message?) ...[
-                    _StatusMessage(
-                      message: message,
-                      isError: widget.state.isError,
-                    ),
+                    widget.state.isError
+                        ? ErrorNotice(message)
+                        : NoticeCallout(message: message),
                     const SizedBox(height: 16),
                   ],
                   LabeledField(
@@ -594,9 +595,8 @@ class _RelinkPanel extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _StatusMessage(
+            const NoticeCallout(
               message: '기존 정보 연결을 요청했어요. 관리자가 본인 확인을 마치면 이 계정에서 기존 성적과 시간표를 볼 수 있어요.',
-              isError: false,
             ),
             const SizedBox(height: 8),
             TextButton(onPressed: onCheck, child: const Text('연결 확인')),
@@ -704,7 +704,7 @@ class _RegistrationViewState extends State<_RegistrationView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (widget.state.message case final message?) ...[
-                    _StatusMessage(message: message, isError: true),
+                    ErrorNotice(message),
                     const SizedBox(height: 16),
                   ],
                   _RelinkPanel(
@@ -1004,7 +1004,7 @@ class _ProfileView extends StatelessWidget {
           ),
           const SizedBox(height: 28),
           if (state.message case final message?) ...[
-            _StatusMessage(message: message, isError: true),
+            ErrorNotice(message),
             const SizedBox(height: 16),
           ],
           SectionHeader(
@@ -1175,7 +1175,7 @@ class _MajorEditingViewState extends State<_MajorEditingView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (widget.state.message case final message?) ...[
-                    _StatusMessage(message: message, isError: true),
+                    ErrorNotice(message),
                     const SizedBox(height: 16),
                   ],
                   _DepartmentField(
@@ -1280,27 +1280,10 @@ class _RetryView extends StatelessWidget {
     return _PageScaffold(
       fillViewport: true,
       child: Center(
-        child: _SectionCard(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.cloud_off_outlined,
-                size: 40,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 16),
-              WhitespaceWrappedText(
-                message,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 24),
-              FilledButton(onPressed: onRetry, child: const Text('다시 시도')),
-            ],
-          ),
+        child: LoadFailureView(
+          title: '내 정보를 불러오지 못했어요',
+          message: message,
+          onRetry: onRetry,
         ),
       ),
     );
@@ -1505,7 +1488,7 @@ class _ValueSegmentedControl extends StatelessWidget {
                     onTap: isEnabled ? () => onChanged(option.key) : null,
                     borderRadius: BorderRadius.circular(10),
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(minHeight: 44),
+                      constraints: const BoxConstraints(minHeight: 48),
                       child: Center(
                         child: Text(
                           option.value,
@@ -1546,39 +1529,6 @@ class _StatusBadge extends StatelessWidget {
         label,
         style: Theme.of(context).textTheme.bodySmall
             ?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-}
-
-class _StatusMessage extends StatelessWidget {
-  const _StatusMessage({required this.message, this.isError = false});
-
-  final String message;
-  final bool isError;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isError
-              ? colorScheme.errorContainer
-              : colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: WhitespaceWrappedText(
-          message,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: isError
-                ? colorScheme.onErrorContainer
-                : colorScheme.onPrimaryContainer,
-          ),
-        ),
       ),
     );
   }

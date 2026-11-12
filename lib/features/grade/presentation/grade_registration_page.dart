@@ -1,4 +1,5 @@
 import 'package:ahni_mobile/features/grade/domain/ocr_course_matching.dart';
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/course_catalog_controller.dart';
@@ -305,7 +306,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (message case final value?) ...[
-                              _ErrorMessage(message: value),
+                              ErrorNotice(value),
                               const SizedBox(height: 20),
                             ],
                             if (_ocrMessage case final value?) ...[
@@ -465,9 +466,7 @@ class _GradeRegistrationPageState extends State<GradeRegistrationPage> {
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.only(top: 12),
-                                    child: _ErrorMessage(
-                                      message: state.message,
-                                    ),
+                                    child: ErrorNotice(state.message),
                                   ),
                                   TextButton(
                                     onPressed: () =>
@@ -800,45 +799,6 @@ class _CoursePickerMessage extends StatelessWidget {
           ),
           if (action case final value?) ...[const SizedBox(height: 12), value],
         ],
-      ),
-    );
-  }
-}
-
-class _ErrorMessage extends StatelessWidget {
-  const _ErrorMessage({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      liveRegion: true,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.error_outline_rounded,
-              color: Theme.of(context).colorScheme.onErrorContainer,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: WhitespaceWrappedText(
-                message,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

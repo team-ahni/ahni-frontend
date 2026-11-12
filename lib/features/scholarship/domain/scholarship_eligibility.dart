@@ -1,3 +1,5 @@
+import 'package:ahni_mobile/core/format/credit.dart';
+
 class ScholarshipEligibility {
   const ScholarshipEligibility({
     required this.admissionYear,
@@ -71,14 +73,10 @@ class ScholarshipResult {
   /// 미충족 항목마다 달성까지 필요한 조건을 한 줄씩 돌려준다.
   List<String> get shortfalls => [
     if (gpaShortfall > 0) '평점 +${gpaShortfall.toStringAsFixed(2)} 필요',
-    if (creditShortfall > 0) '이수학점 ${_credit(creditShortfall)}학점 더 필요',
+    if (creditShortfall > 0) '이수학점 ${formatCredit(creditShortfall)}학점 더 필요',
     if (excessWarnings > 0) '학사경고 허용 횟수를 $excessWarnings회 초과',
   ];
 }
-
-String _credit(double value) => value == value.truncateToDouble()
-    ? value.toInt().toString()
-    : value.toString();
 
 double _number(Object? value) {
   if (value is! num || !value.isFinite || value < 0) {

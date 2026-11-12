@@ -1,3 +1,4 @@
+import 'package:ahni_mobile/core/presentation/confirm_dialog.dart';
 import 'package:ahni_mobile/core/presentation/labeled_field.dart';
 import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
@@ -293,12 +294,7 @@ class _InquiryFormPageState extends State<InquiryFormPage> {
                   ),
                   if (widget.controller.formMessage case final message?) ...[
                     const SizedBox(height: 12),
-                    WhitespaceWrappedText(
-                      message,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
+                    ErrorNotice(message),
                   ],
                   const SizedBox(height: 24),
                   FilledButton(
@@ -443,12 +439,7 @@ class _InquiryDetailPageState extends State<InquiryDetailPage> {
                 ),
                 if (actionMessage != null) ...[
                   const SizedBox(height: 16),
-                  WhitespaceWrappedText(
-                    actionMessage,
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
-                  ),
+                  ErrorNotice(actionMessage),
                 ],
               ],
             ),
@@ -469,23 +460,13 @@ class _AttachmentSection extends StatelessWidget {
     BuildContext context,
     InquiryAttachment attachment,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('첨부파일 삭제'),
-        content: Text('${attachment.filename} 파일을 삭제할까요?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
-          ),
-          FilledButton(
-            key: const Key('confirm-delete-attachment'),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
+    final confirmed = await showConfirmDialog(
+      context,
+      title: '첨부파일을 삭제할까요?',
+      message: '${attachment.filename} 파일이 문의에서 빠져요.',
+      confirmLabel: '삭제',
+      destructive: true,
+      confirmKey: const Key('confirm-delete-attachment'),
     );
     if (confirmed == true) await controller.delete(attachment);
   }
@@ -600,10 +581,7 @@ class _AttachmentSection extends StatelessWidget {
               ],
               if (controller.actionMessage case final message?) ...[
                 const SizedBox(height: 12),
-                WhitespaceWrappedText(
-                  message,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+                ErrorNotice(message),
               ],
             ],
           ),
@@ -673,12 +651,15 @@ class _FailureMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 아래로 당겨 새로고침할 수 있게 목록 안에 둔다.
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        WhitespaceWrappedText(message),
-        const SizedBox(height: 16),
-        OutlinedButton(onPressed: onRetry, child: const Text('다시 시도')),
+        LoadFailureView(
+          title: '문의를 불러오지 못했어요',
+          message: message,
+          onRetry: onRetry,
+        ),
       ],
     );
   }
@@ -717,23 +698,11 @@ String _formatDate(DateTime dateTime) {
 
 String _twoDigits(int value) => value.toString().padLeft(2, '0');
 
-Future<bool?> _confirmDelete(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: const Text('문의 삭제'),
-      content: const Text('삭제한 문의는 문의 목록에서 보이지 않아요.'),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('취소'),
-        ),
-        FilledButton(
-          key: const Key('confirm-delete-inquiry'),
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('삭제'),
-        ),
-      ],
-    ),
-  );
-}
+Future<bool?> _confirmDelete(BuildContext context) => showConfirmDialog(
+  context,
+  title: '문의를 삭제할까요?',
+  message: '삭제한 문의는 문의 목록에서 보이지 않아요.',
+  confirmLabel: '삭제',
+  destructive: true,
+  confirmKey: const Key('confirm-delete-inquiry'),
+);

@@ -5,6 +5,7 @@ import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/timetable/data/registration_screenshot_reader.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
+import 'package:ahni_mobile/features/timetable/presentation/lecture_card.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_conflict_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -175,7 +176,8 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
               if (preview.toAdd.isNotEmpty) ...[
                 FieldLabel('추가할 강의 ${preview.toAdd.length}개'),
                 for (final lecture in preview.toAdd)
-                  _LectureCard(
+                  LectureCard(
+                    key: ValueKey('import-lecture-${lecture.entityId}'),
                     lecture: lecture,
                     conflicts: preview.conflicts[lecture.entityId] ?? const [],
                   ),
@@ -184,7 +186,11 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
                 const SizedBox(height: 8),
                 const FieldLabel('이미 시간표에 있어요'),
                 for (final lecture in preview.alreadyAdded)
-                  _LectureCard(lecture: lecture, alreadyAdded: true),
+                  LectureCard(
+                    key: ValueKey('import-lecture-${lecture.entityId}'),
+                    lecture: lecture,
+                    alreadyAdded: true,
+                  ),
               ],
               if (preview.notFound.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -222,128 +228,3 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
     );
   }
 }
-
-/// 수강 추천의 과목 카드와 같은 모양. 교수와 시간까지 보여 줘 학교 화면과 대조하게 한다.
-/// 분반을 잘못 읽었는데 그 분반도 개설돼 있으면 자동으로는 알 수 없어서다.
-class _LectureCard extends StatelessWidget {
-  const _LectureCard({
-    required this.lecture,
-    this.alreadyAdded = false,
-    this.conflicts = const [],
-  });
-
-  final Lecture lecture;
-  final bool alreadyAdded;
-
-  /// 시간이 겹치는 기존 시간표 항목.
-  final List<TimetableEntry> conflicts;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-    final teal = AhniPalette.of(context).teal;
-    final schedule = _schedule(lecture);
-    Widget detail(IconData icon, String text) => Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 1),
-            child: Icon(icon, size: 16, color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            child: WhitespaceWrappedText(text, style: textTheme.bodySmall),
-          ),
-        ],
-      ),
-    );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        key: ValueKey('import-lecture-${lecture.entityId}'),
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          // 시트 바탕이 흰색이라 카드는 옅은 회색 면으로 구분한다.
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: WhitespaceWrappedText(
-                    lecture.courseName,
-                    style: textTheme.titleSmall,
-                  ),
-                ),
-                if (alreadyAdded)
-                  Container(
-                    margin: const EdgeInsets.only(left: 8),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: ShapeDecoration(
-                      color: teal.soft,
-                      shape: const StadiumBorder(),
-                    ),
-                    child: Text(
-                      '이미 있음',
-                      style: textTheme.labelMedium?.copyWith(color: teal.ink),
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${lecture.courseCode}-${lecture.section} · ${_credit(lecture.credit)}학점',
-              style: textTheme.bodySmall,
-            ),
-            detail(Icons.person_outline_rounded, lecture.professorName),
-            detail(Icons.schedule_rounded, schedule),
-            for (final entry in conflicts)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      size: 16,
-                      color: AhniPalette.of(context).amber.ink,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: WhitespaceWrappedText(
-                        '시간이 겹쳐요: ${entry.lecture.courseName}(${_schedule(entry.lecture)})',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AhniPalette.of(context).amber.ink,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  static String _credit(double value) => value == value.truncateToDouble()
-      ? value.toInt().toString()
-      : value.toString();
-}
-
-String _schedule(Lecture lecture) => lecture.schedules.isEmpty
-    ? '고정시간 없음'
-    : lecture.schedules
-          .map((s) => '${timetableDays[s.dayOfWeek - 1]} ${s.label}')
-          .join(', ');
