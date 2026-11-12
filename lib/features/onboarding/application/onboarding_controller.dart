@@ -226,7 +226,7 @@ class OnboardingController extends ChangeNotifier {
       await _auth.sendPasswordResetEmail(normalizedEmail);
       _setState(
         const AuthenticationRequired(
-          message: '비밀번호 재설정 메일을 보냈어요. 메일함을 확인해 주세요.',
+          message: '가입된 학교 이메일이면 재설정 메일이 가요. 몇 분 안에 오지 않으면 스팸함도 확인해 주세요.',
         ),
       );
     } on AuthFailure catch (failure) {

@@ -160,6 +160,7 @@ class _PasswordRecoveryViewState extends State<_PasswordRecoveryView> {
                       autofillHints: const [AutofillHints.newPassword],
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
+                      errorBuilder: fieldErrorBuilder,
                       validator: _validatePassword,
                       decoration: InputDecoration(
                         suffixIcon: IconButton(
@@ -337,6 +338,7 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                       autocorrect: false,
+                      errorBuilder: fieldErrorBuilder,
                       forceErrorText: _passwordResetEmailError,
                       onChanged: (_) {
                         if (_passwordResetEmailError != null) {
@@ -362,6 +364,7 @@ class _AuthenticationViewState extends State<_AuthenticationView> {
                           : const [AutofillHints.password],
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: isSubmitting ? null : (_) => _submit(),
+                      errorBuilder: fieldErrorBuilder,
                       validator: _validatePassword,
                       decoration: InputDecoration(
                         suffixIcon: IconButton(

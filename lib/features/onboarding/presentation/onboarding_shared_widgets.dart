@@ -168,6 +168,7 @@ class _DepartmentField extends StatelessWidget {
         onChanged: isEnabled
             ? (selected) => onChanged(selected == _none ? null : selected)
             : null,
+        errorBuilder: fieldErrorBuilder,
         validator: validator,
       ),
     );
