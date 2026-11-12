@@ -151,12 +151,7 @@ class _RegistrationImportSheetState extends State<RegistrationImportSheet> {
               ),
               if (_error case final error?) ...[
                 const SizedBox(height: 12),
-                WhitespaceWrappedText(
-                  error,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
+                ErrorNotice(error),
               ],
             ] else ...[
               const SizedBox(height: 16),

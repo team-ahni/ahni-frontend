@@ -189,8 +189,8 @@ class _RegistrationViewState extends State<_RegistrationView> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: isSubmitting ? null : _submit,
-                      child: _ButtonLabel(
-                        isLoading: isSubmitting,
+                      child: BusyButtonLabel(
+                        isBusy: isSubmitting,
                         label: '학생 정보 등록',
                       ),
                     ),

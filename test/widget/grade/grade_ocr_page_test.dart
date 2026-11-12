@@ -78,9 +78,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(timetable.queriedTerm, (2024, 'FIRST'));
-    expect(find.text('001분반 · 김교수'), findsNothing);
+    // 학수번호가 다른 분반은 보이지 않는다.
+    expect(
+      find.byKey(ValueKey('ocr-lecture-${testLecture.entityId}')),
+      findsNothing,
+    );
     expect(timetable.savedId, isNull);
-    await tester.tap(find.text('002분반 · 이교수'));
+    await tester.tap(find.byKey(const ValueKey('ocr-lecture-historical')));
     await tester.pumpAndSettle();
     expect(timetable.savedId, 'historical');
     expect(grades.registerCalls, 0);

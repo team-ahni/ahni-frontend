@@ -4,6 +4,7 @@ import 'package:ahni_mobile/features/grade/application/grade_simulation_controll
 import 'package:ahni_mobile/features/grade/domain/grade_record.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_simulation.dart';
 import 'package:ahni_mobile/features/grade/domain/grade_summary.dart';
+import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:flutter/material.dart';
 
 class GradeSimulationPage extends StatefulWidget {
@@ -139,15 +140,7 @@ class _GradeSimulationPageState extends State<GradeSimulationPage> {
                       ),
                       const SizedBox(height: 24),
                       if (state is GradeSimulationFailure) ...[
-                        Semantics(
-                          liveRegion: true,
-                          child: WhitespaceWrappedText(
-                            state.message,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                        ),
+                        ErrorNotice(state.message),
                         const SizedBox(height: 16),
                       ],
                       if (state is GradeSimulationAuthenticationRequired)

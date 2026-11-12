@@ -17,6 +17,7 @@ import 'package:ahni_mobile/features/timetable/application/timetable_controller.
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
 import 'package:ahni_mobile/features/timetable/presentation/timetable_page.dart';
 import 'package:ahni_mobile/features/onboarding/application/onboarding_controller.dart';
+import 'package:ahni_mobile/core/presentation/busy_button_label.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ahni_mobile/features/graduation/application/graduation_controller.dart';

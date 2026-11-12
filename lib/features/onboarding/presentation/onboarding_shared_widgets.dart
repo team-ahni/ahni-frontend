@@ -239,27 +239,3 @@ class _ValueSegmentedControl extends StatelessWidget {
     );
   }
 }
-
-class _ButtonLabel extends StatelessWidget {
-  const _ButtonLabel({required this.isLoading, required this.label});
-
-  final bool isLoading;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (isLoading) ...[
-          const SizedBox.square(
-            dimension: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-          const SizedBox(width: 8),
-        ],
-        Text(label),
-      ],
-    );
-  }
-}

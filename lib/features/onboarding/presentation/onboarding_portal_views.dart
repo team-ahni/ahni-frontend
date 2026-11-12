@@ -212,8 +212,8 @@ class _ProfileView extends StatelessWidget {
               onPressed: state.isLoadingMajors
                   ? null
                   : controller.startMajorEditing,
-              child: _ButtonLabel(
-                isLoading: state.isLoadingMajors,
+              child: BusyButtonLabel(
+                isBusy: state.isLoadingMajors,
                 label: '전공 수정',
               ),
             ),
@@ -435,8 +435,8 @@ class _MajorEditingViewState extends State<_MajorEditingView> {
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: isSubmitting ? null : _submit,
-                      child: _ButtonLabel(
-                        isLoading: isSubmitting,
+                      child: BusyButtonLabel(
+                        isBusy: isSubmitting,
                         label: '전공 저장',
                       ),
                     ),
