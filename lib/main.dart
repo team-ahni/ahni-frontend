@@ -10,6 +10,7 @@ import 'package:ahni_mobile/features/grade/application/grade_simulation_controll
 import 'package:ahni_mobile/features/grade/data/course_api.dart';
 import 'package:ahni_mobile/features/grade/data/grade_api.dart';
 import 'package:ahni_mobile/features/grade/data/grade_ocr_api.dart';
+import 'package:ahni_mobile/features/notice/data/notice_api.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/data/inquiry_api.dart';
 import 'package:ahni_mobile/features/intro/data/intro_store.dart';
@@ -96,6 +97,11 @@ Future<void> main() async {
         catalogApi: courseApi,
       ),
       gradeEditController: GradeEditController(auth: auth, api: gradeApi),
+      noticeApi: HttpNoticeApi(
+        auth: auth,
+        baseUri: apiBaseUri,
+        client: httpClient,
+      ),
       inquiryController: InquiryController(
         auth: auth,
         api: HttpInquiryApi(baseUri: apiBaseUri, client: httpClient),

@@ -10,6 +10,7 @@ import 'package:ahni_mobile/features/grade/application/grade_list_controller.dar
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_simulation_controller.dart';
 import 'package:ahni_mobile/features/grade/presentation/grade_list_page.dart';
+import 'package:ahni_mobile/features/notice/data/notice_api.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/inquiry/presentation/inquiry_page.dart';
 import 'package:ahni_mobile/features/intro/presentation/intro_page.dart';
@@ -23,6 +24,8 @@ import 'package:flutter/services.dart';
 import 'package:ahni_mobile/features/graduation/application/graduation_controller.dart';
 import 'package:ahni_mobile/features/graduation/presentation/graduation_page.dart';
 import 'package:ahni_mobile/features/scholarship/application/scholarship_controller.dart';
+
+import 'package:ahni_mobile/features/notice/presentation/notice_list_page.dart';
 
 part 'onboarding_auth_views.dart';
 part 'onboarding_portal_views.dart';
@@ -40,6 +43,7 @@ class OnboardingPage extends StatefulWidget {
     required this.gradeRegistrationController,
     required this.gradeEditController,
     required this.inquiryController,
+    this.noticeApi,
     this.timetableController,
     this.recommendationController,
     this.showDeveloperTools = false,
@@ -55,6 +59,7 @@ class OnboardingPage extends StatefulWidget {
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
+  final NoticeApi? noticeApi;
   final TimetableController? timetableController;
   final CourseRecommendationController? recommendationController;
   final bool showDeveloperTools;
@@ -135,6 +140,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         gradeRegistrationController: widget.gradeRegistrationController,
         gradeEditController: widget.gradeEditController,
         inquiryController: widget.inquiryController,
+        noticeApi: widget.noticeApi,
         timetableController: widget.timetableController,
         recommendationController: widget.recommendationController,
         profileState: state,

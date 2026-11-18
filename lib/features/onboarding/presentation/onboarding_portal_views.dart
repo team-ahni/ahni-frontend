@@ -12,6 +12,7 @@ class _StudentPortalView extends StatefulWidget {
     required this.gradeRegistrationController,
     required this.gradeEditController,
     required this.inquiryController,
+    required this.noticeApi,
     required this.timetableController,
     required this.recommendationController,
     required this.profileState,
@@ -27,6 +28,7 @@ class _StudentPortalView extends StatefulWidget {
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
+  final NoticeApi? noticeApi;
   final TimetableController? timetableController;
   final CourseRecommendationController? recommendationController;
   final ProfileReady profileState;
@@ -103,6 +105,7 @@ class _StudentPortalViewState extends State<_StudentPortalView> {
     return _ProfileView(
       controller: widget.onboardingController,
       inquiryController: widget.inquiryController,
+      noticeApi: widget.noticeApi,
       state: widget.profileState,
       bottomNavigationBar: navigationBar,
       showDeveloperTools: widget.showDeveloperTools,
@@ -114,6 +117,7 @@ class _ProfileView extends StatelessWidget {
   const _ProfileView({
     required this.controller,
     required this.inquiryController,
+    required this.noticeApi,
     required this.state,
     required this.bottomNavigationBar,
     required this.showDeveloperTools,
@@ -121,6 +125,7 @@ class _ProfileView extends StatelessWidget {
 
   final OnboardingController controller;
   final InquiryController inquiryController;
+  final NoticeApi? noticeApi;
   final ProfileReady state;
   final Widget bottomNavigationBar;
   final bool showDeveloperTools;
@@ -266,6 +271,20 @@ class _ProfileView extends StatelessWidget {
                   );
                 },
               ),
+              if (noticeApi case final api?)
+                NavigationRow(
+                  key: const Key('open-notices'),
+                  icon: Icons.campaign_outlined,
+                  title: '공지사항',
+                  onTap: () => Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => NoticeListPage(
+                        api: api,
+                        onAuthenticationRequired: controller.signOut,
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
           if (showDeveloperTools) ...[
