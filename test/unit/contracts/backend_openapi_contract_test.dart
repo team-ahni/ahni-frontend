@@ -29,6 +29,14 @@ void main() {
     expect(paths, contains('/api/v1/inquiries/{inquiryEntityId}'));
     expect(paths, contains('/api/v1/scholarship-eligibility'));
     expect(paths, contains('/api/v1/course-recommendations'));
+    final notices = paths['/api/v1/notices']! as Map<String, Object?>;
+    final noticeList = notices['get']! as Map<String, Object?>;
+    expect(
+      noticeList['security'],
+      equals([
+        {'bearerAuth': []},
+      ]),
+    );
     final lectureManagement =
         paths['/api/v1/admin/lectures/{entityId}']! as Map<String, Object?>;
     expect(lectureManagement, contains('put'));

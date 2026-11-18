@@ -1,14 +1,20 @@
+import 'dart:convert';
+
 import 'package:ahni_mobile/app/ahni_app.dart';
 import 'package:ahni_mobile/core/config/app_environment.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/grade/application/grade_list_controller.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
+import 'package:ahni_mobile/features/notice/data/notice_api.dart';
 import 'package:ahni_mobile/features/onboarding/application/onboarding_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 
 import '../support/grade_fakes.dart';
 import '../support/onboarding_fakes.dart';
+import '../support/whitespace_wrapped_text_finder.dart';
 
 void main() {
   testWidgets('authenticated students move between grades and profile', (
@@ -65,6 +71,104 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('profile-summary')), findsOneWidget);
+  });
+
+  testWidgets('retries the notice list and opens a notice from profile', (
+    tester,
+  ) async {
+    final auth = FakeAuthGateway(currentSession: testSession);
+    final onboardingController = OnboardingController(
+      auth: auth,
+      api: FakeStudentApi()..getProfileHandler = (_) async => testProfile,
+    );
+    var calls = 0;
+    const body = '수강신청 기간을 확인해 주세요.\n학과 공지도 함께 확인해 주세요.';
+    final client = MockClient((request) async {
+      expect(request.url.path, '/api/v1/notices');
+      expect(request.method, 'GET');
+      expect(
+        request.headers['authorization'],
+        'Bearer ${testSession.accessToken}',
+      );
+      if (++calls == 1) return http.Response('', 503);
+      return http.Response(
+        jsonEncode([
+          {
+            'title': '수강신청 안내',
+            'body': body,
+            'publishedAt': '2026-11-18T10:00:00Z',
+          },
+        ]),
+        200,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+    });
+    addTearDown(client.close);
+
+    await tester.pumpWidget(
+      AhniApp(
+        environment: AppEnvironment.development,
+        controller: onboardingController,
+        gradeController: buildTestGradeListController(auth: auth),
+        graduationController: buildTestGraduationController(),
+        scholarshipController: buildTestScholarshipController(),
+        courseController: buildTestCourseCatalogController(),
+        gradeRegistrationController: buildTestGradeRegistrationController(),
+        gradeEditController: buildTestGradeEditController(),
+        gradeSimulationController: buildTestGradeSimulationController(),
+        inquiryController: buildTestInquiryController(),
+        noticeApi: HttpNoticeApi(
+          auth: auth,
+          baseUri: Uri.parse('https://api.example.org'),
+          client: client,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final notices = find.byKey(const Key('open-notices'));
+    await tester.ensureVisible(notices);
+    expect(
+      tester.getTopLeft(notices).dy,
+      greaterThan(
+        tester.getTopLeft(find.byKey(const Key('open-inquiries'))).dy,
+      ),
+    );
+    expect(calls, 0);
+    await tester.tap(notices);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('notice-list-page')), findsOneWidget);
+    expect(findWhitespaceWrappedText('공지사항을 불러오지 못했어요'), findsOneWidget);
+    await tester.tap(find.text('다시 시도'));
+    await tester.pumpAndSettle();
+
+    final title = findWhitespaceWrappedText('수강신청 안내');
+    expect(title, findsOneWidget);
+    final publishedAt = DateTime.parse('2026-11-18T10:00:00Z').toLocal();
+    final date = publishedAt
+        .toIso8601String()
+        .substring(0, 10)
+        .replaceAll('-', '.');
+    final time = publishedAt.toIso8601String().substring(11, 16);
+    final publicationDate = find.text('$date $time');
+    expect(publicationDate, findsOneWidget);
+    final preview = tester.widget<Text>(
+      find.text('수강신청 기간을 확인해 주세요. 학과 공지도 함께 확인해 주세요.'),
+    );
+    expect(preview.maxLines, 2);
+    expect(preview.overflow, TextOverflow.ellipsis);
+
+    await tester.tap(title);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('notice-detail-page')), findsOneWidget);
+    expect(publicationDate, findsOneWidget);
+    expect(findWhitespaceWrappedText(body), findsOneWidget);
+    expect(calls, 2);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('notice-list-page')), findsOneWidget);
   });
 
   testWidgets('students create, update, and delete inquiries from profile', (

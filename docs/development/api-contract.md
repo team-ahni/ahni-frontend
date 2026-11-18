@@ -4,10 +4,10 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: backend `feat/student-account-relink` at `63fc33a` (on `main` `45c5238`), adding student account relink requests (2026-11-07)
+- Backend source: `feat/notice-management` at `a27f2d0`, adding authenticated student notice lookup.
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `0b618f1d4d7043a28e12520f2994d8eae7cd2724e9373204c17470f43c718bdd`
+- Source SHA-256: `3ab66154a7a7cf946fe4850e2c055f4f012e39cdb74fb765f587b9650dc8723a`
 
 This snapshot adds `POST /api/v1/students/me/relink-requests` (`202`) for a recreated account whose registration returned `409 STUDENT_EMAIL_ALREADY_REGISTERED`.
 
@@ -26,6 +26,10 @@ new administrator routes do not change the mobile request/response formats.
 `GET /api/v1/course-recommendations?academicYear=&term=` returns read-only, rule-based course recommendations for a regular term (`FIRST`/`SECOND`; seasonal terms return `400 INVALID_REQUEST`). The timetable tab opens it for the selected semester. Reasons are `GRADUATION_REQUIRED`, `OVERDUE`, `RECOMMENDED_NOW`, and `RETAKE`; unknown values are rejected at the boundary. Deploy the backend before enabling this client.
 
 Inquiry attachment uploads must set the multipart part `Content-Type` (`image/jpeg`, `image/png`, or `application/pdf`); the backend rejects `application/octet-stream` with `UNSUPPORTED_INQUIRY_ATTACHMENT_TYPE`.
+
+The profile support section opens the published notice list with authenticated
+`GET /api/v1/notices`. The list displays the title, body preview, and publication
+date in server order. The detail screen uses the full text from the same response. Deploy the notice API before releasing this client.
 
 ## Update procedure
 

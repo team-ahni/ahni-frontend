@@ -5,6 +5,7 @@ import 'package:ahni_mobile/features/grade/application/grade_edit_controller.dar
 import 'package:ahni_mobile/features/grade/application/grade_list_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_registration_controller.dart';
 import 'package:ahni_mobile/features/grade/application/grade_simulation_controller.dart';
+import 'package:ahni_mobile/features/notice/data/notice_api.dart';
 import 'package:ahni_mobile/features/inquiry/application/inquiry_controller.dart';
 import 'package:ahni_mobile/features/timetable/application/timetable_controller.dart';
 import 'package:ahni_mobile/features/recommendation/application/course_recommendation_controller.dart';
@@ -28,6 +29,7 @@ class AhniApp extends StatelessWidget {
     required this.gradeRegistrationController,
     required this.gradeEditController,
     required this.inquiryController,
+    this.noticeApi,
     this.timetableController,
     this.recommendationController,
     this.introStore = const SeenIntroStore(),
@@ -44,6 +46,7 @@ class AhniApp extends StatelessWidget {
   final GradeRegistrationController gradeRegistrationController;
   final GradeEditController gradeEditController;
   final InquiryController inquiryController;
+  final NoticeApi? noticeApi;
   final TimetableController? timetableController;
   final CourseRecommendationController? recommendationController;
 
@@ -69,6 +72,7 @@ class AhniApp extends StatelessWidget {
           gradeRegistrationController: gradeRegistrationController,
           gradeEditController: gradeEditController,
           inquiryController: inquiryController,
+          noticeApi: noticeApi,
           timetableController: timetableController,
           recommendationController: recommendationController,
           // 개발 버전에서만 '내 정보'에 앱 소개 다시 보기 같은 개발자 도구를 보인다.
