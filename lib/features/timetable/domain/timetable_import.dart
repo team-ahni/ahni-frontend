@@ -111,12 +111,24 @@ TimetableImportPreview matchRegisteredSections(
     notFound: List.unmodifiable(notFound),
     conflicts: {
       for (final lecture in toAdd)
-        if (entries.where((e) => lecturesOverlap(e.lecture, lecture)).toList()
-            case final overlapping when overlapping.isNotEmpty)
+        if (overlappingEntries(entries, lecture) case final overlapping
+            when overlapping.isNotEmpty)
           lecture.entityId: List.unmodifiable(overlapping),
     },
   );
 }
+
+/// [lecture]와 시간이 겹치는 기존 항목. 강의를 바꿀 때는 바뀌는 항목([except])을 뺀다.
+/// 시간표에 강의를 넣는 모든 흐름이 같은 기준으로 겹침 확인 창을 띄우도록 한 곳에 둔다.
+List<TimetableEntry> overlappingEntries(
+  Iterable<TimetableEntry> entries,
+  Lecture lecture, {
+  String? except,
+}) => [
+  for (final entry in entries)
+    if (entry.entityId != except && lecturesOverlap(entry.lecture, lecture))
+      entry,
+];
 
 /// 같은 요일에 수업 시간이 조금이라도 겹치면 true. 서버의 겹침 판단과 같다.
 bool lecturesOverlap(Lecture a, Lecture b) => a.schedules.any(

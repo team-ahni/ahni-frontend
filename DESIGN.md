@@ -142,7 +142,7 @@ Surfaces are flat: no card shadows. Only status semantics may add colors beyond 
 ### Same situation, same pattern
 
 - One situation gets one UI pattern across every flow. Before building or fixing a flow, find where the app already handles the same situation and reuse that component; the second use is the moment to extract it.
-- Timetable overlap: every flow that puts a lecture into the timetable (single add, change, recommendation add, registration import) checks overlaps on the client and asks with `showTimetableConflictDialog` (`lib/features/timetable/presentation/timetable_conflict_dialog.dart`): an `old → new` list and two equal buttons on one row, `다시 선택하기 | 바꾸기`. Never a three-button vertical dialog, never an inline decision panel.
+- Timetable overlap: every flow that puts a lecture into the timetable (single add, change, recommendation add, registration import, transcript OCR add) checks overlaps on the client and asks with `showTimetableConflictDialog` (`lib/features/timetable/presentation/timetable_conflict_dialog.dart`): an `old → new` list and two equal buttons on one row, `다시 선택하기 | 바꾸기`. Never a three-button vertical dialog, never an inline decision panel.
 - Refusals that the client could not foresee (server errors) appear in a SnackBar, not in the page's load-error area.
 - Shared components for recurring situations (2026-11 audit):
   - Every confirmation: `showConfirmDialog` (`lib/core/presentation/confirm_dialog.dart`). Title is a question ("강의를 삭제할까요?"), two equal buttons on one row, back-off on the left and the action on the right; deletions pass `destructive` for the danger color.

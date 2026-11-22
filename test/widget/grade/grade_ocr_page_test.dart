@@ -90,6 +90,79 @@ void main() {
     expect(grades.registerCalls, 0);
   });
 
+  testWidgets(
+    'asks before replacing an overlapping lecture like the timetable',
+    (tester) async {
+      const overlapping = Lecture(
+        entityId: 'overlap',
+        courseCode: 'ABC1001',
+        courseName: '예시 과목',
+        credit: 3,
+        professorName: '이교수',
+        section: '003',
+        schedules: [
+          LectureSchedule(
+            entityId: 'overlap-schedule',
+            dayOfWeek: 1,
+            startTime: '10:00:00',
+            endTime: '11:30:00',
+          ),
+        ],
+      );
+      final timetable = FakeTimetableApi()
+        ..offered = [overlapping]
+        ..current = [
+          const TimetableEntry(entityId: 'existing', lecture: testLecture),
+        ];
+      final controller = GradeRegistrationController(
+        auth: FakeAuthGateway(currentSession: testSession),
+        api: FakeGradeApi(),
+        catalogApi: FakeCourseApi()..results = [course],
+        ocrApi: _OcrApi(pages: [registrationPage()]),
+        timetableApi: timetable,
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: GradeOcrPage(
+            controller: controller,
+            picker: () async => (
+              name: '예시.pdf',
+              bytes: Uint8List.fromList('%PDF-1.7'.codeUnits),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(const Key('ocr-pick-pdf')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('ocr-recognize')));
+      await tester.pumpAndSettle();
+      final add = find.text('시간표에 추가');
+      await tester.ensureVisible(add);
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('ocr-lecture-overlap')));
+      await tester.pumpAndSettle();
+
+      // 다시 선택하기는 아무것도 바꾸지 않고 분반 시트로 돌아간다.
+      expect(
+        find.byKey(const Key('timetable-conflict-dialog')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('timetable-conflict-retry')));
+      await tester.pumpAndSettle();
+      expect(timetable.savedLectureIds, isEmpty);
+      expect(timetable.deletedEntryIds, isEmpty);
+
+      await tester.tap(find.byKey(const ValueKey('ocr-lecture-overlap')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('timetable-conflict-replace')));
+      await tester.pumpAndSettle();
+      expect(timetable.deletedEntryIds, ['existing']);
+      expect(timetable.savedLectureIds, ['overlap']);
+      expect(find.text('해당 학기 시간표에 추가했어요.'), findsOneWidget);
+    },
+  );
+
   testWidgets('registers selected rows and reports changes when finishing', (
     tester,
   ) async {

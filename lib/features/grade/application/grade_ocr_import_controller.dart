@@ -268,9 +268,8 @@ class GradeOcrImportController extends ChangeNotifier {
     _notify();
   }
 
-  Future<({List<Lecture> lectures, Set<String> added})> timetableOptions(
-    OcrImportEntry entry,
-  ) async {
+  Future<({List<Lecture> lectures, List<TimetableEntry> entries})>
+  timetableOptions(OcrImportEntry entry) async {
     final api = _timetable;
     final code = entry.course?.code;
     final year = entry.candidate.academicYear;
@@ -296,17 +295,21 @@ class GradeOcrImportController extends ChangeNotifier {
       lectures: lectures
           .where((lecture) => lecture.courseCode == code)
           .toList(),
-      added: entries.map((entry) => entry.lecture.entityId).toSet(),
+      entries: entries,
     );
   }
 
-  Future<void> addToTimetable(Lecture lecture) async {
+  /// [replacing]은 확인 창에서 바꾸기로 한 겹치는 기존 강의다. 시간표 화면과 같이 빼고 넣는다.
+  Future<void> addToTimetable(
+    Lecture lecture, {
+    List<TimetableEntry> replacing = const [],
+  }) async {
     final api = _timetable;
     if (api == null) {
       throw const TimetableApiFailure('시간표에 추가할 수 없어요.');
     }
     final generation = _generation;
-    await api.save(_timetableToken(generation), lecture.entityId);
+    await api.replace(_timetableToken(generation), lecture, replacing);
     _timetableToken(generation);
   }
 
