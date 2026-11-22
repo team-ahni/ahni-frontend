@@ -11,7 +11,9 @@ import 'package:ahni_mobile/features/grade/data/grade_ocr_api.dart';
 import 'package:ahni_mobile/features/grade/domain/ocr_grade_candidate.dart';
 import 'package:ahni_mobile/features/timetable/data/timetable_api.dart';
 import 'package:ahni_mobile/features/timetable/domain/timetable.dart';
+import 'package:ahni_mobile/features/timetable/domain/timetable_import.dart';
 import 'package:ahni_mobile/features/timetable/presentation/lecture_card.dart';
+import 'package:ahni_mobile/features/timetable/presentation/timetable_conflict_dialog.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:ahni_mobile/core/presentation/app_message.dart';
 import 'package:flutter/material.dart';
@@ -64,43 +66,58 @@ class _GradeOcrPageState extends State<GradeOcrPage> {
         _timetableMessage('이 학기에 등록할 수 있는 분반이 없어요.');
         return;
       }
+      final added = {for (final item in options.entries) item.lecture.entityId};
       setState(() => _choosingTimetable = true);
       // 분반 고르기는 시간표의 강의 추가와 같은 시트·강의 카드로 보여 준다.
-      final lecture = await showModalBottomSheet<Lecture>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (sheetContext) => SingleChildScrollView(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            24,
-            24,
-            sheetBottomInset(sheetContext) + 24,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SheetHeader(
-                '${entry.candidate.academicYear}년 ${entry.candidate.term!.label} 분반 선택',
-              ),
-              const SizedBox(height: 16),
-              for (final lecture in options.lectures)
-                LectureCard(
-                  key: ValueKey('ocr-lecture-${lecture.entityId}'),
-                  lecture: lecture,
-                  alreadyAdded: options.added.contains(lecture.entityId),
-                  onTap: options.added.contains(lecture.entityId)
-                      ? null
-                      : () => Navigator.of(sheetContext).pop(lecture),
+      while (true) {
+        if (!mounted) return;
+        final picked = await showModalBottomSheet<Lecture>(
+          context: context,
+          isScrollControlled: true,
+          useSafeArea: true,
+          builder: (sheetContext) => SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(
+              24,
+              24,
+              24,
+              sheetBottomInset(sheetContext) + 24,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SheetHeader(
+                  '${entry.candidate.academicYear}년 ${entry.candidate.term!.label} 분반 선택',
                 ),
-            ],
+                const SizedBox(height: 16),
+                for (final lecture in options.lectures)
+                  LectureCard(
+                    key: ValueKey('ocr-lecture-${lecture.entityId}'),
+                    lecture: lecture,
+                    alreadyAdded: added.contains(lecture.entityId),
+                    onTap: added.contains(lecture.entityId)
+                        ? null
+                        : () => Navigator.of(sheetContext).pop(lecture),
+                  ),
+              ],
+            ),
           ),
-        ),
-      );
-      if (lecture == null || !mounted) return;
-      setState(() => _choosingTimetable = false);
-      await importer.addToTimetable(lecture);
-      _timetableMessage('해당 학기 시간표에 추가했어요.');
+        );
+        if (picked == null || !mounted) return;
+        // 시간표 화면의 강의 추가와 같은 겹침 확인 창. 다시 선택하기면 분반 시트로 돌아간다.
+        final conflicts = overlappingEntries(options.entries, picked);
+        if (conflicts.isNotEmpty) {
+          final replace = await showTimetableConflictDialog(context, [
+            for (final existing in conflicts)
+              (existing: existing, next: picked),
+          ]);
+          if (!mounted || replace == null) return;
+          if (!replace) continue;
+        }
+        setState(() => _choosingTimetable = false);
+        await importer.addToTimetable(picked, replacing: conflicts);
+        _timetableMessage('해당 학기 시간표에 추가했어요.');
+        return;
+      }
     } on TimetableApiFailure catch (error) {
       _timetableMessage(error.message);
     } finally {

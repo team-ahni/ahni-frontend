@@ -81,7 +81,7 @@ class TimetableController extends ChangeNotifier {
             if (removed.add(entry.entityId)) entry,
         ];
         try {
-          await _replaceWith(token, lecture, dropping);
+          await api.replace(token, lecture, dropping);
         } on TimetableApiFailure catch (failure) {
           if (failure.unauthorized) rethrow;
           failures.add((lecture: lecture, message: failure.message));
@@ -109,32 +109,8 @@ class TimetableController extends ChangeNotifier {
     List<TimetableEntry> overlapping, {
     String? entryId,
   }) => _mutate(
-    (token) => _replaceWith(token, lecture, overlapping, entryId: entryId),
+    (token) => api.replace(token, lecture, overlapping, entryId: entryId),
   );
-
-  /// [dropping]을 빼고 [lecture]를 넣는다. 거절되면 뺀 강의를 다시 넣고 거절을 그대로 던진다.
-  Future<void> _replaceWith(
-    String token,
-    Lecture lecture,
-    List<TimetableEntry> dropping, {
-    String? entryId,
-  }) async {
-    for (final entry in dropping) {
-      await api.delete(token, entry.entityId);
-    }
-    try {
-      await api.save(token, lecture.entityId, entryId: entryId);
-    } on TimetableApiFailure catch (failure) {
-      if (failure.unauthorized) rethrow;
-      for (final entry in dropping) {
-        // ponytail: 되돌리기 실패는 다시 불러온 시간표로만 드러난다. 잦으면 서버에 한 번에 바꾸는 API를 둔다.
-        try {
-          await api.save(token, entry.lecture.entityId);
-        } on TimetableApiFailure catch (_) {}
-      }
-      rethrow;
-    }
-  }
 
   Future<bool> delete(String entryId) =>
       _mutate((token) => api.delete(token, entryId));

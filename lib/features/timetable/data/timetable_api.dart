@@ -17,6 +17,36 @@ abstract interface class TimetableApi {
   Future<void> delete(String token, String entryId);
 }
 
+extension TimetableApiReplace on TimetableApi {
+  /// [dropping]을 빼고 [lecture]를 넣는다(변경이면 [entryId] 항목을 바꾼다).
+  /// 빼거나 넣다가 거절되면 이미 뺀 강의를 다시 넣어 시간표가 비지 않게 하고 거절을 그대로 던진다.
+  /// 시간표 화면과 성적표 가져오기가 같은 방식으로 겹치는 강의를 바꾸도록 한 곳에 둔다.
+  Future<void> replace(
+    String token,
+    Lecture lecture,
+    List<TimetableEntry> dropping, {
+    String? entryId,
+  }) async {
+    final removed = <TimetableEntry>[];
+    try {
+      for (final entry in dropping) {
+        await delete(token, entry.entityId);
+        removed.add(entry);
+      }
+      await save(token, lecture.entityId, entryId: entryId);
+    } on TimetableApiFailure catch (failure) {
+      if (failure.unauthorized) rethrow;
+      for (final entry in removed) {
+        // ponytail: 되돌리기 실패는 다시 불러온 시간표로만 드러난다. 잦으면 서버에 한 번에 바꾸는 API를 둔다.
+        try {
+          await save(token, entry.lecture.entityId);
+        } on TimetableApiFailure catch (_) {}
+      }
+      rethrow;
+    }
+  }
+}
+
 class HttpTimetableApi implements TimetableApi {
   HttpTimetableApi({required this.baseUri, required this.client});
   final Uri baseUri;

@@ -107,12 +107,11 @@ class _TimetablePageState extends State<TimetablePage> {
     );
     if (lecture == null || !mounted) return;
     // 수강신청 내역 가져오기와 같은 확인 창으로, 겹치면 바꿀지 다시 고를지 묻는다.
-    final overlapping = [
-      for (final item in controller.entries)
-        if (item.entityId != entry?.entityId &&
-            lecturesOverlap(item.lecture, lecture))
-          item,
-    ];
+    final overlapping = overlappingEntries(
+      controller.entries,
+      lecture,
+      except: entry?.entityId,
+    );
     if (overlapping.isNotEmpty) {
       final replace = await showTimetableConflictDialog(context, [
         for (final existing in overlapping) (existing: existing, next: lecture),
@@ -147,10 +146,7 @@ class _TimetablePageState extends State<TimetablePage> {
     BuildContext routeContext,
     Lecture lecture,
   ) async {
-    final overlapping = [
-      for (final item in controller.entries)
-        if (lecturesOverlap(item.lecture, lecture)) item,
-    ];
+    final overlapping = overlappingEntries(controller.entries, lecture);
     final bool added;
     if (overlapping.isEmpty) {
       added = await controller.save(lecture);

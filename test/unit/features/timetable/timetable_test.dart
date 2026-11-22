@@ -126,4 +126,29 @@ void main() {
     controller.dispose();
     await auth.dispose();
   });
+
+  test(
+    'puts back lectures already removed when a later removal fails',
+    () async {
+      final api = _FailingDeleteApi();
+      const first = TimetableEntry(entityId: 'first', lecture: testLecture);
+      const second = TimetableEntry(entityId: 'second', lecture: testLecture);
+
+      await expectLater(
+        api.replace('token', testLecture, [first, second]),
+        throwsA(isA<TimetableApiFailure>()),
+      );
+      expect(api.deletedEntryIds, ['first']);
+      // 새 강의는 넣지 않고, 이미 뺀 첫 강의만 다시 넣는다.
+      expect(api.savedLectureIds, [testLecture.entityId]);
+    },
+  );
+}
+
+class _FailingDeleteApi extends FakeTimetableApi {
+  @override
+  Future<void> delete(String token, String entryId) async {
+    if (entryId == 'second') throw const TimetableApiFailure('찾을 수 없어요.');
+    await super.delete(token, entryId);
+  }
 }
