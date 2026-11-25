@@ -19,8 +19,17 @@ class WhitespaceWrappedText extends StatelessWidget {
     this.style,
     this.textAlign,
     super.key,
+  }) : _spans = null;
+
+  const WhitespaceWrappedText.rich(
+    this.data,
+    this._spans, {
+    this.style,
+    this.textAlign,
+    super.key,
   });
 
+  final List<TextSpan>? _spans;
   final String data;
   final TextStyle? style;
   final TextAlign? textAlign;
@@ -38,6 +47,14 @@ class WhitespaceWrappedText extends StatelessWidget {
     final resolved = DefaultTextStyle.of(context).style.merge(style);
     final scaler = MediaQuery.textScalerOf(context);
     final space = _measure(' ', resolved, scaler);
+    if (_spans != null) {
+      return Semantics(
+        label: data,
+        child: ExcludeSemantics(
+          child: _RichLines(spans: _spans, style: resolved, space: space),
+        ),
+      );
+    }
     return Semantics(
       label: data,
       child: ExcludeSemantics(
@@ -159,5 +176,66 @@ class _Line extends StatelessWidget {
       }
     }
     return (high + 2).clamp(0, maxWidth).toDouble();
+  }
+}
+
+// Group styled fragments into whole words before wrapping, including words
+// whose formatting changes halfway through. Explicit newlines start new rows.
+class _RichLines extends StatelessWidget {
+  const _RichLines({
+    required this.spans,
+    required this.style,
+    required this.space,
+  });
+
+  final List<TextSpan> spans;
+  final TextStyle style;
+  final double space;
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = <List<List<TextSpan>>>[[]];
+    var word = <TextSpan>[];
+    void flushWord() {
+      if (word.isEmpty) return;
+      lines.last.add(word);
+      word = [];
+    }
+
+    for (final span in spans) {
+      final parts = RegExp(r'[^ \t\n]+|[ \t]+|\n').allMatches(span.text ?? '');
+      for (final match in parts) {
+        final part = match.group(0)!;
+        if (part == '\n') {
+          flushWord();
+          lines.add([]);
+        } else if (part.trim().isEmpty) {
+          flushWord();
+        } else {
+          word.add(TextSpan(text: part, style: span.style));
+        }
+      }
+    }
+    flushWord();
+    final strut = StrutStyle.fromTextStyle(style, forceStrutHeight: true);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final line in lines)
+          if (line.isEmpty)
+            Text(' ', style: style)
+          else
+            Wrap(
+              spacing: space,
+              children: [
+                for (final word in line)
+                  Text.rich(
+                    TextSpan(style: style, children: word),
+                    strutStyle: strut,
+                  ),
+              ],
+            ),
+      ],
+    );
   }
 }
