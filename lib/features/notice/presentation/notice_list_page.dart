@@ -2,6 +2,7 @@ import 'package:ahni_mobile/core/presentation/ahni_mascot.dart';
 import 'package:ahni_mobile/core/presentation/friendly_states.dart';
 import 'package:ahni_mobile/core/presentation/whitespace_wrapped_text.dart';
 import 'package:ahni_mobile/features/notice/data/notice_api.dart';
+import 'package:ahni_mobile/features/notice/presentation/notice_rich_body.dart';
 import 'package:flutter/material.dart';
 
 class NoticeListPage extends StatefulWidget {
@@ -82,7 +83,7 @@ class _NoticeListPageState extends State<NoticeListPage> {
                 itemCount: notices.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (context, index) =>
-                    _NoticeRow(notice: notices[index]),
+                    _NoticeRow(notice: notices[index], api: widget.api),
               );
             },
           ),
@@ -93,9 +94,10 @@ class _NoticeListPageState extends State<NoticeListPage> {
 }
 
 class _NoticeRow extends StatelessWidget {
-  const _NoticeRow({required this.notice});
+  const _NoticeRow({required this.notice, required this.api});
 
   final PublishedNotice notice;
+  final NoticeApi api;
 
   @override
   Widget build(BuildContext context) {
@@ -107,28 +109,47 @@ class _NoticeRow extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => Navigator.of(context).push<void>(
-          MaterialPageRoute(builder: (_) => _NoticeDetailPage(notice: notice)),
+          MaterialPageRoute(
+            builder: (_) => _NoticeDetailPage(notice: notice, api: api),
+          ),
         ),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              WhitespaceWrappedText(
-                notice.title,
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                preview,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    WhitespaceWrappedText(
+                      notice.title,
+                      style: theme.textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      preview,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _PublicationDate(notice.publishedAt),
+                  ],
                 ),
               ),
-              const SizedBox(height: 8),
-              _PublicationDate(notice.publishedAt),
+              if (notice.entityId != null &&
+                  notice.thumbnailImageId != null) ...[
+                const SizedBox(width: 12),
+                NoticeImageView(
+                  api: api,
+                  noticeId: notice.entityId!,
+                  imageId: notice.thumbnailImageId!,
+                  thumbnail: true,
+                ),
+              ],
             ],
           ),
         ),
@@ -138,9 +159,10 @@ class _NoticeRow extends StatelessWidget {
 }
 
 class _NoticeDetailPage extends StatelessWidget {
-  const _NoticeDetailPage({required this.notice});
+  const _NoticeDetailPage({required this.notice, required this.api});
 
   final PublishedNotice notice;
+  final NoticeApi api;
 
   @override
   Widget build(BuildContext context) {
@@ -165,10 +187,13 @@ class _NoticeDetailPage extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 12),
                   child: Divider(),
                 ),
-                WhitespaceWrappedText(
-                  notice.body,
-                  style: theme.textTheme.bodyLarge,
-                ),
+                if (notice.bodyJson != null)
+                  NoticeRichBody(notice: notice, api: api)
+                else
+                  WhitespaceWrappedText(
+                    notice.body,
+                    style: theme.textTheme.bodyLarge,
+                  ),
               ],
             ),
           ),
