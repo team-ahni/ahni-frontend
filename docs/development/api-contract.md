@@ -4,10 +4,10 @@ The backend-generated OpenAPI document is AHNI Mobile's only API contract. The a
 
 ## Current snapshot
 
-- Backend source: `feat/notice-rich-editor` at `320a670d5f36438ee5af10b4f0e3abae158b250a` with notice rich content and private inline images.
+- Backend source: `feat/primary-graduation-policies` at `81391b08bc5128c1d8bd545a20ed6abea2393e65` with separate foundation credits and evaluation-completeness fields.
 - OpenAPI title: `AHNI API`
 - OpenAPI version: `v1`
-- Source SHA-256: `2f5e8f454baadca20945235149ac849c849559798780976a869ef34aabbf2d14`
+- Source SHA-256: `14597778b50b4d210d190893f774bef8228bb39dc9261f2f36ee8491438835e0`
 
 This snapshot adds `POST /api/v1/students/me/relink-requests` (`202`) for a recreated account whose registration returned `409 STUDENT_EMAIL_ALREADY_REGISTERED`.
 
@@ -46,3 +46,5 @@ A backend API change is ready for mobile consumption only after the backend impl
 OCR 과목 조회는 `GET /api/v1/courses`의 활성 카탈로그를 한 번 받아 학수번호로 대조합니다. 과목 표시·확인을 위한 조회 기준이며 등록 가능 여부를 보장하지 않습니다. `POST /api/v1/grades` 및 연도·학기를 바꾸는 수정은 백엔드 `962d105`의 기존 정책대로 해당 학기 `lecture` 개설 여부를 검증합니다. 해당 학기의 개설 강의가 없는 과거 성적 등록은 현재 거절됩니다. 학생 소유권, 중복, 학점·등급 및 재수강 검증을 유지합니다. 수동 과목 검색도 기존 `/api/v1/lectures/courses`를 계속 사용합니다. 조회와 등록 기준 통합은 후속 작업입니다.
 
 Notice `bodyJson` is a nullable Tiptap document. Legacy notices use `body`. Photos are fetched through authenticated `/api/v1/notices/{noticeId}/images/{imageId}` (student) or `/api/v1/admin/notices/{noticeId}/images/{imageId}` (administrator), never public storage URLs. The admin saves new photos with the document in one multipart request. Deploy V34 and configure the private `notice-images` bucket before using rich notice writes.
+
+Graduation policies add optional minFoundationCredit and evaluationComplete response fields. New writes may send a separate foundation minimum; old updates that omit it preserve the current minimum. Graduation progress adds credits.foundation and evaluationComplete. If evaluationComplete is false, requirementsMet must be false and the client must show the incomplete-evaluation notice. Deploy V35 and the matching backend before relying on imported primary policies.

@@ -10,6 +10,53 @@ import '../support/onboarding_fakes.dart';
 import '../unit/graduation/graduation_test.dart' show policy, progress;
 
 void main() {
+  testWidgets('shows separate foundation and a pending evaluation notice', (
+    tester,
+  ) async {
+    final p = policy()..['evaluationComplete'] = false;
+    final result = progress();
+    (result['credits']! as Map<String, Object?>)['foundation'] = {
+      'required': 15,
+      'completed': 0,
+      'remaining': 15,
+      'met': false,
+    };
+    final controller = GraduationController(
+      auth: FakeAuthGateway(currentSession: testSession),
+      api: FakeGraduationApi()
+        ..results = [GraduationOverview.fromJson(p, result)],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GraduationPage(
+          controller: controller,
+          onAuthenticationRequired: () {},
+          bottomNavigationBar: const SizedBox.shrink(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is WhitespaceWrappedText && w.data.contains('일부 조건은 별도 확인'),
+      ),
+      findsOneWidget,
+    );
+    await tester.scrollUntilVisible(
+      find.byWidgetPredicate(
+        (w) => w is WhitespaceWrappedText && w.data == '전공기초 학점 (별도)',
+      ),
+      120,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (w) => w is WhitespaceWrappedText && w.data == '전공기초 학점 (별도)',
+      ),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'completion and category filters show only matching required courses',
     (tester) async {

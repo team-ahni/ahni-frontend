@@ -48,6 +48,27 @@ Map<String, Object?> progress() => {
 
 void main() {
   test(
+    'foundation is separate and incomplete rules cannot report completion',
+    () {
+      final p = policy()..['evaluationComplete'] = false;
+      final result = progress()..['requirementsMet'] = true;
+      final credits = result['credits']! as Map<String, Object?>;
+      credits['foundation'] = {
+        'required': 15,
+        'completed': 3,
+        'remaining': 12,
+        'met': false,
+      };
+      final overview = GraduationOverview.fromJson(p, result);
+      expect(overview.foundation.required, 15);
+      expect(overview.foundation.remaining, 12);
+      expect(overview.evaluationComplete, isFalse);
+      expect(overview.requirementsMet, isFalse);
+      expect(overview.creditsMet, isFalse);
+    },
+  );
+
+  test(
     'joins policies by identity and sends bearer to both endpoints',
     () async {
       final paths = <String>[];

@@ -160,13 +160,17 @@ class _OverviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           WhitespaceWrappedText(
-            item.requirementsMet
+            !item.evaluationComplete
+                ? '교양 선택과 대체 이수 등 일부 조건은 별도 확인이 필요해요. 표시된 학점만으로 졸업 충족을 확정하지 않아요.'
+                : item.requirementsMet
                 ? '등록된 학점·필수과목 기준을 모두 충족했어요.'
                 : '남은 학점과 필수과목을 확인해 주세요.',
           ),
           const SizedBox(height: 20),
           _CreditRow(label: '총 학점', credit: item.total),
           _CreditRow(label: '전공 학점', credit: item.department),
+          if (item.foundation.required > 0)
+            _CreditRow(label: '전공기초 학점 (별도)', credit: item.foundation),
           _CreditRow(label: '교양 학점', credit: item.general),
           _RequiredCourses(
             key: ValueKey(item.entityId),
@@ -303,7 +307,10 @@ class _CreditRow extends StatelessWidget {
           spacing: 8,
           runSpacing: 4,
           children: [
-            Text(label, style: Theme.of(context).textTheme.titleMedium),
+            WhitespaceWrappedText(
+              label,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             Text(
               '${_format(credit.completed)} / ${_format(credit.required)}학점',
             ),
