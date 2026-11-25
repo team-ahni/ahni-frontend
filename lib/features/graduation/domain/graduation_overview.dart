@@ -36,6 +36,13 @@ class GraduationOverview {
     required this.general,
     required this.requiredCourses,
     required this.requirementsMet,
+    this.foundation = const CreditProgress(
+      required: 0,
+      completed: 0,
+      remaining: 0,
+      met: true,
+    ),
+    this.evaluationComplete = true,
   });
   factory GraduationOverview.fromJson(
     Map<String, Object?> requirement,
@@ -91,7 +98,23 @@ class GraduationOverview {
       sourceTitle: requirement['sourceTitle']! as String,
       sourceUrl: requirement['sourceUrl'] as String?,
       requiredCourses: List.unmodifiable(courses),
-      requirementsMet: progress['requirementsMet']! as bool,
+      requirementsMet:
+          (progress['requirementsMet']! as bool) &&
+          requirement['evaluationComplete'] != false &&
+          progress['evaluationComplete'] != false,
+      evaluationComplete:
+          requirement['evaluationComplete'] != false &&
+          progress['evaluationComplete'] != false,
+      foundation: credits['foundation'] == null
+          ? const CreditProgress(
+              required: 0,
+              completed: 0,
+              remaining: 0,
+              met: true,
+            )
+          : CreditProgress.fromJson(
+              credits['foundation']! as Map<String, Object?>,
+            ),
       total: CreditProgress.fromJson(credits['total']! as Map<String, Object?>),
       department: CreditProgress.fromJson(
         credits['department']! as Map<String, Object?>,
@@ -112,7 +135,10 @@ class GraduationOverview {
   final CreditProgress general;
   final List<RequiredCourseCompletion> requiredCourses;
   final bool requirementsMet;
-  bool get creditsMet => total.met && department.met && general.met;
+  final CreditProgress foundation;
+  final bool evaluationComplete;
+  bool get creditsMet =>
+      total.met && department.met && foundation.met && general.met;
   String get majorLabel => switch (majorType) {
     'PRIMARY' => '주전공',
     'DOUBLE_MAJOR' => '복수전공',
